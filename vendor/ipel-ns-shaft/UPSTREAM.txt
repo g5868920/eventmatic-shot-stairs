@@ -1,0 +1,4 @@
+Pristine snapshot of https://github.com/iPel/NS-SHAFT
+Commit: 03a2b16660d328516fa8ff80d0428a56a1396f46 (2020-08-02)
+License: Apache-2.0 (see LICENSE in this folder)
+This folder is kept unmodified for baseline runs and diffing.

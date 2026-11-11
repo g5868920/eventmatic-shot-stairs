@@ -83,7 +83,7 @@ platform, and blinks by transparency during the usual 1 s after damage. No other
 |---|---|---|
 | 32 px | 16×32 | silhouettes and hair colour only; faces are a few pixels |
 | 40 px | 20×40 | hairstyles and outfits clear, faces suggested |
-| **48 px (default)** | 24×48 | eyes, blush and mouth visible; still narrower than the 26 px hitbox and 30 % of an 80 px platform; two players side by side do not overlap |
+| **48 px (default, approved by Eventmatic 2026-11-12)** | 24×48 | eyes, blush and mouth visible; still narrower than the 26 px hitbox and 30 % of an 80 px platform; two players side by side do not overlap |
 
 Known effect: a 48 px figure extends 22 px above the 26 px hitbox, so near the ceiling the head
 disappears into the spike strip a moment before ceiling damage registers (damage still uses the

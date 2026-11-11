@@ -1,5 +1,9 @@
 /**
- * author: pel
+ * SHOT the Stairs — game engine.
+ *
+ * Based on NS-SHAFT by iPel (https://github.com/iPel/NS-SHAFT, Apache-2.0),
+ * original author: pel. See NOTICE and docs/MODIFICATIONS.md for the list of
+ * changes. Lines touched by this project are marked with "SHOT:".
  */
 ;~function(global) {
 	'use strict';
@@ -18,6 +22,20 @@
 		for (var key in obj) {
 			if (obj.hasOwnProperty(key)) {
 				base[key] = obj[key]
+			}
+		}
+		return base;
+	}
+
+	// SHOT: recursive merge used for runtime configuration
+	function deepMerge(base, obj) {
+		for (var key in obj) {
+			if (!obj.hasOwnProperty(key)) continue;
+			var v = obj[key];
+			if (v && typeof v === 'object' && !Array.isArray(v) && base[key] && typeof base[key] === 'object') {
+				deepMerge(base[key], v);
+			} else {
+				base[key] = v;
 			}
 		}
 		return base;
@@ -116,7 +134,7 @@
 	/**
 	 * constant
 	 */
-	var MARGIN_TOP = 30;
+	var MARGIN_TOP = 44; // SHOT: was 30; the two-player HUD needs two text rows
 	var STAGE_WIDTH = 360, STAGE_HEIGHT = 480 + MARGIN_TOP;
 	var FLOOR_WIDTH = 100, FLOOR_HEIGHT = 12, FLOOR_DISTANCE = 60;
 	var SPRING_HEIGHT = FLOOR_HEIGHT - 4;
@@ -131,19 +149,42 @@
 	var ROLLING_VELOCITY = 0.1; // 传送带速度
 	var CONTROL_VELOCITY = 0.2; // 左右操作的速度
 	var MAX_ACTION_INTERVAL = 20;
+	var MAX_LIFE = 10; // SHOT: upstream hard-coded 10 in several places
+
+	/**
+	 * SHOT: configuration (defaults; window.SHOT_CONFIG and Game.configure() override)
+	 */
+	var CONFIG = {
+		players: {
+			p1: { label: '1P', keys: { left: 'ArrowLeft', right: 'ArrowRight' } },
+			p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyX' } }
+		},
+		beer: { spawnChance: 0.12, healAmount: 3, onlySafeFloors: true },
+		penalty: { floorsPerDrink: 10, roundUp: true, minDrinks: 1, maxDrinks: 10, compute: null, unit: 'shot', unitPlural: 'shots' },
+		text: {
+			loses: '{player} LOSES', draw: 'DRAW',
+			floors: '1P {p1} + 2P {p2} = {total} floors',
+			penalty: 'Penalty: {n} {unit}',
+			playAgain: 'play again', resume: 'continue'
+		}
+	};
+	if (global.SHOT_CONFIG) {
+		deepMerge(CONFIG, global.SHOT_CONFIG);
+	}
 
 	/**
 	 * var
 	 */
-	var floorArray, hero;
+	var floorArray, heroes; // SHOT: `hero` became `heroes` (array of two)
 	var $wrap, $canvas, $ctx, $res;
 	var lastTime;
 	var drawCountStartTime = 0, drawCount = 0, lastInterval = 0, lastDrawCount = 0;
 	var floorVelocity;
 	var score, bestScore = 0, level;
 	var isRunning = false, isCooldownTime = false;
-	var leftPressed = NaN, rightPressed = NaN, spacePressed = NaN;
+	var spacePressed = NaN;
 	var topBarChange = false;
+	var lastResult = null; // SHOT: result of the last finished round
 	// var timeCoefficient = 1, timeModifier = 0;
 
 	var FloorSeq = function() {
@@ -173,6 +214,7 @@
 		this.x = x || 0;
 		this.y = y || 0;
 		this.seq = FloorSeq.get();
+		this.beer = false; // SHOT: carries a beer mug pickup
 	}, {
 		draw : function(context) {
 			context.save();
@@ -191,11 +233,17 @@
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
 			hero.regain();
-			updateScore(this.seq);
+			onLand(hero, this); // SHOT: was updateScore(this.seq)
 		},
 		standing : function(hero, time) {
 		},
 		leaving : function(hero, time) {
+		},
+		// SHOT: beer mug drawn on top of the floor surface
+		drawBeer : function(context) {
+			if (this.beer) {
+				drawMug(context, this.x + FLOOR_WIDTH * 0.5 - 7, this.y - this.getHeight() - 15, 1.3);
+			}
 		}
 	});
 
@@ -237,7 +285,7 @@
 			this.spring = SPRING_HEIGHT;
 			hero.vy = floorVelocity;
 			hero.regain();
-			updateScore(this.seq);
+			onLand(hero, this);
 		},
 		standing : function(hero, time) {
 			var offset = time - this.touchTime;
@@ -312,7 +360,7 @@
 			hero.vy = floorVelocity;
 			hero.vx = ROLLING_VELOCITY;
 			hero.regain();
-			updateScore(this.seq);
+			onLand(hero, this);
 		},
 		leaving : function(hero, time) {
 			hero.vx = 0;
@@ -357,7 +405,7 @@
 			hero.vy = floorVelocity;
 			hero.vx = -ROLLING_VELOCITY;
 			hero.regain();
-			updateScore(this.seq);
+			onLand(hero, this);
 		},
 		leaving : function(hero, time) {
 			hero.vx = 0;
@@ -390,7 +438,7 @@
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
 			hero.hurt(4, time);
-			updateScore(this.seq);
+			onLand(hero, this);
 		}
 	}, Floor);
 
@@ -423,10 +471,13 @@
 			context.restore();
 		},
 		landing : function(hero, time) {
-			this.touchTime = time;
+			// SHOT: with two players a second landing must not restart a floor that is already turning
+			if (this.height >= FLOOR_HEIGHT) {
+				this.touchTime = time;
+			}
 			hero.vy = floorVelocity;
 			hero.regain();
-			updateScore(this.seq);
+			onLand(hero, this);
 		},
 		standing : function(hero, time) {
 			var offset = time - this.touchTime;
@@ -457,7 +508,18 @@
 		}
 	}, Floor);
 
-	var Hero = defineClass(function(x, y) {
+	// SHOT: Hero takes an options object: { id, label, keys, sprite }
+	var Hero = defineClass(function(x, y, opts) {
+		opts = opts || {};
+		this.id = opts.id || 'p1';
+		this.label = opts.label || '1P';
+		this.keys = opts.keys || { left: 'ArrowLeft', right: 'ArrowRight' };
+		this.sprite = opts.sprite || $res.hero;
+		this.color = opts.color || '#000';
+		this.leftPressed = false;
+		this.rightPressed = false;
+		this.floors = 0; // SHOT: deepest floor reached (floor seq)
+		this.beers = 0; // SHOT: beer mugs collected this round
 		this.x = x || 0;
 		this.y = y || 0;
 		this.width = HERO_WIDTH;
@@ -466,7 +528,7 @@
 		this.onFloor = null;
 		this.vx = 0;
 		this.vy = 0;
-		this.life = 10;
+		this.life = MAX_LIFE;
 		this.pos = {
 			standing : {
 				middle : [2],
@@ -501,6 +563,23 @@
 			}
 			this.direction = 0;
 		},
+		// SHOT: key state -> direction, same resolution rules as upstream (last key wins, release falls back)
+		press : function(side) {
+			if (side == 'left') { this.leftPressed = true; this.turnLeft(); }
+			else { this.rightPressed = true; this.turnRight(); }
+		},
+		release : function(side) {
+			if (side == 'left') {
+				this.leftPressed = false;
+				if (this.rightPressed) this.turnRight(); else this.stay();
+			} else {
+				this.rightPressed = false;
+				if (this.leftPressed) this.turnLeft(); else this.stay();
+			}
+		},
+		isDead : function() {
+			return this.y > STAGE_HEIGHT + this.height || this.life <= 0;
+		},
 		draw : function(context, time) {
 			context.save();
 			if (this.direction < 0) {
@@ -510,7 +589,7 @@
 				context.translate(this.x, this.y);
 			}
 
-			if (this.life < 10 && this.hurtTime > 0 && time - this.hurtTime < 1000) {
+			if (this.life < MAX_LIFE && this.hurtTime > 0 && time - this.hurtTime < 1000) {
 				if (this.blinkTime < this.hurtTime) {
 					this.blink = true;
 					this.blinkTime = time;
@@ -529,16 +608,21 @@
 				++this.frameIndex;
 			}
 			this.frameIndex = this.frameIndex % frames.length;
-			context.drawImage($res.hero,
+			context.drawImage(this.sprite,
 				frames[this.frameIndex], this.blink ? 32 : 2, 26, 26,
 				0, -this.height, this.width, this.height);
 			context.restore();
 		},
 		regain : function() {
-			if (this.life < 10) {
+			if (this.life < MAX_LIFE) {
 				++this.life;
 				topBarChange = true;
 			}
+		},
+		// SHOT: beer healing, independent from regain()
+		heal : function(num) {
+			this.life = Math.min(MAX_LIFE, this.life + num);
+			topBarChange = true;
 		},
 		hurt : function(num, time) {
 			this.hurtTime = time;
@@ -546,6 +630,76 @@
 			topBarChange = true;
 		}
 	});
+
+	/**
+	 * SHOT: beer mug pixel art (also used in the HUD)
+	 */
+	var MUG = [
+		'.wwwwwwww..',
+		'wwwwwwwwww.',
+		'#yyyyyyyy#.',
+		'#yyyyyyyy##',
+		'#yyyyyyyy#.#',
+		'#yyyyyyyy#.#',
+		'#yyyyyyyy##',
+		'#yyyyyyyy#.',
+		'#yyyyyyyy#.',
+		'.########..'
+	];
+	var MUG_COLORS = { 'w': '#fff', 'y': '#f5b400', '#': '#000' };
+	function drawMug(context, x, y, scale) {
+		scale = scale || 1;
+		context.save();
+		for (var r = 0; r < MUG.length; ++r) {
+			var row = MUG[r];
+			for (var c = 0; c < row.length; ++c) {
+				var ch = row.charAt(c);
+				if (ch == '.') continue;
+				context.fillStyle = MUG_COLORS[ch];
+				context.fillRect(x + c * scale, y + r * scale, scale, scale);
+			}
+		}
+		// outline for the foam so it reads on light backgrounds
+		context.fillStyle = '#000';
+		context.fillRect(x + 1 * scale, y, 8 * scale, 1);
+		context.fillRect(x, y + 1 * scale, 1, scale);
+		context.fillRect(x + 10 * scale - 1, y + 1 * scale, 1, scale);
+		context.restore();
+	}
+
+	/**
+	 * SHOT: make a recoloured copy of the hero sprite sheet for player 2
+	 */
+	function tintSprite(img, mapColor) {
+		var c = document.createElement('canvas');
+		c.width = img.width;
+		c.height = img.height;
+		var cx = c.getContext('2d');
+		cx.drawImage(img, 0, 0);
+		var data = cx.getImageData(0, 0, c.width, c.height);
+		var d = data.data;
+		for (var i = 0; i < d.length; i += 4) {
+			if (d[i + 3] == 0) continue;
+			var out = mapColor(d[i], d[i + 1], d[i + 2]);
+			if (out) { d[i] = out[0]; d[i + 1] = out[1]; d[i + 2] = out[2]; }
+		}
+		cx.putImageData(data, 0, 0);
+		return c;
+	}
+
+	function onLand(hero, floor) {
+		if (floor.seq > hero.floors) {
+			hero.floors = floor.seq;
+			topBarChange = true;
+		}
+		if (floor.beer) {
+			floor.beer = false;
+			hero.beers += 1;
+			hero.heal(CONFIG.beer.healAmount);
+			fireEvent('beer', hero.id, hero.life);
+		}
+		updateScore(floor.seq);
+	}
 
 	/**
 	 * action
@@ -582,6 +736,12 @@
 			} else {
 				newFloor = new SPRING(floorX, floorY);
 			}
+			// SHOT: random beer pickup
+			if (newFloor.seq > 0 && Math.random() < CONFIG.beer.spawnChance) {
+				if (!(CONFIG.beer.onlySafeFloors && newFloor instanceof ARROW_FLOOR)) {
+					newFloor.beer = true;
+				}
+			}
 			floorArray.push(newFloor);
 		}
 	}
@@ -599,7 +759,7 @@
 		}
 	}
 
-	function updateHeroHorizontalPostion(step, time) {
+	function updateHeroHorizontalPostion(hero, step, time) {
 		var velocity = hero.vx + hero.direction * CONTROL_VELOCITY;
 		if (velocity != 0) {
 			hero.x = Math.min(Math.max(0, hero.x + velocity * step), STAGE_WIDTH - HERO_WIDTH);
@@ -613,12 +773,16 @@
 		}
 	}
 
-	function updateAllVerticalPosition(step, time) {
+	// SHOT: floors move once per step; each hero is then resolved against them
+	function updateFloorsVerticalPosition(step) {
 		var floorDistance = step * floorVelocity;
 		for (var i = 0, len = floorArray.length; i < len; ++i) {
 			floorArray[i].y += floorDistance;
 		}
+		return floorDistance;
+	}
 
+	function updateHeroVerticalPosition(hero, step, time, floorDistance) {
 		if (hero.onFloor) {
 			var floor = hero.onFloor;
 			hero.y = floor.y - floor.getHeight();
@@ -650,14 +814,20 @@
 		}
 	}
 
+	// SHOT: the round ends as soon as any player is dead
 	function judge() {
-		if (hero == null || hero.y > STAGE_HEIGHT + hero.height || hero.life <= 0) {
+		if (!heroes || heroes.length == 0) {
 			return true;
+		}
+		for (var i = 0; i < heroes.length; ++i) {
+			if (heroes[i].isDead()) {
+				return true;
+			}
 		}
 		return false;
 	}
 
-	function checkHittingTop(time) {
+	function checkHittingTop(hero, time) {
 		if (hero.y - hero.height < /*ARROW_HEIGHT + */MARGIN_TOP) {
 			hero.y = /*ARROW_HEIGHT + */MARGIN_TOP + hero.height;
 			hero.vy = 0;
@@ -670,6 +840,12 @@
 		}
 	}
 
+	function fmt(template, map) {
+		return String(template).replace(/\{(\w+)\}/g, function(m, k) {
+			return map.hasOwnProperty(k) ? map[k] : m;
+		});
+	}
+
 	function drawAll(context, time) {
 		context.save();
 		context.beginPath();
@@ -678,8 +854,11 @@
 		context.drawImage($res.bg, 0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
 		for (var i = 0, len = floorArray.length; i < len; ++i) {
 			floorArray[i].draw(context, time);
+			floorArray[i].drawBeer(context);
 		}
-		hero.draw(context, time);
+		for (var h = 0; h < heroes.length; ++h) {
+			heroes[h].draw(context, time);
+		}
 		context.beginPath();
 		context.moveTo(0.5, MARGIN_TOP + 0.5);
 		for (var x = 0.5; x < STAGE_WIDTH; ) {
@@ -694,14 +873,21 @@
 		if (!isRunning) {
 			context.save();
 			context.translate(STAGE_WIDTH * 0.5, STAGE_HEIGHT * 0.5);
+			if (lastResult) {
+				// SHOT: end-of-round panel (loser, combined floors, penalty)
+				drawResultPanel(context, lastResult);
+				context.translate(0, 70);
+			}
 			if (isCooldownTime) {
-				context.textAlign = 'center';
-				context.font = 'bold 32pt monospace';
-				context.strokeStyle = '#fff';
-				context.lineWidth = 6;
-				context.strokeText('Game Over', 0, 10);
-				context.fillStyle = '#000';
-				context.fillText('Game Over', 0, 10);
+				if (!lastResult) {
+					context.textAlign = 'center';
+					context.font = 'bold 32pt monospace';
+					context.strokeStyle = '#fff';
+					context.lineWidth = 6;
+					context.strokeText('Game Over', 0, 10);
+					context.fillStyle = '#000';
+					context.fillText('Game Over', 0, 10);
+				}
 			} else {
 				if (!isFinite(spacePressed)) {
 					context.beginPath();
@@ -717,22 +903,15 @@
 				context.fillStyle = '#000';
 				context.font = 'bold 24pt monospace';
 				context.textAlign = 'center';
-				context.fillText(judge() ? 'play again' : 'continue', 0, 10);
+				context.fillText(judge() ? CONFIG.text.playAgain : CONFIG.text.resume, 0, 10);
 			}
 			context.restore();
 		}
 
 		context.restore();
 		
-		if (topBarChange) {
-			topBarChange = false;
-			context.save();
-			context.clearRect(0, 0, STAGE_WIDTH, MARGIN_TOP);
-			context.fillStyle = '#000';
-			context.font = '12pt monospace';
-			context.fillText('life: ' + 'oooooooooo----------'.substr(10 - hero.life, 10) + '  score: ' + score, 10, 24);
-			context.restore();
-		}
+		// SHOT: two-player HUD is redrawn every frame (cheap, avoids stale state)
+		drawTopBar(context);
 
 		if (window.DEBUG) {
 			context.save();
@@ -748,9 +927,82 @@
 		}
 	}
 
+	/**
+	 * SHOT: HUD — 2P LIFE on the left, 1P LIFE on the right,
+	 * each with a beer-mug ×N counter and the floor count below.
+	 */
+	function drawTopBar(context) {
+		topBarChange = false;
+		context.save();
+		context.clearRect(0, 0, STAGE_WIDTH, MARGIN_TOP);
+		context.fillStyle = '#fff';
+		context.fillRect(0, 0, STAGE_WIDTH, MARGIN_TOP);
+		context.font = 'bold 11px monospace';
+		context.textBaseline = 'alphabetic';
+		var blocks = [
+			{ hero: heroes[1], x: 8 },           // 2P on the left
+			{ hero: heroes[0], x: STAGE_WIDTH - 8 - 150 } // 1P on the right
+		];
+		for (var b = 0; b < blocks.length; ++b) {
+			var hero = blocks[b].hero;
+			if (!hero) continue;
+			var x = blocks[b].x;
+			// row 1: label + life cells
+			context.textAlign = 'left';
+			context.fillStyle = hero.color;
+			context.fillText(hero.label + ' LIFE', x, 16);
+			var cellX = x + 56;
+			for (var i = 0; i < MAX_LIFE; ++i) {
+				var cx = cellX + i * 9;
+				context.fillStyle = i < hero.life ? hero.color : '#fff';
+				context.fillRect(cx, 7, 7, 10);
+				context.strokeStyle = '#000';
+				context.lineWidth = 1;
+				context.strokeRect(cx + 0.5, 7.5, 6, 9);
+			}
+			// row 2: beer mug ×N and floors
+			drawMug(context, x, 22, 1.5);
+			context.fillStyle = '#000';
+			context.fillText('×' + hero.beers, x + 20, 36);
+			context.fillText('FLOOR ' + hero.floors, x + 56, 36);
+		}
+		context.restore();
+	}
+
+	// SHOT: end-of-round panel
+	function drawResultPanel(context, result) {
+		var cfg = CONFIG;
+		var title = result.loser ? fmt(cfg.text.loses, { player: result.loserLabel }) : cfg.text.draw;
+		var unit = result.penalty == 1 ? cfg.penalty.unit : cfg.penalty.unitPlural;
+		var lines = [
+			fmt(cfg.text.floors, { p1: result.floors.p1, p2: result.floors.p2, total: result.floors.total }),
+			fmt(cfg.text.penalty, { n: result.penalty, unit: unit })
+		];
+		context.save();
+		context.beginPath();
+		roundRect(context, -160, -120, 320, 150, 10);
+		context.fillStyle = 'rgba(255, 255, 255, 0.92)';
+		context.fill();
+		context.lineWidth = 3;
+		context.strokeStyle = '#000';
+		context.stroke();
+		context.textAlign = 'center';
+		context.fillStyle = result.loserColor || '#000';
+		context.font = 'bold 26pt monospace';
+		context.fillText(title, 0, -72);
+		context.fillStyle = '#000';
+		context.font = 'bold 13px monospace';
+		context.fillText(lines[0], 0, -36);
+		context.font = 'bold 18px monospace';
+		context.fillText(lines[1], 0, -6);
+		drawMug(context, -150, -118, 2);
+		drawMug(context, 128, -118, 2);
+		context.restore();
+	}
+
 	function updateScore(floorSeq) {
 		var newScore = Math.floor(floorSeq * 0.2);
-		if (newScore != score) {
+		if (newScore > score) { // SHOT: was !=, so a trailing player cannot lower the shared level
 			topBarChange = true;
 			var newLevel = Math.floor(newScore * 0.1);
 			if (newLevel > level) {
@@ -762,16 +1014,61 @@
 		}
 	}
 
+	// SHOT: penalty conversion, fully configurable
+	function computePenalty(totalFloors) {
+		var p = CONFIG.penalty;
+		if (typeof p.compute === 'function') {
+			return p.compute(totalFloors);
+		}
+		var raw = totalFloors / (p.floorsPerDrink || 1);
+		var n = p.roundUp ? Math.ceil(raw) : Math.floor(raw);
+		if (isFinite(p.maxDrinks)) n = Math.min(p.maxDrinks, n);
+		if (isFinite(p.minDrinks)) n = Math.max(p.minDrinks, n);
+		return n;
+	}
+
+	// SHOT: build the result of a finished round
+	function buildResult() {
+		var dead = heroes.filter(function(h) { return h.isDead(); });
+		var p1 = heroes[0], p2 = heroes[1];
+		var loser = dead.length == 1 ? dead[0] : null; // both dead in the same step: draw
+		var winner = loser ? (loser === p1 ? p2 : p1) : null;
+		var total = p1.floors + p2.floors;
+		return {
+			loser: loser ? loser.id : null,
+			loserLabel: loser ? loser.label : null,
+			loserColor: loser ? loser.color : null,
+			winner: winner ? winner.id : null,
+			draw: !loser,
+			floors: { p1: p1.floors, p2: p2.floors, total: total },
+			beers: { p1: p1.beers, p2: p2.beers },
+			life: { p1: p1.life, p2: p2.life },
+			penalty: computePenalty(total),
+			penaltyUnit: CONFIG.penalty.unit,
+			config: { floorsPerDrink: CONFIG.penalty.floorsPerDrink, beerHeal: CONFIG.beer.healAmount, beerChance: CONFIG.beer.spawnChance }
+		};
+	}
+
 	function loop(step, time) {
-		if (hero.onFloor) {
-			var floor = hero.onFloor;
-			floor.standing(hero, time);
+		for (var h = 0; h < heroes.length; ++h) {
+			var hero = heroes[h];
+			if (hero.onFloor) {
+				var floor = hero.onFloor;
+				floor.standing(hero, time);
+				// SHOT: a fake floor that finished turning under another player drops this one too
+				if (hero.onFloor && hero.onFloor.getHeight() <= 0) {
+					hero.onFloor = null;
+				}
+			}
 		}
 		generateFloor();
 		removeOutboundFloor();
-		updateHeroHorizontalPostion(step, time);
-		updateAllVerticalPosition(step, time);
-		checkHittingTop(time);
+		var floorDistance = updateFloorsVerticalPosition(step);
+		for (var i = 0; i < heroes.length; ++i) {
+			updateHeroHorizontalPostion(heroes[i], step, time);
+			updateHeroVerticalPosition(heroes[i], step, time, floorDistance);
+			checkHittingTop(heroes[i], time);
+		}
 		return judge();
 	}
 
@@ -804,7 +1101,9 @@
 					isCooldownTime = false;
 					drawAll($ctx, time);
 				}, 1000);
+				lastResult = buildResult(); // SHOT
 				bestScore = Math.max(score, bestScore);
+				fireEvent('roundEnd', lastResult); // SHOT
 				fireEvent('gameOver', score, bestScore);
 				isRunning = false;
 				window.addEventListener('touchmove', onMove, false);
@@ -828,6 +1127,7 @@
 		$canvas.height = STAGE_HEIGHT * zoomRate * ratio;
 		
 		$ctx.setTransform(zoomRate * ratio, 0, 0, zoomRate * ratio, 0, 0);
+		$ctx.imageSmoothingEnabled = false; // SHOT: keep pixel art crisp on large projector scales
 		topBarChange = true;
 		if (lastTime) {
 			drawAll($ctx, lastTime);
@@ -842,16 +1142,30 @@
 		}
 	}
 
+	// SHOT: map a KeyboardEvent to { hero, side } using the configured keys
+	function heroForKey(e) {
+		var code = e.code || '';
+		var legacy = { 37: 'ArrowLeft', 39: 'ArrowRight', 90: 'KeyZ', 88: 'KeyX' }[e.keyCode];
+		for (var i = 0; i < heroes.length; ++i) {
+			var k = heroes[i].keys;
+			if (code == k.left || legacy == k.left) return { hero: heroes[i], side: 'left' };
+			if (code == k.right || legacy == k.right) return { hero: heroes[i], side: 'right' };
+		}
+		return null;
+	}
+
 	function init(res) {
 		$res = res;
+		// SHOT: player 2 uses a blue/orange recolour of the same sprite sheet
+		$res.hero2 = tintSprite(res.hero, function(r, g, b) {
+			if (r < 90 && g < 90 && b < 90) return [26, 95, 208];   // black outline -> blue
+			if (r > 150 && g < 110 && b < 110) return [255, 140, 0]; // red hurt frame -> orange
+			return null;
+		});
 		$canvas = document.createElement('canvas');
-		// $canvas.width = STAGE_WIDTH;
-		// $canvas.height = STAGE_HEIGHT;
-		// $canvas.style.width = '0px';
-		// $canvas.style.height = '0px';
-		// $canvas.style.transition = 'width 0.5s, height 0.5s';
 		$canvas.style.display = 'block';
 		$canvas.style.margin = '0 auto';
+		$canvas.style.imageRendering = 'pixelated'; // SHOT
 		clearNode($wrap);
 		$wrap.appendChild($canvas);
 
@@ -869,14 +1183,9 @@
 
 		//regist control
 		window.addEventListener('keydown', function(e) {
-			if (e.keyCode == 37) { // left
-				leftPressed = 0;
-				hero.turnLeft();
-				e.preventDefault();
-				e.stopPropagation();
-			} else if (e.keyCode == 39) { // right
-				rightPressed = 0;
-				hero.turnRight();
+			var hit = heroForKey(e);
+			if (hit) {
+				if (!e.repeat) hit.hero.press(hit.side);
 				e.preventDefault();
 				e.stopPropagation();
 			} else if (e.keyCode == 32 || e.keyCode == 13) { // space or enter
@@ -889,25 +1198,23 @@
 			}
 		}, false);
 		window.addEventListener('keyup', function(e) {
-			if (e.keyCode == 37) {
-				leftPressed = NaN;
-				if (isFinite(rightPressed)) {
-					hero.turnRight();
-				} else {
-					hero.stay();
-				}
-			} else if (e.keyCode == 39) {
-				rightPressed = NaN;
-				if (isFinite(leftPressed)) {
-					hero.turnLeft();
-				} else {
-					hero.stay();
-				}
+			var hit = heroForKey(e);
+			if (hit) {
+				hit.hero.release(hit.side);
 			} else if (isFinite(spacePressed) && (e.keyCode == 32 || e.keyCode == 13)) {
 				spacePressed = NaN;
 				start();
 			}
 		}, false);
+		// SHOT: release every key when the window loses focus so nobody keeps sliding
+		window.addEventListener('blur', function() {
+			for (var i = 0; i < heroes.length; ++i) {
+				heroes[i].leftPressed = heroes[i].rightPressed = false;
+				heroes[i].stay();
+			}
+		}, false);
+		// Touch: left/right half of the screen drives player 1 (upstream behaviour)
+		var touchLeft = NaN, touchRight = NaN;
 		window.addEventListener('touchstart', function(e) {
 			var touch = e.changedTouches[0];
 			if (touch) {
@@ -917,63 +1224,57 @@
 						drawAll($ctx, lastTime);
 					}
 				} else if (touch.clientX < document.documentElement.clientWidth * 0.5) {
-					leftPressed = touch.identifier;
-					hero.turnLeft();
+					touchLeft = touch.identifier;
+					heroes[0].press('left');
 					e.preventDefault();
 					e.stopPropagation();
 				} else {
-					rightPressed = touch.identifier;
-					hero.turnRight();
+					touchRight = touch.identifier;
+					heroes[0].press('right');
 					e.preventDefault();
 					e.stopPropagation();
 				}
 			}
 		}, false);
-		window.addEventListener('touchend', function(e) {
+		var touchEnd = function(e) {
 			var touch = e.changedTouches[0];
 			if (touch) {
 				if (touch.identifier == spacePressed) {
 					spacePressed = NaN;
 					start();
-				} else if (touch.identifier == leftPressed) {
-					leftPressed = NaN;
-					if (isFinite(rightPressed)) {
-						hero.turnRight();
-					} else {
-						hero.stay();
-					}
-				} else if (touch.identifier == rightPressed) {
-					rightPressed = NaN;
-					if (isFinite(leftPressed)) {
-						hero.turnLeft();
-					} else {
-						hero.stay();
-					}
+				} else if (touch.identifier == touchLeft) {
+					touchLeft = NaN;
+					heroes[0].release('left');
+				} else if (touch.identifier == touchRight) {
+					touchRight = NaN;
+					heroes[0].release('right');
 				}
 			}
-		}, false);
-		window.addEventListener('touchcancel', function(e) {
-			var touch = e.changedTouches[0];
-			if (touch) {
-				if (touch.identifier == leftPressed) {
-					leftPressed = NaN;
-					if (isFinite(rightPressed)) {
-						hero.turnRight();
-					} else {
-						hero.stay();
-					}
-				} else if (touch.identifier == rightPressed) {
-					rightPressed = NaN;
-					if (isFinite(leftPressed)) {
-						hero.turnLeft();
-					} else {
-						hero.stay();
-					}
-				}
-			}
-		}, false);
+		};
+		window.addEventListener('touchend', touchEnd, false);
+		window.addEventListener('touchcancel', touchEnd, false);
 		//start loop
 		start();
+	}
+
+	// SHOT: extracted from start() so Game.reset() can rebuild the round in place
+	function createWorld() {
+		fireEvent('gameStart');
+		//create world
+		FloorSeq.reset();
+		floorArray = [];
+		lastResult = null;
+		// SHOT: two heroes, both standing on the centred starting floor
+		var floorX = (STAGE_WIDTH - FLOOR_WIDTH) * 0.5;
+		var startY = STAGE_HEIGHT - FLOOR_DISTANCE;
+		heroes = [
+			new Hero(floorX + 8, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#000' }),
+			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 8, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#1a5fd0' })
+		];
+		floorVelocity = FLOOR_VELOCITY_BASE;
+		score = 0;
+		level = 0;
+		topBarChange = true;
 	}
 
 	function start() {
@@ -981,15 +1282,7 @@
 			return;
 		}
 		if (judge()) {
-			fireEvent('gameStart');
-			//create world
-			FloorSeq.reset();
-			floorArray = [];
-			hero = new Hero((STAGE_WIDTH - HERO_WIDTH) * 0.5, STAGE_HEIGHT - FLOOR_DISTANCE);
-			floorVelocity = FLOOR_VELOCITY_BASE;
-			score = 0;
-			level = 0;
-			topBarChange = true;
+			createWorld();
 		}
 		window.removeEventListener('touchmove', onMove, false);
 		isRunning = true;
@@ -1008,5 +1301,40 @@
 
 	Game.on = onEvent;
 	Game.off = offEvent;
+
+	// SHOT: minimal integration surface (see docs/INTEGRATION.md)
+	Game.configure = function(partial) {
+		deepMerge(CONFIG, partial || {});
+		return CONFIG;
+	};
+	Game.getConfig = function() {
+		return CONFIG;
+	};
+	Game.start = function() {
+		start();
+	};
+	Game.reset = function() {
+		// abort whatever is going on and begin a fresh round
+		isCooldownTime = false;
+		createWorld();
+		if (!isRunning) {
+			start();
+		}
+	};
+	Game.getState = function() {
+		return {
+			running: isRunning,
+			players: (heroes || []).map(function(h) {
+				return { id: h.id, label: h.label, life: h.life, floors: h.floors, beers: h.beers, alive: !h.isDead() };
+			}),
+			lastResult: lastResult
+		};
+	};
+	Game.computePenalty = computePenalty;
+	// SHOT: live world objects for automated tests / debugging only (not part of the integration API)
+	Game._debugFrame = function(time) { frame(time); }; // drive one frame with a synthetic clock
+	Game._debugWorld = function() {
+		return { floors: floorArray, heroes: heroes, marginTop: MARGIN_TOP, stageWidth: STAGE_WIDTH, stageHeight: STAGE_HEIGHT, floorWidth: FLOOR_WIDTH, heroWidth: HERO_WIDTH };
+	};
 
 }(window);

@@ -1,0 +1,21 @@
+SHOT the Stairs (eventmatic-shot-stairs)
+
+This product includes software developed by iPel:
+  NS-SHAFT — https://github.com/iPel/NS-SHAFT
+  Copyright (c) iPel ("pel")
+  Licensed under the Apache License, Version 2.0 (see LICENSE)
+  Upstream snapshot: commit 03a2b16660d328516fa8ff80d0428a56a1396f46 (2020-08-02),
+  kept unmodified under vendor/ipel-ns-shaft/.
+
+Modifications for SHOT the Stairs (two-player mode, beer pickups, floor
+tracking, penalty screen, configuration and integration surface) are
+Copyright (c) 2026 Eventmatic and are released under the same Apache
+License, Version 2.0. A list of changes is in docs/MODIFICATIONS.md, and
+every changed region in game.js is marked with a "SHOT:" comment.
+
+Assets:
+  bg.png, led.png, icon.png — from the upstream repository (Apache-2.0 as
+  distributed by iPel; see docs/LICENSES.md for the provenance audit).
+  The beer-mug icon and the player-2 colour variant are generated in code
+  by this project (no third-party image files were added).
+  No audio or font files are shipped; text uses the browser's monospace font.

@@ -95,4 +95,4 @@ Estimated size: ~400 lines of sprite data + ~250 lines of drawing code; engine d
 * **Character scale**: visible figure widened from 19 to 22 px within the 32-px frame (docs/PROPORTIONS.md); collision box unchanged.
 * **HUD counter**: shows `computePenalty(p1.floors + p2.floors)` every frame; at round end it equals the panel's penalty (verified 96 floors → 10 on both). Beer pickups heal only: a pickup with floors held constant left the counter unchanged. Note the configured `minDrinks: 1` makes the counter read ×1 from the first frame; set `minDrinks: 0` for a counter that starts at 0.
 * Acceptance screenshots: `docs/reference/acceptance/01-start.png`, `02-midgame.png`, `03a-beer-before.png`, `03b-beer-after.png`, `04-round-end.png`.
-
+* **Platform width** narrowed to 64 px on Eventmatic's decision (2026-11-12) after the proportions review; sprites regenerated, start positions adjusted so both kids fit on the start floor without overlapping.

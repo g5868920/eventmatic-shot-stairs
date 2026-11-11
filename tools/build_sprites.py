@@ -357,7 +357,7 @@ MUG_PAL = dict(w='#ffffff', K='#3a2410', G='#c88a2a', y='#ffc428', Y='#ffd860', 
 
 
 # ---------------------------------------------------------------- platforms
-FW, FH, SPIKE_H = 100, 12, 15
+FW, FH, SPIKE_H = 64, 12, 15   # platform width must match FLOOR_WIDTH in game.js
 
 
 def build_stone():
@@ -367,8 +367,8 @@ def build_stone():
         x, y, t = r.randrange(FW), r.randrange(FH), r.random()
         c = '#b39b74' if t < 0.45 else ('#e2d2ae' if t < 0.8 else '#9c845e')
         img.rect(x, y, 1 + r.randrange(2), 1, hexc(c))
-    for _ in range(5):  # small cracks
-        x, y = r.randrange(5, FW - 8), r.randrange(2, FH - 3)
+    for _ in range(4):  # small cracks
+        x, y = r.randrange(4, FW - 8), r.randrange(2, FH - 3)
         for k in range(r.randrange(3, 6)):
             img.set(x + k, y + (k % 2), hexc('#7a6448'))
     img.rect(0, 0, FW, 1, hexc('#efe3c4'))
@@ -378,7 +378,7 @@ def build_stone():
     return img
 
 
-def build_blue_brick(w=FW, h=FH, seed=11, bw=14, bh=6):
+def build_blue_brick(w=FW, h=FH, seed=11, bw=16, bh=6):
     r = random.Random(seed)
     img = Img(w, h, hexc('#2c3a8c'))
     row, y = 0, 0
@@ -402,12 +402,12 @@ def build_steel_base():
     img.rect(0, 0, FW, 1, hexc('#9a9cb4')); img.rect(0, 1, FW, 1, hexc('#8486a0'))
     img.rect(0, FH - 2, FW, 1, hexc('#4a4c60')); img.rect(0, FH - 1, FW, 1, hexc('#2c2e3c'))
     img.rect(0, 0, 1, FH, hexc('#2c2e3c')); img.rect(FW - 1, 0, 1, FH, hexc('#2c2e3c'))
-    for x in range(6, FW, 12):
+    for x in range(5, FW, 9):
         img.set(x, FH // 2, hexc('#c0c2d8')); img.set(x + 1, FH // 2 + 1, hexc('#3c3e50'))
     return img
 
 
-def build_spikes(w=FW, h=SPIKE_H, pitch=10):
+def build_spikes(w=FW, h=SPIKE_H, pitch=8):
     img = Img(w, h)
     x = 0
     while x + pitch <= w:
@@ -465,7 +465,7 @@ def build_conveyor(direction):
         for x in range(0, belt, 8):
             sx = (x + shift) % belt
             img.rect(12 + sx, 4, min(3, belt - sx), FH - 8, hexc('#7a7c96'))
-        for a in ([38, 52] if direction > 0 else [46, 60]):
+        for a in ([22, 34] if direction > 0 else [28, 40]):
             for k in range(3):
                 span = k if direction > 0 else 2 - k
                 img.set(a + span, 3 + k, hexc('#ffffff')); img.set(a + span, FH - 4 - k, hexc('#ffffff'))
@@ -487,14 +487,14 @@ def build_spring():
         img = Img(FW, SPRING_MAX)
         top = SPRING_MAX - height  # draw bottom-aligned
         inner = height - 4
-        cx = 8
+        cx = 5
         while cx + 14 <= FW:
             for k in range(inner):
                 t = k / max(1, inner - 1)
                 lx, rx = round(cx + t * 12), round(cx + 12 - t * 12)
                 img.rect(lx, top + 2 + k, 2, 1, hexc('#d4d8ec'))
                 img.rect(rx, top + 2 + k, 2, 1, hexc('#8c90a8'))
-            cx += 20
+            cx += 18
         img.rect(0, top, FW, 2, hexc('#2fd04a')); img.rect(0, top, FW, 1, hexc('#8cff9c'))
         img.rect(0, SPRING_MAX - 2, FW, 2, hexc('#2fd04a')); img.rect(0, SPRING_MAX - 1, FW, 1, hexc('#1a8a30'))
         img.rect(0, top, 1, height, hexc('#146024')); img.rect(FW - 1, top, 1, height, hexc('#146024'))

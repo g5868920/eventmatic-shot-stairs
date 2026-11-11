@@ -138,7 +138,7 @@
 	var STAGE_WIDTH = 360, STAGE_HEIGHT = 480 + MARGIN_TOP; // playable area, unchanged from upstream
 	var WALL_WIDTH = 18; // SHOT: decorative brick walls drawn OUTSIDE the playable area
 	var VIEW_WIDTH = STAGE_WIDTH + 2 * WALL_WIDTH; // SHOT: canvas width
-	var FLOOR_WIDTH = 100, FLOOR_HEIGHT = 12, FLOOR_DISTANCE = 60;
+	var FLOOR_WIDTH = 64, FLOOR_HEIGHT = 12, FLOOR_DISTANCE = 60; // SHOT: FLOOR_WIDTH was 100; 64 approved by Eventmatic to match the reference's platform:spacing ratio
 	var SPRING_HEIGHT = FLOOR_HEIGHT - 4;
 	var HERO_WIDTH = 26;
 	var ARROW_HEIGHT = 15, ARROW_WIDTH = 5; // 钉子尺寸
@@ -1143,8 +1143,8 @@
 		var startFloorY = FLOOR_DISTANCE * Math.floor(STAGE_HEIGHT / FLOOR_DISTANCE);
 		var startY = startFloorY - FLOOR_HEIGHT - 16;
 		heroes = [
-			new Hero(floorX + 8, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#ff5fb0' }),
-			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 8, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#39d47c' })
+			new Hero(floorX + 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#ff5fb0' }),
+			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#39d47c' })
 		];
 		floorVelocity = FLOOR_VELOCITY_BASE;
 		score = 0;

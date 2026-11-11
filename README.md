@@ -25,7 +25,7 @@ Space / Enter starts, resumes or restarts.
 
 ## Rules (unchanged from the original except where noted)
 
-* Floors rise; walk off the edge to fall to the next one. Spiked ceiling −5 life, spike floor −4, every safe landing +1 (max 10). Spring, conveyor and flipping floors behave as in the original.
+* Floors rise; walk off the edge to fall to the next one. Platforms are 64 px wide (upstream 100) to match the reference's proportions. Spiked ceiling −5 life, spike floor −4, every safe landing +1 (max 10). Spring, conveyor and flipping floors behave as in the original.
 * **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
 * **HUD** : 2P LIFE left, 1P LIFE right (12 segments), and in the centre a beer mug × the accumulated penalty units computed from `1P floors + 2P floors` with `penalty.floorsPerDrink` (rounding, min/max and unit configurable, or a custom formula).
 * **Round end** (new): the first player to die loses. The panel shows the loser, `1P a + 2P b = total floors` and the penalty. Both dead in the same step = draw.

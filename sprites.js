@@ -142,13 +142,15 @@
       /** draw conveyor frame f (0..3) with its bottom edge at (x, y) */
       drawConveyor: function (ctx, dir, f, x, y) {
         var sheet = dir > 0 ? img.conveyorRight : img.conveyorLeft;
-        ctx.drawImage(sheet, 0, (f & 3) * 12, 100, 12, Math.round(x), Math.round(y) - 12, 100, 12);
+        var w = sheet.width;
+        ctx.drawImage(sheet, 0, (f & 3) * 12, w, 12, Math.round(x), Math.round(y) - 12, w, 12);
       },
       /** draw the spring at its current height (bottom edge at y) */
       drawSpring: function (ctx, x, y, height) {
         var h = Math.max(SPRING_MIN, Math.min(SPRING_MAX, Math.round(height)));
         var fi = h - SPRING_MIN;
-        ctx.drawImage(img.spring, 0, fi * SPRING_MAX, 100, SPRING_MAX, Math.round(x), Math.round(y) - SPRING_MAX, 100, SPRING_MAX);
+        var w = img.spring.width;
+        ctx.drawImage(img.spring, 0, fi * SPRING_MAX, w, SPRING_MAX, Math.round(x), Math.round(y) - SPRING_MAX, w, SPRING_MAX);
       },
       drawFloor: function (ctx, sheet, x, y) {
         ctx.drawImage(sheet, Math.round(x), Math.round(y) - 12);
@@ -157,7 +159,7 @@
       drawFloorClipped: function (ctx, sheet, x, y, height) {
         var h = Math.max(0, Math.min(12, Math.round(height)));
         if (h <= 0) return;
-        ctx.drawImage(sheet, 0, 12 - h, 100, h, Math.round(x), Math.round(y) - h, 100, h);
+        ctx.drawImage(sheet, 0, 12 - h, sheet.width, h, Math.round(x), Math.round(y) - h, sheet.width, h);
       }
     };
     return S;

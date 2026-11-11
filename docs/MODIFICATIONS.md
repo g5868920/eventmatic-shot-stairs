@@ -6,7 +6,7 @@ Modified engine: `game.js` (was `main.js`). Every changed region carries a `// S
 
 ## Preserved unchanged
 
-* Stage size (360×480 playfield), floor size/spacing, gravity, control speed, conveyor speed, spring timing, fake-floor timing, floor generation odds (50 % normal, 10 % each of fake / spike / conveyor-left / conveyor-right / spring), ceiling spikes.
+* Stage size (360×480 playfield), floor height and spacing (width: see below), gravity, control speed, conveyor speed, spring timing, fake-floor timing, floor generation odds (50 % normal, 10 % each of fake / spike / conveyor-left / conveyor-right / spring), ceiling spikes.
 * Life model: 10 bars, ceiling −5, spike floor −4, +1 on every non-spike landing, hurt blink. Fall off the bottom = dead.
 * Difficulty: floor speed +10 % per level, one level every 50 floors (upstream formula kept verbatim).
 * 20 ms physics sub-stepping, pause-on-tab-hidden, "continue" / "play again" button, Space/Enter to start, canvas auto-scaling to the window, touch controls.
@@ -28,16 +28,17 @@ Modified engine: `game.js` (was `main.js`). Every changed region carries a `// S
 | HUD | Top bar is 52 px (was 30). "2P LIFE" left, "1P LIFE" right in a pink pixel font, 12 yellow pips over a red baseline, centre mug × accumulated penalty units (`computePenalty(p1.floors + p2.floors)`). Redrawn every frame. |
 | Rendering | Whole visual layer replaced with original pixel-art PNG sheets (`assets/`, built by `tools/build_sprites.py`, loaded by `sprites.js`): purple playfield, blue brick walls drawn *outside* the 360-px playable area (canvas 396 px, playfield translated by `WALL_WIDTH`), white ceiling spikes, stone / blue-brick / steel-spike / conveyor / spring platform skins, two capped-kid character sheets (256×64, eight 32×32 frames; drawn around the unchanged 26-px collision box), PNG beer mug, pixel-font HUD and result panel. Skins are mapped from mechanics in `config.skins` and never change behaviour. `imageSmoothingEnabled=false` + `image-rendering: pixelated`. Upstream `bg.png`/`led.png` are no longer used. |
 | Life | `MAX_LIFE = 12` (upstream 10) to match the reference's 12 segments. Ceiling −5, spike −4, +1 per safe landing unchanged. |
+| Platform width | `FLOOR_WIDTH = 64` (upstream 100), approved by Eventmatic on 2026-11-12 to match the reference's platform-to-spacing ratio (docs/PROPORTIONS.md). Platform sprites regenerated at 64 px; spawn range follows (x ∈ [0, 296]). Spacing, odds, speeds and damage unchanged. |
 | API | `Game.configure/getConfig/start/reset/getState/computePenalty`, `Game.on('roundEnd'|'beer'|'gameStart')`; `Game._debugFrame/_debugWorld` for tests. `window.ShotStairs` wrapper in `eventmatic-bridge.js`. |
 | Config | `config.js` (`window.SHOT_CONFIG`) with URL-parameter overrides. |
 
 ## Known differences from the reference / open items
 
-* Compared in `docs/reference/side-by-side-final.png`. Platforms are 100 px of the 360-px playfield (28 %) while the reference's are about 18 % of its width, which follows from upstream's `FLOOR_WIDTH` collision constant, deliberately left untouched. The kids are drawn in 32-px frames around the 26-px `HERO_WIDTH` box (visible figure 22×28 px), matching the reference's child-width-to-platform ratio (0.22 vs 0.23) without touching collisions.
-* Floor x spawn range changed from upstream's [−50, 310] to [0, 260] so every platform lies fully inside the 360-px play area (Eventmatic P0, 2026-11-12). Platform width, spacing, odds and physics are unchanged.
+* Compared in `docs/reference/side-by-side-final.png`. Platforms are now 64 px of the 360-px playfield (18 %), matching the reference's ≈ 18 %. The kids are drawn in 32-px frames around the 26-px `HERO_WIDTH` box (visible figure 22×28 px), matching the reference's child-width-to-platform ratio (0.22 vs 0.23) without touching collisions.
+* Floor x spawn range changed from upstream's [−50, 310] to [0, STAGE_WIDTH − FLOOR_WIDTH] so every platform lies fully inside the 360-px play area (Eventmatic P0, 2026-11-12). Platform width, spacing, odds and physics are unchanged.
 * Hero spawn height is now derived from the start floor (upstream used `STAGE_HEIGHT - FLOOR_DISTANCE`, which with the 52-px HUD band put the heroes 4 px *inside* the start floor so they fell through it on round start).
 * The frame loop clamps a negative time delta to zero (only reachable with synthetic test clocks).
-* See docs/PROPORTIONS.md for the measured reference-vs-build ratios; the remaining structural difference is upstream's 100-px platforms on 60-px spacing.
+* See docs/PROPORTIONS.md for the measured reference-vs-build ratios.
 * Skin mapping per Eventmatic: blue brick = stable normal floor (`config.skins.normal`), beige/brown stone = upstream flipping floor (`config.skins.fake`). While the flipping floor turns, the solid part keeps the stone skin and the turned part is drawn faded.
 * Colours are estimated from projector photos; the HUD font is an original 5×7 pixel font, not the reference's.
 * A single shared cooldown of 1 s before "play again" is accepted (upstream behaviour).

@@ -121,9 +121,8 @@
     var floor0 = s.p2.onFloor;
     press('p1', 'right');
     var leftAt = null;
-    step(30, function (i) { if (leftAt === null && !s.p2.onFloor) { leftAt = (i + 1) * 20; release('p1', 'right'); } });
+    for (var i = 0; i < 30 && leftAt === null; i++) { step(1); if (!s.p2.onFloor) leftAt = (i + 1) * 20; } // stop as soon as 2P leaves
     release('p1', 'right');
-    // already a few frames into the fall; restart the measurement from now
     var yLeave = s.p2.y, maxDrop = 0, backOnOld = false;
     step(12, function () { maxDrop = Math.max(maxDrop, s.p2.y - yLeave); if (s.p2.onFloor === floor0) backOnOld = true; });
     check('pushed off the edge, falls', leftAt !== null && maxDrop > 8 && !backOnOld,

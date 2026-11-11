@@ -168,6 +168,9 @@
 		// SHOT: visual skins per mechanic; appearance only, never changes behaviour
 		skins: { normal: 'blueBrick', spring: 'spring', conveyorLeft: 'conveyorLeft', conveyorRight: 'conveyorRight', spike: 'steelSpikes', fake: 'stone' },
 		sprites: {}, // manifest overrides, e.g. { kidP1: 'skins/alice.png' }
+		// SHOT: character skin (visual only). 'classic' = default kids, 'custom' = portrait sprites from
+		// assets/characters/custom (see docs/CHARACTERS.md). Applied at page load.
+		characterSkin: { mode: 'classic', height: 48, p1: 'rae', p2: 'gina', flip: true },
 		penalty: { floorsPerStep: 10, shotsPerStep: 0.5, maxShots: null, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {
 			loses: '{player} LOSES', draw: 'DRAW',
@@ -427,6 +430,8 @@
 		this.label = opts.label || '1P';
 		this.keys = opts.keys || { left: 'ArrowLeft', right: 'ArrowRight' };
 		this.sprite = opts.sprite || $S.images.kidP1;
+		this.skin = opts.skin || null; // SHOT: custom portrait { img, w, h, anchorX, flip } (visual only)
+		this.facing = 1; // SHOT: last horizontal facing, used by custom skins so idle does not snap back
 		this.color = opts.color || '#000';
 		this.leftPressed = false;
 		this.rightPressed = false;
@@ -494,6 +499,10 @@
 			return this.y > STAGE_HEIGHT + this.height || this.life <= 0;
 		},
 		draw : function(context, time) {
+			if (this.skin) { // SHOT: custom portrait skin
+				this.drawSkin(context, time);
+				return;
+			}
 			context.save();
 			if (this.direction < 0) {
 				context.scale(-1, 1);
@@ -525,6 +534,41 @@
 			context.drawImage(this.sprite,
 				frames[this.frameIndex] * SPRITE_FRAME, this.blink ? SPRITE_FRAME : 0, SPRITE_FRAME, SPRITE_FRAME,
 				-(SPRITE_FRAME - this.width) / 2, -SPRITE_FRAME, SPRITE_FRAME, SPRITE_FRAME);
+			context.restore();
+		},
+		/**
+		 * SHOT: draw a static custom portrait over the unchanged collision box: centred on its foot
+		 * anchor, feet on the box bottom, mirrored for the last facing (optional), a 1 px step bob
+		 * while walking on a floor and the usual 1 s hurt blink (as transparency). No scaling.
+		 */
+		drawSkin : function(context, time) {
+			var sk = this.skin;
+			if (this.direction != 0) {
+				this.facing = this.direction;
+			}
+			if (this.life < MAX_LIFE && this.hurtTime > 0 && time - this.hurtTime < 1000) {
+				if (this.blinkTime < this.hurtTime) {
+					this.blink = true;
+					this.blinkTime = time;
+				} else if (time - this.blinkTime >= 100) {
+					this.blink = !this.blink;
+					this.blinkTime = time;
+				}
+			} else if (this.blink) {
+				this.blink = false;
+			}
+			var bob = (this.onFloor && this.direction != 0 && Math.floor(time / 120) % 2) ? 1 : 0;
+			context.save();
+			if (this.facing < 0 && sk.flip) {
+				context.scale(-1, 1);
+				context.translate(-this.x - this.width, this.y);
+			} else {
+				context.translate(this.x, this.y);
+			}
+			if (this.blink) {
+				context.globalAlpha = 0.35;
+			}
+			context.drawImage(sk.img, Math.round(this.width / 2 - sk.anchorX), -sk.h - bob, sk.w, sk.h);
 			context.restore();
 		},
 		regain : function() {
@@ -1243,6 +1287,28 @@
 		start();
 	}
 
+	// SHOT: metadata of the selected custom skins (null for the classic kids or if anything is missing)
+	function customSkinMeta() {
+		var cs = CONFIG.characterSkin || {};
+		var all = global.SHOT_CUSTOM_SKINS;
+		if (cs.mode !== 'custom' || !all) {
+			return null;
+		}
+		var h = String(cs.height || 48);
+		var m1 = all[cs.p1] && all[cs.p1][h], m2 = all[cs.p2] && all[cs.p2][h];
+		return (m1 && m2) ? { p1: m1, p2: m2, flip: cs.flip !== false } : null;
+	}
+
+	function customSkinFor(id) {
+		var meta = customSkinMeta();
+		var img = $S && $S.images[id === 'p1' ? 'customP1' : 'customP2'];
+		if (!meta || !img || !img.naturalWidth) {
+			return null;
+		}
+		var m = meta[id];
+		return { img: img, w: m.w, h: m.h, anchorX: m.anchorX, flip: meta.flip };
+	}
+
 	// SHOT: extracted from start() so Game.reset() can rebuild the round in place
 	function createWorld() {
 		fireEvent('gameStart');
@@ -1261,8 +1327,8 @@
 		var startFloorY = FLOOR_DISTANCE * Math.floor(STAGE_HEIGHT / FLOOR_DISTANCE);
 		var startY = startFloorY - FLOOR_HEIGHT - 16;
 		heroes = [
-			new Hero(floorX + startW - HERO_WIDTH - 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#39d47c' }),
-			new Hero(floorX + 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#ff5fb0' })
+			new Hero(floorX + startW - HERO_WIDTH - 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, skin: customSkinFor('p1'), color: '#39d47c' }),
+			new Hero(floorX + 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, skin: customSkinFor('p2'), color: '#ff5fb0' })
 		];
 		floorVelocity = FLOOR_VELOCITY_BASE;
 		score = 0;
@@ -1290,6 +1356,11 @@
 		var overrides = ext({}, CONFIG.sprites || {});
 		if (CONFIG.players.p1.sheet) overrides.kidP1 = CONFIG.players.p1.sheet;
 		if (CONFIG.players.p2.sheet) overrides.kidP2 = CONFIG.players.p2.sheet;
+		var meta = customSkinMeta();
+		if (meta) {
+			overrides.customP1 = meta.p1.file;
+			overrides.customP2 = meta.p2.file;
+		}
 		global.ShotSprites.load(overrides, init);
 	}
 

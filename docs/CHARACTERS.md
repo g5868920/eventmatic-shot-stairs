@@ -45,3 +45,46 @@ Any other sprite can be replaced the same way through `SHOT_CONFIG.sprites` usin
 `ShotSprites.MANIFEST` (e.g. `{ mug: 'skins/cocktail.png' }`).
 
 No avatar editor or photo upload exists yet; this is only the file-level hook.
+
+## Custom portrait skins (prototype, 2026-11-12)
+
+A visual-only alternative to the classic kids. Physics, controls, hitboxes (26×26), pushing,
+HUD and everything else are untouched; only `Hero.draw` picks a different image.
+
+**Switch** in `config.js`:
+
+```js
+characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true },
+// mode 'classic' = the default kids
+```
+
+or for a quick look without editing: `index.html?skin=classic`, `?skin=custom&skinHeight=40`.
+
+**Files** (`assets/characters/custom/`)
+
+| File | What |
+|---|---|
+| `source/gina-q-version.png`, `source/rae-q-version.png` | the supplied 1024×1536 RGBA portraits, kept unmodified. They were taken from the WebP copies attached in chat (the named PNG originals were not on disk); replace them with the true originals and re-run the build if those differ. |
+| `gina-32/40/48.png`, `rae-32/40/48.png` | game-ready sprites |
+| `skins.js` | sizes and foot anchors (generated) |
+
+Rebuild with `python3 tools/build_custom_skins.py`: trims transparent padding, scales both
+portraits by one common factor (relative size preserved), premultiplied area averaging (no dark or
+white fringes), alpha snapped to on/off for crisp nearest-neighbour edges, and records each sprite's
+foot anchor (centre of the shoes) so the figure, not the hair, is centred over the hitbox.
+
+**Rendering**: the sprite's bottom row sits on the hitbox's feet line and its foot anchor on the
+hitbox centre. It mirrors when the player last walked left (`flip`), bobs 1 px while walking on a
+platform, and blinks by transparency during the usual 1 s after damage. No other animation.
+
+**Size comparison** (`docs/reference/custom-skins/sizes-and-classic.png`, same scene):
+
+| Height | Sprite (w×h) | Reads as |
+|---|---|---|
+| 32 px | 16×32 | silhouettes and hair colour only; faces are a few pixels |
+| 40 px | 20×40 | hairstyles and outfits clear, faces suggested |
+| **48 px (default)** | 24×48 | eyes, blush and mouth visible; still narrower than the 26 px hitbox and 30 % of an 80 px platform; two players side by side do not overlap |
+
+Known effect: a 48 px figure extends 22 px above the 26 px hitbox, so near the ceiling the head
+disappears into the spike strip a moment before ceiling damage registers (damage still uses the
+unchanged hitbox).

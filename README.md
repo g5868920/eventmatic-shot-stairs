@@ -23,6 +23,8 @@ window, so a full-screen browser on a projector works as is.
 
 Controls belong to the player, not to a side of the screen, so they keep working after the players swap places.
 
+Character look: `characterSkin.mode` in `config.js` switches between the classic kids and the custom Gina / Rae portrait prototype (`?skin=classic` or `?skin=custom&skinHeight=40` for a quick look). See docs/CHARACTERS.md.
+
 Space / Enter starts, resumes or restarts.
 
 ## Rules (unchanged from the original except where noted)
@@ -57,6 +59,7 @@ Run a test in the browser console on the game page:
   eval(await (await fetch('tests/push-tests.js')).text())
 tools/serve.py                 tiny static server
 tools/build_sprites.py         regenerates assets/*.png from the bitmaps inside it
+tools/build_custom_skins.py    builds the custom portrait sprites from assets/characters/custom/source
 ```
 
 ## License

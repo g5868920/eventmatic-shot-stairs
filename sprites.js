@@ -123,7 +123,9 @@
    */
   function load(overrides, done) {
     overrides = overrides || {};
-    var keys = Object.keys(MANIFEST), pending = keys.length, out = {};
+    var keys = Object.keys(MANIFEST);
+    Object.keys(overrides).forEach(function (k) { if (keys.indexOf(k) < 0) keys.push(k); }); // extra images (custom skins)
+    var pending = keys.length, out = {};
     keys.forEach(function (k) {
       var img = new Image();
       var url = overrides[k] || (BASE + MANIFEST[k]);

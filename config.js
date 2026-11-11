@@ -19,6 +19,13 @@ window.SHOT_CONFIG = {
     p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyC' }, sheet: null }
   },
 
+  // Character look (visual only; physics, controls and hitboxes never change).
+  //   mode 'classic': the default capped kids.  mode 'custom': portrait sprites (prototype).
+  //   height: rendered height in game px (built sizes: 32, 40, 48).  p1 / p2: which portrait.
+  //   flip: mirror the portrait when the player last walked left.
+  // URL override for testing: index.html?skin=custom&skinHeight=40  (or ?skin=classic)
+  characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true },
+
   platform: {
     // Width of every generated platform in px (playable area is 360 px). Applied from the next round.
     width: 80,
@@ -86,6 +93,8 @@ window.SHOT_CONFIG = {
     num('shotsPerStep', function (v) { c.penalty.shotsPerStep = v; });
     num('maxShots', function (v) { c.penalty.maxShots = v; });
     num('platformWidth', function (v) { c.platform.width = v; });
+    if (q.has('skin')) { c.characterSkin.mode = q.get('skin'); }
+    num('skinHeight', function (v) { c.characterSkin.height = v; });
     if (q.has('unit')) { c.penalty.unit = q.get('unit'); c.penalty.unitPlural = q.get('unitPlural') || q.get('unit') + 's'; }
   } catch (e) { /* ignore malformed URLs */ }
 })();

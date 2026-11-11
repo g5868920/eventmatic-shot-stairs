@@ -12,11 +12,9 @@
 
 | File | Source | License status |
 |---|---|---|
-| `led.png` (hero sprite sheet, 240×60) | upstream repo | Distributed by iPel under the repo's Apache-2.0 license. The sprite is an original-looking 26×26 pixel character; a reverse image search was not possible offline. No contrary attribution exists in the upstream repo or README. Treated as licensed with the code. |
-| `bg.png` (pixel cloud background, 360×480) | upstream repo | Same as above. |
-| `icon.png` (iOS home-screen icon) | upstream repo | Same as above. Only referenced by `apple-touch-icon`. |
-| Beer mug icon | this project | Drawn in code (`drawMug` in `game.js`); no file. |
-| Player-2 colours | this project | Generated at runtime by recolouring `led.png` (`tintSprite`); no file. |
+| `assets/*.png` (kids, mug, platforms, wall, ceiling) | this project | Original pixel art, generated from `tools/build_sprites.py`. Apache-2.0 with the repo. Nothing traced from the reference photos or the Flash game. |
+| `icon.png` (iOS home-screen icon) | upstream repo | Apache-2.0 as distributed by iPel. Only referenced by `apple-touch-icon`. |
+| `vendor/ipel-ns-shaft/led.png`, `bg.png` | upstream repo | Apache-2.0 as distributed by iPel. No longer used by the game; kept only in the pristine vendor snapshot. |
 
 ## Audio
 
@@ -33,4 +31,4 @@ No font files are shipped. Text is rendered with the browser's default `monospac
 
 ## Residual risk
 
-The only assumption is that iPel owned or had rights to `led.png` and `bg.png` when publishing them under Apache-2.0. If Eventmatic wants zero exposure, both files can be replaced by in-code drawings without touching gameplay (the hero draw call is a single `drawImage`).
+The game no longer ships any upstream image except `icon.png`. The reference screenshots in `docs/reference/` are photos of a proprietary Flash game kept for internal comparison only; do not publish them with the game.

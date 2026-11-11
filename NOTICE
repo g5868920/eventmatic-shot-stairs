@@ -14,8 +14,9 @@ License, Version 2.0. A list of changes is in docs/MODIFICATIONS.md, and
 every changed region in game.js is marked with a "SHOT:" comment.
 
 Assets:
-  bg.png, led.png, icon.png — from the upstream repository (Apache-2.0 as
-  distributed by iPel; see docs/LICENSES.md for the provenance audit).
-  The beer-mug icon and the player-2 colour variant are generated in code
-  by this project (no third-party image files were added).
-  No audio or font files are shipped; text uses the browser's monospace font.
+  assets/*.png — original pixel art created for this project
+  (tools/build_sprites.py), Apache-2.0.
+  icon.png — from the upstream repository (Apache-2.0 as distributed by iPel).
+  Upstream bg.png / led.png are no longer used; they remain only in the
+  pristine vendor/ snapshot. No audio files are shipped; the HUD uses an
+  original 5x7 pixel font defined in sprites.js.

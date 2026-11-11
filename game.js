@@ -134,8 +134,10 @@
 	/**
 	 * constant
 	 */
-	var MARGIN_TOP = 44; // SHOT: was 30; the two-player HUD needs two text rows
-	var STAGE_WIDTH = 360, STAGE_HEIGHT = 480 + MARGIN_TOP;
+	var MARGIN_TOP = 52; // SHOT: was 30; HUD band sized to the reference proportions
+	var STAGE_WIDTH = 360, STAGE_HEIGHT = 480 + MARGIN_TOP; // playable area, unchanged from upstream
+	var WALL_WIDTH = 18; // SHOT: decorative brick walls drawn OUTSIDE the playable area
+	var VIEW_WIDTH = STAGE_WIDTH + 2 * WALL_WIDTH; // SHOT: canvas width
 	var FLOOR_WIDTH = 100, FLOOR_HEIGHT = 12, FLOOR_DISTANCE = 60;
 	var SPRING_HEIGHT = FLOOR_HEIGHT - 4;
 	var HERO_WIDTH = 26;
@@ -149,7 +151,7 @@
 	var ROLLING_VELOCITY = 0.1; // 传送带速度
 	var CONTROL_VELOCITY = 0.2; // 左右操作的速度
 	var MAX_ACTION_INTERVAL = 20;
-	var MAX_LIFE = 10; // SHOT: upstream hard-coded 10 in several places
+	var MAX_LIFE = 12; // SHOT: 12 segments as in the reference (upstream hard-coded 10); damage values unchanged
 
 	/**
 	 * SHOT: configuration (defaults; window.SHOT_CONFIG and Game.configure() override)
@@ -160,11 +162,14 @@
 			p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyX' } }
 		},
 		beer: { spawnChance: 0.12, healAmount: 3, onlySafeFloors: true },
+		// SHOT: visual skins per mechanic; appearance only, never changes behaviour
+		skins: { normal: 'stone', spring: 'spring', conveyorLeft: 'conveyorLeft', conveyorRight: 'conveyorRight', spike: 'steelSpikes', fake: 'blueBrick' },
+		sprites: {}, // manifest overrides, e.g. { kidP1: 'skins/alice.png' }
 		penalty: { floorsPerDrink: 10, roundUp: true, minDrinks: 1, maxDrinks: 10, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {
 			loses: '{player} LOSES', draw: 'DRAW',
-			floors: '1P {p1} + 2P {p2} = {total} floors',
-			penalty: 'Penalty: {n} {unit}',
+			floors: '1P {p1} + 2P {p2}\n= {total} FLOORS',
+			penalty: 'PENALTY: {n} {unit}',
 			playAgain: 'play again', resume: 'continue'
 		}
 	};
@@ -176,7 +181,7 @@
 	 * var
 	 */
 	var floorArray, heroes; // SHOT: `hero` became `heroes` (array of two)
-	var $wrap, $canvas, $ctx, $res;
+	var $wrap, $canvas, $ctx, $res, $S; // SHOT: $S = sprite sheets (sprites.js)
 	var lastTime;
 	var drawCountStartTime = 0, drawCount = 0, lastInterval = 0, lastDrawCount = 0;
 	var floorVelocity;
@@ -216,16 +221,8 @@
 		this.seq = FloorSeq.get();
 		this.beer = false; // SHOT: carries a beer mug pickup
 	}, {
-		draw : function(context) {
-			context.save();
-			context.translate(this.x, this.y);
-			context.lineWidth = FLOOR_HEIGHT;
-			context.setLineDash([23.5, 2]);
-			context.beginPath();
-			context.moveTo(0, -FLOOR_HEIGHT * 0.5);
-			context.lineTo(FLOOR_WIDTH, -FLOOR_HEIGHT * 0.5);
-			context.stroke();
-			context.restore();
+		draw : function(context) { // SHOT: sprite skin (was a dashed black bar)
+			$S.drawFloor(context, skinSheet('normal'), this.x, this.y);
 		},
 		getHeight : function() {
 			return FLOOR_HEIGHT;
@@ -242,7 +239,7 @@
 		// SHOT: beer mug drawn on top of the floor surface
 		drawBeer : function(context) {
 			if (this.beer) {
-				drawMug(context, this.x + FLOOR_WIDTH * 0.5 - 7, this.y - this.getHeight() - 15, 1.3);
+				context.drawImage($S.images.mug, Math.round(this.x + FLOOR_WIDTH * 0.5 - 9), Math.round(this.y - this.getHeight() - 19));
 			}
 		}
 	});
@@ -258,27 +255,7 @@
 			if (this.restoring) {
 				this.restore(time);
 			}
-			var currentHeight = this.getHeight();
-			context.save();
-			context.translate(this.x, this.y);
-			context.fillRect(0, -2, FLOOR_WIDTH, 2);
-			context.fillRect(0, -currentHeight, FLOOR_WIDTH, 2);
-			var gap = 10;
-			var width = (FLOOR_WIDTH - gap * 4) / 3;
-			context.lineWidth = width;
-			context.setLineDash([1, 2]);
-			context.beginPath();
-			var x = gap + width * 0.5;
-			context.moveTo(x, -currentHeight + 2);
-			context.lineTo(x, -2);
-			x += gap + width;
-			context.moveTo(x, -currentHeight + 2);
-			context.lineTo(x, -2);
-			x += gap + width;
-			context.moveTo(x, -currentHeight + 2);
-			context.lineTo(x, -2);
-			context.stroke();
-			context.restore();
+			$S.drawSpring(context, this.x, this.y, this.getHeight()); // SHOT: sprite frames per height
 		},
 		landing : function(hero, time) {
 			this.touchTime = time;
@@ -329,32 +306,7 @@
 			if (--this.offset <0) {
 				this.offset = 20;
 			}
-			context.save();
-			context.translate(this.x, this.y);
-			context.setLineDash([15, 5]);
-			context.lineWidth = 2;
-			context.lineDashOffset = this.offset;
-			var markX = FLOOR_WIDTH * 0.2;
-			var midH = FLOOR_HEIGHT * 0.5;
-			// the track
-			roundRect(context, 1, -FLOOR_HEIGHT + 1, FLOOR_WIDTH - 2, FLOOR_HEIGHT - 2, midH);
-			context.stroke();
-			// the arrow
-			context.setLineDash([]);
-			context.beginPath();
-			context.moveTo(markX, -midH - 3);
-			context.lineTo(markX + 4, -midH);
-			context.lineTo(markX, -midH + 3);
-			context.moveTo(markX + 8, -midH - 3);
-			context.lineTo(markX + 12, -midH);
-			context.lineTo(markX + 8, -midH + 3);
-			context.stroke();
-			// the bearing
-			context.beginPath();
-			context.arc(midH, -midH, midH - 3, 0, 2 * Math.PI, false);
-			context.arc(FLOOR_WIDTH - midH, -midH, midH - 3, 0, 2 * Math.PI, false);
-			context.fill();
-			context.restore();
+			$S.drawConveyor(context, 1, Math.floor(this.offset / 5), this.x, this.y); // SHOT: sprite belt animation
 		},
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
@@ -374,32 +326,7 @@
 			if (++this.offset >= 20) {
 				this.offset = 0;
 			}
-			context.save();
-			context.translate(this.x, this.y);
-			context.setLineDash([15, 5]);
-			context.lineWidth = 2;
-			context.lineDashOffset = this.offset;
-			var markX = FLOOR_WIDTH * 0.8;
-			var midH = FLOOR_HEIGHT * 0.5;
-			// the track
-			roundRect(context, 1, -FLOOR_HEIGHT + 1, FLOOR_WIDTH - 2, FLOOR_HEIGHT - 2, midH);
-			context.stroke();
-			// the arrow
-			context.setLineDash([]);
-			context.beginPath();
-			context.moveTo(markX, -midH - 3);
-			context.lineTo(markX - 4, -midH);
-			context.lineTo(markX, -midH + 3);
-			context.moveTo(markX - 8, -midH - 3);
-			context.lineTo(markX - 12, -midH);
-			context.lineTo(markX - 8, -midH + 3);
-			context.stroke();
-			// the bearing
-			context.beginPath();
-			context.arc(midH, -midH, midH - 3, 0, 2 * Math.PI, false);
-			context.arc(FLOOR_WIDTH - midH, -midH, midH - 3, 0, 2 * Math.PI, false);
-			context.fill();
-			context.restore();
+			$S.drawConveyor(context, -1, Math.floor(this.offset / 5), this.x, this.y); // SHOT: sprite belt animation
 		},
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
@@ -414,26 +341,9 @@
 
 	var ARROW_FLOOR = defineClass(function(x, y) {
 	}, {
-		draw : function(context) {
-			context.save();
-			context.translate(this.x, this.y);
-			context.fillRect(0, - this.getHeight(), FLOOR_WIDTH, 3);
-			context.fillRect(0, 6 - this.getHeight(), FLOOR_WIDTH, 3);
-			context.beginPath();
-			var bottom = - this.getHeight() + 0.5;
-			var top = bottom - ARROW_HEIGHT;
-			var left = 0.5;
-			var right = FLOOR_WIDTH - 0.5;
-			context.moveTo(left, bottom);
-			for (var x = 0; x < right; ) {
-				context.lineTo(x += ARROW_WIDTH, top);
-				context.lineTo(Math.min(x += ARROW_WIDTH, right), bottom);
-			}
-			context.closePath();
-			context.fillStyle = '#fff';
-			context.fill();
-			context.stroke();
-			context.restore();
+		draw : function(context) { // SHOT: steel base + spike sprite (same footprint as upstream's drawing)
+			$S.drawFloor(context, skinSheet('spike'), this.x, this.y);
+			context.drawImage($S.images.spikes, Math.round(this.x), Math.round(this.y - this.getHeight() - ARROW_HEIGHT));
 		},
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
@@ -453,22 +363,20 @@
 			if (this.restoring) {
 				this.restore(time);
 			}
-			context.save();
-			context.translate(this.x, this.y);
-			if (this.height >= FLOOR_HEIGHT || this.height <= 0) {
-				context.fillStyle = '#999';
-				context.fillRect(0, -FLOOR_HEIGHT, FLOOR_WIDTH, FLOOR_HEIGHT);
+			// SHOT: skin only. Upstream drew a grey bar; solid part keeps its skin, the part that has
+			// "turned" is drawn faded so the player can see it is no longer solid.
+			var sheet = skinSheet('fake');
+			if (this.height >= FLOOR_HEIGHT) {
+				$S.drawFloor(context, sheet, this.x, this.y);
 			} else {
-				var percent = this.height / FLOOR_HEIGHT;
-				var colorInc = Math.round(0x66 * percent);
-				var color = 0x33 + colorInc;
-				context.fillStyle = 'rgb(' + color +',' + color + ',' + color + ')';
-				context.fillRect(0, -this.getHeight(), FLOOR_WIDTH, this.getHeight());
-				color = 0x99 + colorInc;
-				context.fillStyle = 'rgb(' + color +',' + color + ',' + color + ')';
-				context.fillRect(0, -FLOOR_HEIGHT, FLOOR_WIDTH, FLOOR_HEIGHT - this.getHeight());
+				context.save();
+				context.globalAlpha = 0.35;
+				$S.drawFloor(context, sheet, this.x, this.y);
+				context.restore();
+				if (this.height > 0) {
+					$S.drawFloorClipped(context, sheet, this.x, this.y, this.height);
+				}
 			}
-			context.restore();
 		},
 		landing : function(hero, time) {
 			// SHOT: with two players a second landing must not restart a floor that is already turning
@@ -514,7 +422,7 @@
 		this.id = opts.id || 'p1';
 		this.label = opts.label || '1P';
 		this.keys = opts.keys || { left: 'ArrowLeft', right: 'ArrowRight' };
-		this.sprite = opts.sprite || $res.hero;
+		this.sprite = opts.sprite || $S.images.kidP1;
 		this.color = opts.color || '#000';
 		this.leftPressed = false;
 		this.rightPressed = false;
@@ -631,60 +539,11 @@
 		}
 	});
 
-	/**
-	 * SHOT: beer mug pixel art (also used in the HUD)
-	 */
-	var MUG = [
-		'.wwwwwwww..',
-		'wwwwwwwwww.',
-		'#yyyyyyyy#.',
-		'#yyyyyyyy##',
-		'#yyyyyyyy#.#',
-		'#yyyyyyyy#.#',
-		'#yyyyyyyy##',
-		'#yyyyyyyy#.',
-		'#yyyyyyyy#.',
-		'.########..'
-	];
-	var MUG_COLORS = { 'w': '#fff', 'y': '#f5b400', '#': '#000' };
-	function drawMug(context, x, y, scale) {
-		scale = scale || 1;
-		context.save();
-		for (var r = 0; r < MUG.length; ++r) {
-			var row = MUG[r];
-			for (var c = 0; c < row.length; ++c) {
-				var ch = row.charAt(c);
-				if (ch == '.') continue;
-				context.fillStyle = MUG_COLORS[ch];
-				context.fillRect(x + c * scale, y + r * scale, scale, scale);
-			}
-		}
-		// outline for the foam so it reads on light backgrounds
-		context.fillStyle = '#000';
-		context.fillRect(x + 1 * scale, y, 8 * scale, 1);
-		context.fillRect(x, y + 1 * scale, 1, scale);
-		context.fillRect(x + 10 * scale - 1, y + 1 * scale, 1, scale);
-		context.restore();
-	}
-
-	/**
-	 * SHOT: make a recoloured copy of the hero sprite sheet for player 2
-	 */
-	function tintSprite(img, mapColor) {
-		var c = document.createElement('canvas');
-		c.width = img.width;
-		c.height = img.height;
-		var cx = c.getContext('2d');
-		cx.drawImage(img, 0, 0);
-		var data = cx.getImageData(0, 0, c.width, c.height);
-		var d = data.data;
-		for (var i = 0; i < d.length; i += 4) {
-			if (d[i + 3] == 0) continue;
-			var out = mapColor(d[i], d[i + 1], d[i + 2]);
-			if (out) { d[i] = out[0]; d[i + 1] = out[1]; d[i + 2] = out[2]; }
-		}
-		cx.putImageData(data, 0, 0);
-		return c;
+	// SHOT: platform skin lookup (appearance only; mechanics live in the Floor classes)
+	var SKIN_SHEETS = { stone: 'stone', blueBrick: 'blueBrick', steelSpikes: 'steel', steel: 'steel' };
+	function skinSheet(mechanic) {
+		var skin = (CONFIG.skins && CONFIG.skins[mechanic]) || 'stone';
+		return $S.images[SKIN_SHEETS[skin] || skin] || $S.images.stone;
 	}
 
 	function onLand(hero, floor) {
@@ -846,12 +705,25 @@
 		});
 	}
 
+	// SHOT: colours of the rendering layer
+	var COLORS = {
+		playfield: '#4c2a4e', playfieldEdge: '#3b2140', hud: '#4c2a4e', hudLine: '#4c2a4e',
+		lifeText: '#ff6ad5', lifeShadow: '#5a1848', lifeBase: '#d42a3a', pip: '#ffe24a', pipShade: '#c8a820', pipEmpty: '#8a6a8a',
+		counter: '#ff5a3c', counterShadow: '#5a1c20', panel: '#2a1630', panelBorder: '#ff6ad5', text: '#ffffff', accent: '#ffe24a'
+	};
+
 	function drawAll(context, time) {
+		// playfield (translated past the left wall so physics coordinates are unchanged)
 		context.save();
+		context.translate(WALL_WIDTH, 0);
 		context.beginPath();
 		context.rect(0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
 		context.clip();
-		context.drawImage($res.bg, 0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
+		context.fillStyle = COLORS.playfield;
+		context.fillRect(0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
+		context.fillStyle = COLORS.playfieldEdge;
+		context.fillRect(0, MARGIN_TOP, 2, STAGE_HEIGHT - MARGIN_TOP);
+		context.fillRect(STAGE_WIDTH - 2, MARGIN_TOP, 2, STAGE_HEIGHT - MARGIN_TOP);
 		for (var i = 0, len = floorArray.length; i < len; ++i) {
 			floorArray[i].draw(context, time);
 			floorArray[i].drawBeer(context);
@@ -859,63 +731,34 @@
 		for (var h = 0; h < heroes.length; ++h) {
 			heroes[h].draw(context, time);
 		}
-		context.beginPath();
-		context.moveTo(0.5, MARGIN_TOP + 0.5);
-		for (var x = 0.5; x < STAGE_WIDTH; ) {
-			context.lineTo(x += ARROW_WIDTH, MARGIN_TOP + ARROW_HEIGHT - 0.5);
-			context.lineTo(x += ARROW_WIDTH, MARGIN_TOP + 0.5);
-		}
-		context.closePath();
-		context.fillStyle = '#fff';
-		context.fill();
-		context.stroke();
+		context.drawImage($S.images.ceiling, 0, MARGIN_TOP);
+		context.restore();
+
+		// walls (outside the playable area)
+		context.drawImage($S.images.wall, 0, MARGIN_TOP);
+		context.drawImage($S.images.wall, WALL_WIDTH + STAGE_WIDTH, MARGIN_TOP);
 
 		if (!isRunning) {
 			context.save();
-			context.translate(STAGE_WIDTH * 0.5, STAGE_HEIGHT * 0.5);
+			context.translate(VIEW_WIDTH * 0.5, STAGE_HEIGHT * 0.5);
 			if (lastResult) {
-				// SHOT: end-of-round panel (loser, combined floors, penalty)
 				drawResultPanel(context, lastResult);
-				context.translate(0, 70);
+				context.translate(0, 84);
 			}
-			if (isCooldownTime) {
-				if (!lastResult) {
-					context.textAlign = 'center';
-					context.font = 'bold 32pt monospace';
-					context.strokeStyle = '#fff';
-					context.lineWidth = 6;
-					context.strokeText('Game Over', 0, 10);
-					context.fillStyle = '#000';
-					context.fillText('Game Over', 0, 10);
-				}
-			} else {
-				if (!isFinite(spacePressed)) {
-					context.beginPath();
-					roundRect(context, -109.5, -29.5, 219, 59, 10);
-					context.fillStyle = 'rgba(0, 0, 0, 0.5)';
-					context.fill();
-					context.translate(-5, -5);
-				}
-				context.beginPath();
-				roundRect(context, -109.5, -29.5, 219, 59, 10);
-				context.fillStyle = '#fff';
-				context.fill();
-				context.fillStyle = '#000';
-				context.font = 'bold 24pt monospace';
-				context.textAlign = 'center';
-				context.fillText(judge() ? CONFIG.text.playAgain : CONFIG.text.resume, 0, 10);
+			if (!isCooldownTime) {
+				drawButton(context, judge() ? CONFIG.text.playAgain : CONFIG.text.resume, isFinite(spacePressed));
+			} else if (!lastResult) {
+				$S.font.draw(context, 'GAME OVER', 0, -14, { scale: 4, color: COLORS.text, shadow: COLORS.panel, align: 'center' });
 			}
 			context.restore();
 		}
 
-		context.restore();
-		
-		// SHOT: two-player HUD is redrawn every frame (cheap, avoids stale state)
 		drawTopBar(context);
 
 		if (window.DEBUG) {
 			context.save();
 			context.font = '12pt monospace';
+			context.fillStyle = '#fff';
 			context.fillText(((drawCount + lastDrawCount) * 1000 / (lastInterval + time - drawCountStartTime)).toFixed(2) + ' fps', 10, MARGIN_TOP + 30);
 			if (++drawCount > 20) {
 				lastInterval = time - drawCountStartTime;
@@ -927,45 +770,73 @@
 		}
 	}
 
+	// SHOT: pixel-style button used for play again / continue
+	function drawButton(context, label, pressed) {
+		var w = 170, h = 40;
+		context.save();
+		if (!pressed) {
+			context.fillStyle = 'rgba(0,0,0,0.45)';
+			context.fillRect(-w / 2 + 4, -h / 2 + 4, w, h);
+		} else {
+			context.translate(3, 3);
+		}
+		context.fillStyle = COLORS.panelBorder;
+		context.fillRect(-w / 2, -h / 2, w, h);
+		context.fillStyle = COLORS.panel;
+		context.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6);
+		$S.font.draw(context, label, 0, -7, { scale: 2, color: COLORS.accent, shadow: '#000', align: 'center' });
+		context.restore();
+	}
+
 	/**
-	 * SHOT: HUD — 2P LIFE on the left, 1P LIFE on the right,
-	 * each with a beer-mug ×N counter and the floor count below.
+	 * SHOT: HUD — "2P LIFE" left, "1P LIFE" right, 12 yellow pips over a red baseline,
+	 * beer mug × penalty units in the centre (penalty = configurable conversion of 1P + 2P floors).
 	 */
 	function drawTopBar(context) {
 		topBarChange = false;
 		context.save();
-		context.clearRect(0, 0, STAGE_WIDTH, MARGIN_TOP);
-		context.fillStyle = '#fff';
-		context.fillRect(0, 0, STAGE_WIDTH, MARGIN_TOP);
-		context.font = 'bold 11px monospace';
-		context.textBaseline = 'alphabetic';
+		context.fillStyle = COLORS.hud;
+		context.fillRect(0, 0, VIEW_WIDTH, MARGIN_TOP);
+		context.fillStyle = COLORS.hudLine;
+		context.fillRect(0, MARGIN_TOP - 1, VIEW_WIDTH, 1);
+		var p1 = heroes[0], p2 = heroes[1];
+		var barW = MAX_LIFE * 9 - 2;
 		var blocks = [
-			{ hero: heroes[1], x: 8 },           // 2P on the left
-			{ hero: heroes[0], x: STAGE_WIDTH - 8 - 150 } // 1P on the right
+			{ hero: p2, x: 12, textX: 16, align: 'left' },
+			{ hero: p1, x: VIEW_WIDTH - 12 - barW, textX: VIEW_WIDTH - 16, align: 'right' }
 		];
 		for (var b = 0; b < blocks.length; ++b) {
 			var hero = blocks[b].hero;
 			if (!hero) continue;
 			var x = blocks[b].x;
-			// row 1: label + life cells
-			context.textAlign = 'left';
-			context.fillStyle = hero.color;
-			context.fillText(hero.label + ' LIFE', x, 16);
-			var cellX = x + 56;
+			$S.font.draw(context, hero.label + ' LIFE', blocks[b].textX, 7, { scale: 2, color: COLORS.lifeText, shadow: COLORS.lifeShadow, italic: true, align: blocks[b].align });
+			context.fillStyle = COLORS.lifeBase;
+			context.fillRect(x - 2, 25, barW + 4, 2);
 			for (var i = 0; i < MAX_LIFE; ++i) {
-				var cx = cellX + i * 9;
-				context.fillStyle = i < hero.life ? hero.color : '#fff';
-				context.fillRect(cx, 7, 7, 10);
-				context.strokeStyle = '#000';
-				context.lineWidth = 1;
-				context.strokeRect(cx + 0.5, 7.5, 6, 9);
+				var cx = x + i * 9;
+				if (i < hero.life) {
+					context.fillStyle = COLORS.pip;
+					context.fillRect(cx, 30, 7, 12);
+					context.fillStyle = COLORS.pipShade;
+					context.fillRect(cx, 40, 7, 2);
+					context.fillRect(cx + 6, 31, 1, 11);
+					context.fillStyle = COLORS.hud; // rounded corners
+					context.fillRect(cx, 30, 1, 1); context.fillRect(cx + 6, 30, 1, 1);
+					context.fillRect(cx, 41, 1, 1); context.fillRect(cx + 6, 41, 1, 1);
+				} else {
+					context.fillStyle = COLORS.pipEmpty;
+					context.fillRect(cx + 3, 30, 1, 12);
+				}
 			}
-			// row 2: beer mug ×N and floors
-			drawMug(context, x, 22, 1.5);
-			context.fillStyle = '#000';
-			context.fillText('×' + hero.beers, x + 20, 36);
-			context.fillText('FLOOR ' + hero.floors, x + 56, 36);
 		}
+		// centre: mug × penalty units
+		var units = (p1 && p2) ? computePenalty(p1.floors + p2.floors) : 0;
+		var label = 'X ' + units;
+		var tw = $S.font.width(label, 3);
+		var total = 18 + 10 + tw;
+		var cx0 = Math.round(VIEW_WIDTH / 2 - total / 2);
+		context.drawImage($S.images.mug, cx0, 12);
+		$S.font.draw(context, label, cx0 + 28, 16, { scale: 3, color: COLORS.counter, shadow: COLORS.counterShadow });
 		context.restore();
 	}
 
@@ -974,29 +845,27 @@
 		var cfg = CONFIG;
 		var title = result.loser ? fmt(cfg.text.loses, { player: result.loserLabel }) : cfg.text.draw;
 		var unit = result.penalty == 1 ? cfg.penalty.unit : cfg.penalty.unitPlural;
-		var lines = [
-			fmt(cfg.text.floors, { p1: result.floors.p1, p2: result.floors.p2, total: result.floors.total }),
-			fmt(cfg.text.penalty, { n: result.penalty, unit: unit })
-		];
+		var lines = fmt(cfg.text.floors, { p1: result.floors.p1, p2: result.floors.p2, total: result.floors.total }).split('\n');
+		var penaltyLine = fmt(cfg.text.penalty, { n: result.penalty, unit: unit });
+		var w = 300, h = 150;
 		context.save();
-		context.beginPath();
-		roundRect(context, -160, -120, 320, 150, 10);
-		context.fillStyle = 'rgba(255, 255, 255, 0.92)';
-		context.fill();
-		context.lineWidth = 3;
-		context.strokeStyle = '#000';
-		context.stroke();
-		context.textAlign = 'center';
-		context.fillStyle = result.loserColor || '#000';
-		context.font = 'bold 26pt monospace';
-		context.fillText(title, 0, -72);
-		context.fillStyle = '#000';
-		context.font = 'bold 13px monospace';
-		context.fillText(lines[0], 0, -36);
-		context.font = 'bold 18px monospace';
-		context.fillText(lines[1], 0, -6);
-		drawMug(context, -150, -118, 2);
-		drawMug(context, 128, -118, 2);
+		context.translate(0, -30);
+		context.fillStyle = 'rgba(0,0,0,0.45)';
+		context.fillRect(-w / 2 + 5, -h / 2 + 5, w, h);
+		context.fillStyle = COLORS.panelBorder;
+		context.fillRect(-w / 2, -h / 2, w, h);
+		context.fillStyle = COLORS.panel;
+		context.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6);
+		var y = -h / 2 + 14;
+		$S.font.draw(context, title, 0, y, { scale: 3, color: result.loserColor || COLORS.text, shadow: '#000', align: 'center' });
+		y += 32;
+		for (var i = 0; i < lines.length; ++i) {
+			$S.font.draw(context, lines[i], 0, y, { scale: 2, color: COLORS.text, shadow: '#000', align: 'center' });
+			y += 18;
+		}
+		y += 6;
+		context.drawImage($S.images.mug, -$S.font.width(penaltyLine, 2) / 2 - 26, y - 4);
+		$S.font.draw(context, penaltyLine, 0, y, { scale: 2, color: COLORS.accent, shadow: '#000', align: 'center' });
 		context.restore();
 	}
 
@@ -1119,11 +988,11 @@
 	function resizeCanvas($wrap, $canvas, $ctx) {
 		var screenWidth = document.documentElement.clientWidth;
 		var screenHeight = document.documentElement.clientHeight;
-		var zoomRate = Math.min(screenWidth / STAGE_WIDTH, screenHeight / STAGE_HEIGHT);
+		var zoomRate = Math.min(screenWidth / VIEW_WIDTH, screenHeight / STAGE_HEIGHT); // SHOT: canvas includes the walls
 		var ratio = window.devicePixelRatio || 1;
-		$canvas.style.width = (STAGE_WIDTH * zoomRate) + 'px';
+		$canvas.style.width = (VIEW_WIDTH * zoomRate) + 'px';
 		$canvas.style.height = (STAGE_HEIGHT * zoomRate) + 'px';
-		$canvas.width = STAGE_WIDTH * zoomRate * ratio;
+		$canvas.width = VIEW_WIDTH * zoomRate * ratio;
 		$canvas.height = STAGE_HEIGHT * zoomRate * ratio;
 		
 		$ctx.setTransform(zoomRate * ratio, 0, 0, zoomRate * ratio, 0, 0);
@@ -1154,14 +1023,9 @@
 		return null;
 	}
 
-	function init(res) {
-		$res = res;
-		// SHOT: player 2 uses a blue/orange recolour of the same sprite sheet
-		$res.hero2 = tintSprite(res.hero, function(r, g, b) {
-			if (r < 90 && g < 90 && b < 90) return [26, 95, 208];   // black outline -> blue
-			if (r > 150 && g < 110 && b < 110) return [255, 140, 0]; // red hurt frame -> orange
-			return null;
-		});
+	function init(sprites) {
+		$S = sprites; // SHOT: PNG sprite sheets from sprites.js
+		$res = { hero: $S.images.kidP1, hero2: $S.images.kidP2 };
 		$canvas = document.createElement('canvas');
 		$canvas.style.display = 'block';
 		$canvas.style.margin = '0 auto';
@@ -1268,8 +1132,8 @@
 		var floorX = (STAGE_WIDTH - FLOOR_WIDTH) * 0.5;
 		var startY = STAGE_HEIGHT - FLOOR_DISTANCE;
 		heroes = [
-			new Hero(floorX + 8, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#000' }),
-			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 8, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#1a5fd0' })
+			new Hero(floorX + 8, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#ff5fb0' }),
+			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 8, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#39d47c' })
 		];
 		floorVelocity = FLOOR_VELOCITY_BASE;
 		score = 0;
@@ -1293,10 +1157,11 @@
 
 	Game.launch = function($wrapNode) {
 		$wrap = $wrapNode;
-		loadImage({
-			bg : 'bg.png',
-			hero : 'led.png'
-		}, init);
+		// SHOT: sprite sheets; per-player sheet URLs may be given in config (players.pN.sheet)
+		var overrides = ext({}, CONFIG.sprites || {});
+		if (CONFIG.players.p1.sheet) overrides.kidP1 = CONFIG.players.p1.sheet;
+		if (CONFIG.players.p2.sheet) overrides.kidP2 = CONFIG.players.p2.sheet;
+		global.ShotSprites.load(overrides, init);
 	}
 
 	Game.on = onEvent;
@@ -1334,7 +1199,7 @@
 	// SHOT: live world objects for automated tests / debugging only (not part of the integration API)
 	Game._debugFrame = function(time) { frame(time); }; // drive one frame with a synthetic clock
 	Game._debugWorld = function() {
-		return { floors: floorArray, heroes: heroes, marginTop: MARGIN_TOP, stageWidth: STAGE_WIDTH, stageHeight: STAGE_HEIGHT, floorWidth: FLOOR_WIDTH, heroWidth: HERO_WIDTH };
+		return { floors: floorArray, heroes: heroes, marginTop: MARGIN_TOP, stageWidth: STAGE_WIDTH, viewWidth: VIEW_WIDTH, wallWidth: WALL_WIDTH, maxLife: MAX_LIFE, stageHeight: STAGE_HEIGHT, floorWidth: FLOOR_WIDTH, heroWidth: HERO_WIDTH };
 	};
 
 }(window);

@@ -32,7 +32,8 @@
   for (var r = 0; r < 5; r++) {
     if (r === 0) ShotStairs.reset(); else { await new Promise(function (res) { setTimeout(res, 1100); }); key('Space', 'keydown'); key('Space', 'keyup'); }
     var s0 = ShotStairs.getState();
-    var fresh = s0.running && s0.lastResult === null && s0.players.every(function (p) { return p.life === 10 && p.floors === 0 && p.beers === 0; });
+    var maxLife = Game._debugWorld().maxLife;
+    var fresh = s0.running && s0.lastResult === null && s0.players.every(function (p) { return p.life === maxLife && p.floors === 0 && p.beers === 0; });
     var n = 0, start = t;
     while (ShotStairs.getState().running && n < 20000) { t += 20; if (n++ % 2 === 0) think(); Game._debugFrame(t); }
     steer({ id: 'p1' }, null); steer({ id: 'p2' }, null);

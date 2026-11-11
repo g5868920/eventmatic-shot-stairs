@@ -18,16 +18,17 @@ window, so a full-screen browser on a projector works as is.
 
 | | Left | Right |
 |---|---|---|
-| 1P (black) | ← | → |
-| 2P (blue) | Z | X |
+| 1P (pink shirt, red cap) | ← | → |
+| 2P (green shirt, blue cap) | Z | X |
 
 Space / Enter starts, resumes or restarts.
 
 ## Rules (unchanged from the original except where noted)
 
 * Floors rise; walk off the edge to fall to the next one. Spiked ceiling −5 life, spike floor −4, every safe landing +1 (max 10). Spring, conveyor and flipping floors behave as in the original.
-* **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`), heals `beer.healAmount`, and counts in the HUD ×N. It never changes the penalty.
-* **Round end** (new): the first player to die loses. The panel shows the loser, `1P a + 2P b = total floors` and the penalty from `penalty.floorsPerDrink` (rounding, min/max and unit configurable, or a custom formula). Both dead in the same step = draw.
+* **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
+* **HUD** : 2P LIFE left, 1P LIFE right (12 segments), and in the centre a beer mug × the accumulated penalty units computed from `1P floors + 2P floors` with `penalty.floorsPerDrink` (rounding, min/max and unit configurable, or a custom formula).
+* **Round end** (new): the first player to die loses. The panel shows the loser, `1P a + 2P b = total floors` and the penalty. Both dead in the same step = draw.
 
 ## Configure
 
@@ -38,7 +39,8 @@ or call `ShotStairs.configure({...})`. See `docs/INTEGRATION.md`.
 
 ```
 index.html, game.js, config.js, eventmatic-bridge.js   the game
-bg.png, led.png, icon.png                               upstream assets
+sprites.js, assets/*.png                                original pixel art (built by tools/build_sprites.py)
+docs/CHARACTERS.md                                      how to swap character sheets
 vendor/ipel-ns-shaft/                                   pristine upstream snapshot (baseline)
 docs/CANDIDATE_COMPARISON.md   why this upstream was chosen
 docs/LICENSES.md               code + asset audit
@@ -46,6 +48,7 @@ docs/MODIFICATIONS.md          what changed vs upstream, remaining differences
 docs/INTEGRATION.md            future Eventmatic hook-up
 tests/headless-play.js         console-driven bot play test
 tools/serve.py                 tiny static server
+tools/build_sprites.py         regenerates assets/*.png from the bitmaps inside it
 ```
 
 ## License

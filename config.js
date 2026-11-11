@@ -12,8 +12,21 @@
 window.SHOT_CONFIG = {
   players: {
     // Key names are KeyboardEvent.code values.
-    p1: { label: '1P', keys: { left: 'ArrowLeft', right: 'ArrowRight' } },
-    p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyX' } }
+    // `sheet` may point to a 240x60 PNG with the same frame layout as assets/kid-p1.png
+    // to swap a player's character (see docs/CHARACTERS.md). null = default art.
+    p1: { label: '1P', keys: { left: 'ArrowLeft', right: 'ArrowRight' }, sheet: null },
+    p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyX' }, sheet: null }
+  },
+
+  // Visual skins per platform mechanic. Appearance only: changing a skin never
+  // changes how a platform behaves. Available: 'stone', 'blueBrick', 'steelSpikes'.
+  skins: {
+    normal: 'stone',
+    spring: 'spring',
+    conveyorLeft: 'conveyorLeft',
+    conveyorRight: 'conveyorRight',
+    spike: 'steelSpikes',
+    fake: 'blueBrick'
   },
 
   beer: {
@@ -42,8 +55,8 @@ window.SHOT_CONFIG = {
   text: {
     loses: '{player} LOSES',
     draw: 'DRAW',
-    floors: '1P {p1} + 2P {p2} = {total} floors',
-    penalty: 'Penalty: {n} {unit}',
+    floors: '1P {p1} + 2P {p2}\n= {total} FLOORS',
+    penalty: 'PENALTY: {n} {unit}',
     playAgain: 'play again',
     resume: 'continue'
   }

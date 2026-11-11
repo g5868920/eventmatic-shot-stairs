@@ -170,7 +170,7 @@
 		sprites: {}, // manifest overrides, e.g. { kidP1: 'skins/alice.png' }
 		// SHOT: character skin (visual only). 'classic' = default kids, 'custom' = portrait sprites from
 		// assets/characters/custom (see docs/CHARACTERS.md). Applied at page load.
-		characterSkin: { mode: 'classic', height: 48, p1: 'rae', p2: 'gina', flip: true },
+		characterSkin: { mode: 'classic', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
 		penalty: { floorsPerStep: 10, shotsPerStep: 0.5, maxShots: null, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {
 			loses: '{player} LOSES', draw: 'DRAW',
@@ -557,7 +557,7 @@
 			} else if (this.blink) {
 				this.blink = false;
 			}
-			var bob = (this.onFloor && this.direction != 0 && Math.floor(time / 120) % 2) ? 1 : 0;
+			var bob = (!sk.anim && this.onFloor && this.direction != 0 && Math.floor(time / 120) % 2) ? 1 : 0;
 			context.save();
 			if (this.facing < 0 && sk.flip) {
 				context.scale(-1, 1);
@@ -568,8 +568,37 @@
 			if (this.blink) {
 				context.globalAlpha = 0.35;
 			}
-			context.drawImage(sk.img, Math.round(this.width / 2 - sk.anchorX), -sk.h - bob, sk.w, sk.h);
+			if (sk.anim) {
+				var an = sk.anim, fi = this.animFrame(an.frames, time);
+				context.drawImage(an.img, fi * an.fw, 0, an.fw, an.fh, Math.round(this.width / 2 - an.anchorX), -an.bottom, an.fw, an.fh);
+			} else {
+				context.drawImage(sk.img, Math.round(this.width / 2 - sk.anchorX), -sk.h - bob, sk.w, sk.h);
+			}
 			context.restore();
+		},
+		/**
+		 * SHOT: pick the animation frame from state the game already tracks (visual only):
+		 * hurt (350 ms after damage) > falling (not on a floor) > landing (110 ms after touching down)
+		 * > walking (direction input on a floor) > idle (occasional blink + breath).
+		 */
+		animFrame : function(frames, time) {
+			if (this.onFloor && this.animAirborne) {
+				this.landTime = time;
+			}
+			this.animAirborne = !this.onFloor;
+			if (this.hurtTime > 0 && time - this.hurtTime >= 0 && time - this.hurtTime < 350) {
+				return frames.hurt[0];
+			}
+			if (!this.onFloor) {
+				return frames.fall[Math.floor(time / 120) % frames.fall.length];
+			}
+			if (this.landTime && time - this.landTime >= 0 && time - this.landTime < 110) {
+				return frames.land[0];
+			}
+			if (this.direction != 0) {
+				return frames.walk[Math.floor(time / 90) % frames.walk.length];
+			}
+			return (time % 2600) > 2420 ? frames.idle[1] : frames.idle[0];
 		},
 		regain : function() {
 			if (this.life < MAX_LIFE) {
@@ -1296,7 +1325,12 @@
 		}
 		var h = String(cs.height || 48);
 		var m1 = all[cs.p1] && all[cs.p1][h], m2 = all[cs.p2] && all[cs.p2][h];
-		return (m1 && m2) ? { p1: m1, p2: m2, flip: cs.flip !== false } : null;
+		if (!m1 || !m2) {
+			return null;
+		}
+		var anims = global.SHOT_CUSTOM_ANIMS, a1 = anims && anims[cs.p1], a2 = anims && anims[cs.p2];
+		var anim = (cs.animated !== false && a1 && a2) ? { p1: a1, p2: a2 } : null;
+		return { p1: m1, p2: m2, flip: cs.flip !== false, anim: anim };
 	}
 
 	function customSkinFor(id) {
@@ -1306,7 +1340,13 @@
 			return null;
 		}
 		var m = meta[id];
-		return { img: img, w: m.w, h: m.h, anchorX: m.anchorX, flip: meta.flip };
+		var skin = { img: img, w: m.w, h: m.h, anchorX: m.anchorX, flip: meta.flip, anim: null };
+		var animImg = $S.images[id === 'p1' ? 'customAnimP1' : 'customAnimP2'];
+		if (meta.anim && animImg && animImg.naturalWidth) {
+			var a = meta.anim[id];
+			skin.anim = { img: animImg, fw: a.frameW, fh: a.frameH, anchorX: a.anchorX, bottom: a.anchorBottom, frames: a.frames };
+		}
+		return skin;
 	}
 
 	// SHOT: extracted from start() so Game.reset() can rebuild the round in place
@@ -1360,6 +1400,10 @@
 		if (meta) {
 			overrides.customP1 = meta.p1.file;
 			overrides.customP2 = meta.p2.file;
+			if (meta.anim) {
+				overrides.customAnimP1 = meta.anim.p1.file;
+				overrides.customAnimP2 = meta.anim.p2.file;
+			}
 		}
 		global.ShotSprites.load(overrides, init);
 	}

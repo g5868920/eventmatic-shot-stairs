@@ -88,3 +88,41 @@ platform, and blinks by transparency during the usual 1 s after damage. No other
 Known effect: a 48 px figure extends 22 px above the 26 px hitbox, so near the ceiling the head
 disappears into the spike strip a moment before ceiling damage registers (damage still uses the
 unchanged hitbox).
+
+## Animated custom characters (prototype, 2026-11-12)
+
+`tools/build_custom_anim.py` turns a 48 px custom sprite into a 12-frame animated sheet
+(`assets/characters/custom/<name>-anim.png`, 40×52 frames, one row) plus `anims.js`.
+
+| Frames | State | Used when |
+|---|---|---|
+| 0, 1 | idle (1 = blink + 1 px breath) | on a platform, no input; blink about every 2.6 s |
+| 2–7 | walk (6 frames, 90 ms each) | on a platform with left/right input; mirrored for left |
+| 8, 9 | fall (legs up and apart, arms spread) | not on a platform |
+| 10 | land (crouch) | first 110 ms after touching down |
+| 11 | hurt (squeezed eyes, open mouth, arms up) | first 350 ms after damage; the existing 1 s transparency blink still runs |
+
+**How identity is kept**: head, face and hair pixels are copied unchanged from the 48 px sprite
+(Rae's long hair also as a separate back layer that trails and lifts). The photo poses cannot walk,
+so arms and legs are redrawn as simple outlined pixel limbs in colours sampled from the portrait
+(jeans light/mid/dark, white sneakers, Gina's black jacket sleeves, Rae's pale tee). Gina's torso
+(jacket, hoodie, belt bag) is kept from the portrait; Rae's tee and belt are redrawn because her
+clasped arms cover them. Idle keeps each signature pose: Gina's hands on cheeks, Rae's clasped hands.
+
+**Anchors**: every frame has the feet centre at x = 20 and the shoe soles on row 51, so the
+renderer places all frames identically over the unchanged 26×26 hitbox (no float or sink between
+frames). Frames are drawn 1:1 with nearest-neighbour sampling.
+
+**Switches**: `characterSkin.animated` (default true); `?animated=0` shows the static portraits.
+
+**Adding a character**: add an entry to `CHARACTERS` in `tools/build_custom_anim.py` (feet centre,
+head/torso/hip/shoe rows, eye boxes, mouth point, read off a zoomed 48 px sprite), run
+`tools/build_custom_skins.py` then `tools/build_custom_anim.py`, and set `characterSkin.p1/p2`.
+
+**Known limits** (see `docs/reference/custom-skins/static-vs-animated.png`): the redrawn jeans are
+slimmer and flatter than the painted originals; Rae's idle clasp reads as one diagonal forearm;
+Gina's hands stay at her cheeks in the head pixels during every state (they read as cheeks at
+48 px). Faces are unchanged from the approved static version, so readability is the same.
+
+Previews: `anim-sheets.png` (all frames), `ingame-walk-cycle.png` (six walk frames captured from
+the running game), `static-vs-animated.png` (same scene, plus a fall and a landing).

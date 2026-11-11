@@ -24,7 +24,8 @@ window.SHOT_CONFIG = {
   //   height: rendered height in game px (built sizes: 32, 40, 48).  p1 / p2: which portrait.
   //   flip: mirror the portrait when the player last walked left.
   // URL override for testing: index.html?skin=custom&skinHeight=40  (or ?skin=classic)
-  characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true },
+  //   animated: use the animated sheets (assets/characters/custom/<name>-anim.png) when they exist.
+  characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
 
   platform: {
     // Width of every generated platform in px (playable area is 360 px). Applied from the next round.
@@ -95,6 +96,7 @@ window.SHOT_CONFIG = {
     num('platformWidth', function (v) { c.platform.width = v; });
     if (q.has('skin')) { c.characterSkin.mode = q.get('skin'); }
     num('skinHeight', function (v) { c.characterSkin.height = v; });
+    if (q.has('animated')) { c.characterSkin.animated = q.get('animated') !== '0'; }
     if (q.has('unit')) { c.penalty.unit = q.get('unit'); c.penalty.unitPlural = q.get('unitPlural') || q.get('unit') + 's'; }
   } catch (e) { /* ignore malformed URLs */ }
 })();

@@ -573,7 +573,8 @@
 		while (postion < STAGE_HEIGHT) {
 			postion += FLOOR_DISTANCE;
 			var floorY = postion;
-			var floorX = Math.round(Math.random() * STAGE_WIDTH - FLOOR_WIDTH * 0.5);
+			// SHOT: spawn fully inside the playable area (upstream allowed x in [-50, 310), half under the edges)
+			var floorX = Math.round(Math.random() * (STAGE_WIDTH - FLOOR_WIDTH));
 			if (firstInit) { // make sure can land on a floor at the beginning
 				if (floorY > STAGE_HEIGHT - FLOOR_DISTANCE) {
 					FloorSeq.start();
@@ -952,6 +953,9 @@
 			lastTime = time;
 		}
 		var duration = time - lastTime;
+		if (duration < 0) { // SHOT: guard against a clock that moved backwards (never with real rAF; seen with synthetic test clocks)
+			duration = 0;
+		}
 		if (duration > 2000) {
 			console.info('Pause, duration: ' + duration);
 			isRunning = false;
@@ -1133,7 +1137,11 @@
 		lastResult = null;
 		// SHOT: two heroes, both standing on the centred starting floor
 		var floorX = (STAGE_WIDTH - FLOOR_WIDTH) * 0.5;
-		var startY = STAGE_HEIGHT - FLOOR_DISTANCE;
+		// SHOT: the start floor sits at the last FLOOR_DISTANCE multiple inside the stage (see generateFloor);
+		// upstream placed heroes at STAGE_HEIGHT - FLOOR_DISTANCE, which with a taller HUD band ends up below
+		// the floor's top, so they fell through it. Spawn them a few px above the floor instead.
+		var startFloorY = FLOOR_DISTANCE * Math.floor(STAGE_HEIGHT / FLOOR_DISTANCE);
+		var startY = startFloorY - FLOOR_HEIGHT - 16;
 		heroes = [
 			new Hero(floorX + 8, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#ff5fb0' }),
 			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 8, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#39d47c' })

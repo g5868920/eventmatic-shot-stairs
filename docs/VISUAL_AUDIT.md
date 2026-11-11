@@ -86,3 +86,13 @@ Estimated size: ~400 lines of sprite data + ~250 lines of drawing code; engine d
 `docs/reference/side-by-side-checkpoint1.png` (reference left, build right) was captured after the first representative screen; `side-by-side-final.png` after polish. Remaining differences are listed in docs/MODIFICATIONS.md under "Known differences".
 
 `docs/reference/skin-mapping-check.png` verifies the corrected skin mapping: left, 1P stands on a blue brick (stable) floor and 2P has just landed on an intact stone (flipping) floor; right, 440 ms later the stone floor is mid-flip while every blue brick floor is unchanged.
+
+## 9. Review pass (2026-11-12, Eventmatic P0–P2)
+
+* **Mapping / odds** verified in the running game over 209 generated floors: blue brick (stable `Floor`) 48 %, conveyors 19 %, spring 15 %, spike 10 %, stone (flipping `FAKE_FLOOR`) 8 % — upstream's 50/10/10/10/10/10 within sampling noise. The start floor is a plain stable `Floor`. Odds untouched.
+* **Boundary bug** fixed: floors spawned in [−50, 310] and could sit under a wall; now [0, 260]. Verified min x = 0, max x = 258 over the same sample.
+* **Start bug** fixed: heroes spawned 4 px inside the start floor and fell through it (the HUD band change moved `STAGE_HEIGHT`). They now land on the start floor at floor 0.
+* **Character scale**: visible figure widened from 19 to 22 px within the 32-px frame (docs/PROPORTIONS.md); collision box unchanged.
+* **HUD counter**: shows `computePenalty(p1.floors + p2.floors)` every frame; at round end it equals the panel's penalty (verified 96 floors → 10 on both). Beer pickups heal only: a pickup with floors held constant left the counter unchanged. Note the configured `minDrinks: 1` makes the counter read ×1 from the first frame; set `minDrinks: 0` for a counter that starts at 0.
+* Acceptance screenshots: `docs/reference/acceptance/01-start.png`, `02-midgame.png`, `03a-beer-before.png`, `03b-beer-after.png`, `04-round-end.png`.
+

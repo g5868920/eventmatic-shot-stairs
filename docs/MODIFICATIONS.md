@@ -33,8 +33,11 @@ Modified engine: `game.js` (was `main.js`). Every changed region carries a `// S
 
 ## Known differences from the reference / open items
 
-* Compared in `docs/reference/side-by-side-final.png`. Platforms are 100 px of the 360-px playfield (28 %) while the reference's are about 18 % of its width, which follows from upstream's `FLOOR_WIDTH` collision constant, deliberately left untouched. The kids are drawn at 32 px around the 26-px `HERO_WIDTH` box, so their size now matches the reference's roughly one-third-of-a-platform proportion without touching collisions.
-* Upstream spawns floors in x ∈ [−50, 310], so a floor can emerge from under a wall; kept, because changing the spawn range alters gameplay.
+* Compared in `docs/reference/side-by-side-final.png`. Platforms are 100 px of the 360-px playfield (28 %) while the reference's are about 18 % of its width, which follows from upstream's `FLOOR_WIDTH` collision constant, deliberately left untouched. The kids are drawn in 32-px frames around the 26-px `HERO_WIDTH` box (visible figure 22×28 px), matching the reference's child-width-to-platform ratio (0.22 vs 0.23) without touching collisions.
+* Floor x spawn range changed from upstream's [−50, 310] to [0, 260] so every platform lies fully inside the 360-px play area (Eventmatic P0, 2026-11-12). Platform width, spacing, odds and physics are unchanged.
+* Hero spawn height is now derived from the start floor (upstream used `STAGE_HEIGHT - FLOOR_DISTANCE`, which with the 52-px HUD band put the heroes 4 px *inside* the start floor so they fell through it on round start).
+* The frame loop clamps a negative time delta to zero (only reachable with synthetic test clocks).
+* See docs/PROPORTIONS.md for the measured reference-vs-build ratios; the remaining structural difference is upstream's 100-px platforms on 60-px spacing.
 * Skin mapping per Eventmatic: blue brick = stable normal floor (`config.skins.normal`), beige/brown stone = upstream flipping floor (`config.skins.fake`). While the flipping floor turns, the solid part keeps the stone skin and the turned part is drawn faded.
 * Colours are estimated from projector photos; the HUD font is an original 5×7 pixel font, not the reference's.
 * A single shared cooldown of 1 s before "play again" is accepted (upstream behaviour).

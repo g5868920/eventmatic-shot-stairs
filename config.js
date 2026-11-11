@@ -27,6 +27,10 @@ window.SHOT_CONFIG = {
   //   animated: use the animated sheets (assets/characters/custom/<name>-anim.png) when they exist.
   characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
 
+  // Sound effects (audio.js, synthesised in the browser). M toggles mute during play.
+  // URL overrides: ?mute=1  ?volume=0.4
+  audio: { enabled: true, muted: false, volume: 0.6 },
+
   platform: {
     // Width of every generated platform in px (playable area is 360 px). Applied from the next round.
     width: 80,

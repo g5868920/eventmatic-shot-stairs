@@ -15,6 +15,7 @@ ShotStairs.start();          // start / resume
 ShotStairs.reset();          // abort and start a fresh round
 ShotStairs.getState();       // { running, players: [...], lastResult }
 ShotStairs.computePenalty(42);  // 2 (floor(42 / 10) * 0.5)
+ShotStairs.setMuted(true);      // sound effects off (audio.js); setVolume(0..1)
 ```
 
 Embedded in an iframe, every `roundEnd` is also posted to the parent:

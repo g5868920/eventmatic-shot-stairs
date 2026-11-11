@@ -18,7 +18,7 @@
 
 ## Audio
 
-No audio is shipped. Upstream has none.
+No audio files are shipped. The three sound effects are synthesised at runtime by `audio.js` (original, Apache-2.0). NS-SHAFT reference recordings found online were not reused because no license is granted; see docs/AUDIO.md.
 
 ## Fonts
 

@@ -25,7 +25,7 @@ Controls belong to the player, not to a side of the screen, so they keep working
 
 Character look: `characterSkin.mode` in `config.js` switches between the classic kids and the custom Gina / Rae portrait prototype (`?skin=classic` or `?skin=custom&skinHeight=40` for a quick look). See docs/CHARACTERS.md.
 
-Space / Enter starts, resumes or restarts.
+Space / Enter starts, resumes or restarts. M mutes / unmutes the sound effects (see docs/AUDIO.md).
 
 ## Rules (unchanged from the original except where noted)
 
@@ -54,6 +54,7 @@ docs/INTEGRATION.md            future Eventmatic hook-up
 tests/headless-play.js         five bot-played rounds (regression)
 tests/push-tests.js            player-to-player pushing scenarios
 tests/rules-tests.js           controls, identity, shot table, platform width and reach
+tests/audio-tests.js           sound events, mute, volume
 
 Run a test in the browser console on the game page:
   eval(await (await fetch('tests/push-tests.js')).text())

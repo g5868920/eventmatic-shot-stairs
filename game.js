@@ -615,6 +615,9 @@
 			this.hurtTime = time;
 			this.life = Math.max(0, this.life - num);
 			topBarChange = true;
+			if (num > 0) {
+				fireEvent('hurt', this.id, num, this.life); // SHOT: for the audio layer (no gameplay effect)
+			}
 		}
 	});
 
@@ -1165,6 +1168,12 @@
 					isCooldownTime = false;
 					drawAll($ctx, time);
 				}, 1000);
+				// SHOT: announce who went down and why, once per round (audio layer listens; no gameplay effect)
+				for (var d = 0; d < heroes.length; ++d) {
+					if (heroes[d].isDead()) {
+						fireEvent('playerDown', heroes[d].id, heroes[d].life <= 0 ? 'health' : 'fall');
+					}
+				}
 				lastResult = buildResult(); // SHOT
 				bestScore = Math.max(score, bestScore);
 				fireEvent('roundEnd', lastResult); // SHOT

@@ -8,6 +8,10 @@
 | `playerDown` with cause `health` (life reached 0) | **death**: NS-SHAFT fall-dead recording (trimmed to 1.86 s) | the fatal hit does not also play the hurt sound |
 | `playerDown` with cause `fall` (dropped below the playfield) | **fall**: NS-SHAFT fall-dead recording (trimmed to 1.86 s) | once per player per round |
 
+| `spring` (a spring launches the player, ~200 ms after landing on it) | **spring**: original synthesised "boing", 0.30 s (upward sweep + decaying wobble) | once per launch; nothing during the compression |
+| `beer` (a beer mug is collected) | **beer**: original synthesised "bling", 0.24 s (two rising pulse notes B5 → E6) | once per mug; ordinary landing regen is silent; the SHOT counter is not involved |
+| `flip` (a beige/brown flipping platform starts to turn, 300 ms after it is first stood on) | **flip**: original synthesised "click-clack", 0.13 s (two short noisy clicks) | once per platform, even with both players on it; never for blue-brick stable floors |
+
 The engine only *announces* these events (`Hero.hurt` fires `hurt`; the round-end code fires
 `playerDown` once per dead player). `audio.js` listens and plays; it never changes gameplay. 1P is
 panned slightly right and 2P slightly left so both players are heard independently, including two
@@ -87,7 +91,14 @@ recordings for this private event; the build therefore loads them from their pub
 and does not copy them into the repository or a public release. For any public or commercial use,
 switch back to `?audioFiles=0` / `files: null` (the synthesised sounds are original, Apache-2.0).
 
+The spring, beer and flip sounds are original effects synthesised in `audio.js` for this project
+(Apache-2.0). They follow the sound-effect volume (60 %) and mute, sit above the 25 % music, and use
+per-player repeat guards (spring/beer 120 ms, flip 150 ms) as a safety net against spam.
+
 ## Tests
+
+`tests/sfx-extra-tests.js`: spring once per launch (both players), beer once per mug and not from
+regen, flip once per platform (shared and separate), nothing on stable floors, audible / muted.
 
 `tests/audio-tests.js` (run in the page console): spike damage once with no repeats while standing
 on spikes, both players at once, ceiling hits, fatal hit → death only, fall below the playfield,

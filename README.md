@@ -56,6 +56,7 @@ tests/push-tests.js            player-to-player pushing scenarios
 tests/rules-tests.js           controls, identity, shot table, platform width and reach
 tests/audio-tests.js           sound events, mute, volume
 tests/music-tests.js           background music loop, fade, rematch, unlock
+tests/sfx-extra-tests.js       spring / beer / flip sounds
 
 Run a test in the browser console on the game page:
   eval(await (await fetch('tests/push-tests.js')).text())

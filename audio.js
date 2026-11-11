@@ -9,6 +9,9 @@
  * Listens to game events only; it never touches gameplay:
  *   'hurt'       (playerId, damage, lifeAfter)  -> hurt SFX, unless that hit was fatal
  *   'playerDown' (playerId, 'health' | 'fall')  -> death SFX (out of health) or fall SFX (off the bottom)
+ *   'spring' (playerId)                         -> 'boing' when a spring launches the player
+ *   'beer'   (playerId, lifeAfter)              -> 'bling' when a beer mug is collected
+ *   'flip'   (playerId)                         -> 'click-clack' when a flipping platform starts to turn
  * 1P is panned slightly right and 2P slightly left so both players are heard independently.
  *
  * Settings: SHOT_CONFIG.audio = { enabled, muted, volume (0..1), music: { enabled, file, volume } };
@@ -60,7 +63,7 @@
 
   var AC = global.AudioContext || global.webkitAudioContext;
   var ctx = null, master = null, buffers = {}, lastPlayed = {}, log = [];
-  var MIN_GAP_MS = { hurt: 180, fall: 1000, death: 1000 };   // per player: no stacked repeats
+  var MIN_GAP_MS = { hurt: 180, fall: 1000, death: 1000, spring: 120, beer: 120, flip: 150 };   // per player: no stacked repeats
   var PAN = { p1: 0.35, p2: -0.35 };
 
   /* ---------- synthesis (runs once at load) ---------- */
@@ -101,6 +104,23 @@
       }
       var k2 = (t - 1.15) / (T - 1.15);
       return { f: 70 - 30 * k2, a: 0.6 * (1 - k2), wave: 'tri', noise: 0.25 };
+    });
+    // spring 'boing': 0.3 s — quick upward sweep, then a decaying wobble around 520 Hz
+    buffers.spring = makeBuffer(0.30, function (t, T) {
+      var f = t < 0.05 ? 180 + (520 - 180) * (t / 0.05) : 520 * (1 + 0.22 * Math.sin(2 * Math.PI * 17 * t) * Math.exp(-7 * (t - 0.05)));
+      return { f: f, a: 0.42 * Math.pow(1 - t / T, 1.3), wave: 'tri' };
+    });
+    // beer 'bling': 0.24 s — two bright rising notes (B5 then E6), thin pulse
+    buffers.beer = makeBuffer(0.24, function (t) {
+      if (t < 0.07) return { f: 988, a: 0.32, wave: 'square', duty: 0.25 };
+      var k = (t - 0.07) / 0.17;
+      return { f: 1319, a: 0.34 * (1 - k), wave: 'square', duty: 0.25 };
+    });
+    // flip 'click-clack': 0.13 s — two short mechanical clicks with a hint of noise
+    buffers.flip = makeBuffer(0.13, function (t) {
+      if (t < 0.025) return { f: 1800 - 1200 * (t / 0.025), a: 0.36 * (1 - t / 0.025), wave: 'square', duty: 0.5, noise: 0.45 };
+      if (t >= 0.06 && t < 0.095) { var k = (t - 0.06) / 0.035; return { f: 900 - 500 * k, a: 0.3 * (1 - k), wave: 'square', duty: 0.5, noise: 0.35 }; }
+      return { f: 1, a: 0, wave: 'square' };
     });
     // death (health ran out): 0.95 s little defeat jingle — three falling notes and a low buzz
     var notes = [[0.00, 0.16, 659], [0.17, 0.16, 523], [0.34, 0.16, 392], [0.52, 0.43, 196]];
@@ -294,6 +314,9 @@
     Game.on('playerDown', function (playerId, cause) {
       play(cause === 'health' ? 'death' : 'fall', playerId);
     });
+    Game.on('spring', function (playerId) { play('spring', playerId); });            // once per launch
+    Game.on('beer', function (playerId) { play('beer', playerId); });                // once per mug collected
+    Game.on('flip', function (playerId) { play('flip', playerId); });                // once per flipping platform
     // background music follows the round: start (or keep playing) on a new round, fade out at the end
     Game.on('gameStart', function () {
       wantMusic = music.enabled;

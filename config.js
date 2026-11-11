@@ -42,6 +42,7 @@ window.SHOT_CONFIG = {
       hurt: 'https://awiclass.monoame.com/audio/%E5%B0%8F%E6%9C%8B%E5%8F%8B%E4%B8%8B%E6%A8%93%E6%A2%AF%20%E8%A2%AB%E5%88%BA.mp3', // spike / ceiling hit
       fall: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3',   // fell below the playfield
       death: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3'   // life reached 0
+      // spring / beer / flip: original synthesised sounds (add a URL here to use a recording instead)
     }
   },
 

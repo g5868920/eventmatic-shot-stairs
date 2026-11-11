@@ -284,6 +284,7 @@
 				hero.vy = SPRINGING_VELOCITY;
 				hero.onFloor = null;
 				this.leaving(hero, time);
+				fireEvent('spring', hero.id); // SHOT: the actual launch, for the audio layer (no gameplay effect)
 			}
 		},
 		leaving : function(hero, time) {
@@ -399,6 +400,10 @@
 		},
 		standing : function(hero, time) {
 			var offset = time - this.touchTime;
+			if (offset >= FAKE_FLOOR_TIME && !this.flipAnnounced) {
+				this.flipAnnounced = true; // SHOT: once per platform, for the audio layer (no gameplay effect)
+				fireEvent('flip', hero.id);
+			}
 			if (offset < FAKE_FLOOR_TIME) {
 				this.height = FLOOR_HEIGHT;
 			} else if (offset < FAKE_FLOOR_TIME2) {

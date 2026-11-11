@@ -1,10 +1,10 @@
 /**
  * SHOT the Stairs — audio layer.
  *
- * Original retro sound effects synthesised with the Web Audio API when the page loads (no audio
- * files, nothing to license or download during play). Modelled loosely on the feel of the classic
- * NS-SHAFT sounds (short harsh hit, long falling whistle) without copying any recording.
- * See docs/AUDIO.md for sources and licensing.
+ * Sounds come from SHOT_CONFIG.audio.files (by default the classic NS-SHAFT hurt and fall-dead
+ * recordings chosen by Eventmatic, loaded at runtime from their URLs and not stored in this repo).
+ * Every sound also has an original synthesised version built at load; it plays until the file has
+ * loaded, and permanently if a file cannot be loaded (offline, host gone). See docs/AUDIO.md.
  *
  * Listens to game events only; it never touches gameplay:
  *   'hurt'       (playerId, damage, lifeAfter)  -> hurt SFX, unless that hit was fatal
@@ -18,6 +18,13 @@
   'use strict';
 
   var cfg = (global.SHOT_CONFIG && global.SHOT_CONFIG.audio) || {};
+  var DEFAULT_FILES = {
+    hurt: 'https://awiclass.monoame.com/audio/%E5%B0%8F%E6%9C%8B%E5%8F%8B%E4%B8%8B%E6%A8%93%E6%A2%AF%20%E8%A2%AB%E5%88%BA.mp3',
+    fall: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3',
+    death: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3'
+  };
+  var files = cfg.files || DEFAULT_FILES;   // name -> URL (null / missing = synthesised only)
+  var sources = {};                           // name -> 'synth' | 'file' | 'synth (file failed)'
   var settings = {
     enabled: cfg.enabled !== false,
     muted: !!cfg.muted,
@@ -97,11 +104,52 @@
       master.gain.value = settings.muted ? 0 : settings.volume;
       master.connect(ctx.destination);
       build();
+      for (var k in buffers) sources[k] = 'synth';
+      loadFiles();
       return true;
     } catch (e) {
       ctx = null;
       return false;
     }
+  }
+
+  /* ---------- recorded sounds (optional, replace the synthesised ones once loaded) ---------- */
+  function trim(buf) {
+    // drop leading/trailing near-silence so the hit is heard immediately and nothing lingers
+    var d = buf.getChannelData(0), n = d.length, start = 0, end = n - 1;
+    while (start < n && Math.abs(d[start]) < 0.01) start++;
+    while (end > start && Math.abs(d[end]) < 0.004) end--;
+    start = Math.max(0, start - Math.round(buf.sampleRate * 0.002));
+    end = Math.min(n - 1, end + Math.round(buf.sampleRate * 0.03));
+    var len = Math.max(1, end - start + 1);
+    var out = ctx.createBuffer(buf.numberOfChannels, len, buf.sampleRate);
+    for (var c = 0; c < buf.numberOfChannels; c++) {
+      out.getChannelData(c).set(buf.getChannelData(c).subarray(start, start + len));
+    }
+    return out;
+  }
+  function decode(ab) {
+    return new Promise(function (res, rej) {
+      var p = ctx.decodeAudioData(ab, res, rej);
+      if (p && p.then) p.then(res, rej);
+    });
+  }
+  function loadFiles() {
+    var cache = {};
+    Object.keys(files).forEach(function (name) {
+      var url = files[name];
+      if (!url || !global.fetch) return;
+      var job = cache[url] || (cache[url] = global.fetch(url).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.arrayBuffer();
+      }).then(decode).then(trim));
+      job.then(function (buf) {
+        buffers[name] = buf;
+        sources[name] = 'file';
+      }, function () {
+        sources[name] = 'synth (file failed)';
+      });
+    });
   }
 
   /* ---------- browser autoplay unlock ---------- */
@@ -187,6 +235,7 @@
     setVolume: setVolume,
     settings: function () { return { enabled: settings.enabled, muted: settings.muted, volume: settings.volume, available: ready }; },
     durations: function () { var o = {}; for (var k in buffers) o[k] = Math.round(buffers[k].duration * 100) / 100; return o; },
+    sources: function () { var o = {}; for (var k in sources) o[k] = sources[k]; return o; },
     _log: log,
     _debug: function () { return { ctx: ctx, master: master }; } // tests only
   };

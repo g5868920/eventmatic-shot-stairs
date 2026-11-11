@@ -18,7 +18,7 @@
 
 ## Audio
 
-No audio files are shipped. The three sound effects are synthesised at runtime by `audio.js` (original, Apache-2.0). NS-SHAFT reference recordings found online were not reused because no license is granted; see docs/AUDIO.md.
+No third-party audio files are stored in the repository. By Eventmatic's decision the hurt and fall/death sounds are the NS-SHAFT recordings loaded at runtime from their public URLs (no license stated by the hosts; not redistributed here). Original synthesised fallbacks in `audio.js` are Apache-2.0. See docs/AUDIO.md.
 
 ## Fonts
 

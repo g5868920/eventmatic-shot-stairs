@@ -28,9 +28,19 @@ window.SHOT_CONFIG = {
   //   animated: use the animated sheets (assets/characters/custom/<name>-anim.png) when they exist.
   characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
 
-  // Sound effects (audio.js, synthesised in the browser). M toggles mute during play.
-  // URL overrides: ?mute=1  ?volume=0.4
-  audio: { enabled: true, muted: false, volume: 0.6 },
+  // Sound effects (audio.js). M toggles mute during play. URL overrides: ?mute=1  ?volume=0.4
+  // files: sound -> URL. Defaults are the classic NS-SHAFT recordings chosen by Eventmatic, loaded at
+  // runtime (not stored in this repo; see docs/AUDIO.md). For an offline venue, save copies under
+  // assets/audio/local/ (git-ignored) and point these at e.g. 'assets/audio/local/fall-dead.mp3'.
+  // null = use the built-in synthesised sound. If a file fails to load, the synthesised one plays.
+  audio: {
+    enabled: true, muted: false, volume: 0.6,
+    files: {
+      hurt: 'https://awiclass.monoame.com/audio/%E5%B0%8F%E6%9C%8B%E5%8F%8B%E4%B8%8B%E6%A8%93%E6%A2%AF%20%E8%A2%AB%E5%88%BA.mp3', // spike / ceiling hit
+      fall: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3',   // fell below the playfield
+      death: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3'   // life reached 0
+    }
+  },
 
   platform: {
     // Width of every generated platform in px (playable area is 360 px). Applied from the next round.
@@ -107,6 +117,13 @@ window.SHOT_CONFIG = {
     if (q.has('skin')) { c.characterSkin.mode = q.get('skin'); }
     num('skinHeight', function (v) { c.characterSkin.height = v; });
     if (q.has('animated')) { c.characterSkin.animated = q.get('animated') !== '0'; }
+    // ?audioFiles=0 -> built-in synthesised sounds only; ?audioFiles=local -> assets/audio/local/<name>.mp3
+    if (q.has('audioFiles')) {
+      var mode = q.get('audioFiles');
+      Object.keys(c.audio.files).forEach(function (k) {
+        c.audio.files[k] = mode === '0' ? null : (mode === 'local' ? 'assets/audio/local/' + (k === 'hurt' ? 'hurt' : 'fall-dead') + '.mp3' : c.audio.files[k]);
+      });
+    }
     if (q.has('unit')) { c.penalty.unit = q.get('unit'); c.penalty.unitPlural = q.get('unitPlural') || q.get('unit') + 's'; }
   } catch (e) { /* ignore malformed URLs */ }
 })();

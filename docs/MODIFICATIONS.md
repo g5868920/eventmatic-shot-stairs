@@ -35,7 +35,7 @@ Modified engine: `game.js` (was `main.js`). Every changed region carries a `// S
 
 * Compared in `docs/reference/side-by-side-final.png`. Platforms are 100 px of the 360-px playfield (28 %) while the reference's are about 18 % of its width, which follows from upstream's `FLOOR_WIDTH` collision constant, deliberately left untouched. The kids are drawn at 32 px around the 26-px `HERO_WIDTH` box, so their size now matches the reference's roughly one-third-of-a-platform proportion without touching collisions.
 * Upstream spawns floors in x ∈ [−50, 310], so a floor can emerge from under a wall; kept, because changing the spawn range alters gameplay.
-* The reference's blue brick platform type is unknown mechanically; here it is only the skin of the upstream flipping floor (`config.skins.fake`).
+* Skin mapping per Eventmatic: blue brick = stable normal floor (`config.skins.normal`), beige/brown stone = upstream flipping floor (`config.skins.fake`). While the flipping floor turns, the solid part keeps the stone skin and the turned part is drawn faded.
 * Colours are estimated from projector photos; the HUD font is an original 5×7 pixel font, not the reference's.
 * A single shared cooldown of 1 s before "play again" is accepted (upstream behaviour).
 * Touch input only controls 1P.

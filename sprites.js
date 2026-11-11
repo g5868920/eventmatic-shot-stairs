@@ -153,7 +153,7 @@
       drawFloor: function (ctx, sheet, x, y) {
         ctx.drawImage(sheet, Math.round(x), Math.round(y) - 12);
       },
-      /** blue brick platform clipped to a height (used when a floor's height animates) */
+      /** a floor skin clipped to a height (used while the flipping floor turns) */
       drawFloorClipped: function (ctx, sheet, x, y, height) {
         var h = Math.max(0, Math.min(12, Math.round(height)));
         if (h <= 0) return;

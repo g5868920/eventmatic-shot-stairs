@@ -21,12 +21,12 @@ window.SHOT_CONFIG = {
   // Visual skins per platform mechanic. Appearance only: changing a skin never
   // changes how a platform behaves. Available: 'stone', 'blueBrick', 'steelSpikes'.
   skins: {
-    normal: 'stone',
+    normal: 'blueBrick',   // stable floor
     spring: 'spring',
     conveyorLeft: 'conveyorLeft',
     conveyorRight: 'conveyorRight',
     spike: 'steelSpikes',
-    fake: 'blueBrick'
+    fake: 'stone'          // flipping / temporary floor
   },
 
   beer: {

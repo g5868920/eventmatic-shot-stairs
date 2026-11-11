@@ -164,7 +164,7 @@
 		},
 		beer: { spawnChance: 0.12, healAmount: 3, onlySafeFloors: true },
 		// SHOT: visual skins per mechanic; appearance only, never changes behaviour
-		skins: { normal: 'stone', spring: 'spring', conveyorLeft: 'conveyorLeft', conveyorRight: 'conveyorRight', spike: 'steelSpikes', fake: 'blueBrick' },
+		skins: { normal: 'blueBrick', spring: 'spring', conveyorLeft: 'conveyorLeft', conveyorRight: 'conveyorRight', spike: 'steelSpikes', fake: 'stone' },
 		sprites: {}, // manifest overrides, e.g. { kidP1: 'skins/alice.png' }
 		penalty: { floorsPerDrink: 10, roundUp: true, minDrinks: 1, maxDrinks: 10, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {

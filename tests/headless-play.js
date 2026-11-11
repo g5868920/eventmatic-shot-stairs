@@ -6,7 +6,7 @@
  */
 (async function () {
   window.requestAnimationFrame = function () { return 0; };
-  var KC = { ArrowLeft: 37, ArrowRight: 39, KeyZ: 90, KeyC: 67, Space: 32 };
+  var KC = { ArrowLeft: 37, ArrowRight: 39, KeyZ: 90, KeyC: 67, Space: 32, Enter: 13 };
   var key = function (code, type) { window.dispatchEvent(new KeyboardEvent(type, { code: code, keyCode: KC[code], bubbles: true })); };
   var keys = { p1: { left: 'ArrowLeft', right: 'ArrowRight' }, p2: { left: 'KeyZ', right: 'KeyC' } };
   var held = { p1: null, p2: null };
@@ -30,7 +30,7 @@
   ShotStairs.on('roundEnd', function (r) { events.push(r); });
   var t = 1000, rounds = [];
   for (var r = 0; r < 5; r++) {
-    if (r === 0) ShotStairs.reset(); else { await new Promise(function (res) { setTimeout(res, 1100); }); key('Space', 'keydown'); key('Space', 'keyup'); }
+    if (r === 0) ShotStairs.reset(); else { await new Promise(function (res) { setTimeout(res, 1100); }); key('Enter', 'keydown'); key('Enter', 'keyup'); }
     var s0 = ShotStairs.getState();
     var maxLife = Game._debugWorld().maxLife;
     var fresh = s0.running && s0.lastResult === null && s0.players.every(function (p) { return p.life === maxLife && p.floors === 0 && p.beers === 0; });

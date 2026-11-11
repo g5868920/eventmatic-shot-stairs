@@ -100,7 +100,18 @@ window.SHOT_CONFIG = {
     penaltyLabelDraw: 'PENALTY',
     playAgain: 'play again',
     resume: 'continue',
-    rematch: 'PRESS SPACE TO REMATCH'
+    rematch: 'PRESS ENTER TO REMATCH',
+    // Pause / quit / countdown screens
+    paused: 'GAME PAUSED',
+    totalFloors: 'TOTAL FLOORS: {n}',
+    shotPool: 'SHOT POOL: {n}',
+    resumeHint: 'SPACE - RESUME',
+    quitHint: 'ESC - QUIT ROUND',
+    quitTitle: 'QUIT THIS ROUND?',
+    quitNote: 'NO WINNER, NO PENALTY',
+    quitYes: 'ENTER - QUIT',
+    quitNo: 'ESC - BACK',
+    countdown: 'GET READY'
   }
 };
 

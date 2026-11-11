@@ -16,16 +16,24 @@ python3 tools/serve.py 8765
 then open http://127.0.0.1:8765/ (or open `index.html` directly). The canvas scales to the
 window, so a full-screen browser on a projector works as is.
 
-| | Left | Right |
+| Player | Left | Right |
 |---|---|---|
 | 1P (blue cap, green shirt; starts on the right) | ← | → |
 | 2P (red cap, pink shirt; starts on the left) | Z | C |
 
+| Key | Action |
+|---|---|
+| Enter | start a round from How to Play; rematch after Game Over; confirm quitting |
+| Space | pause / resume (resume runs a 3-2-1 countdown); never starts or restarts a round |
+| Esc | from the pause screen: quit-round confirmation (Esc again = back) |
+| M | mute / unmute all sound |
+
 Controls belong to the player, not to a side of the screen, so they keep working after the players swap places.
+The game opens on a pixel-art How to Play screen; losing window focus or hiding the tab pauses a running round.
+A quit round has no winner, no loser and no penalty.
 
 Character look: `characterSkin.mode` in `config.js` switches between the classic kids and the custom Gina / Rae portrait prototype (`?skin=classic` or `?skin=custom&skinHeight=40` for a quick look). See docs/CHARACTERS.md.
-
-Space / Enter starts, resumes or restarts. M mutes / unmutes all sound. Background music: "8 Bit Retro Game Music" by moodmode (Pixabay); see docs/AUDIO.md for credits, license and Content ID notes.
+Background music: "8 Bit Retro Game Music" by moodmode (Pixabay); see docs/AUDIO.md for credits, license and Content ID notes.
 
 ## Rules (unchanged from the original except where noted)
 
@@ -33,7 +41,7 @@ Space / Enter starts, resumes or restarts. M mutes / unmutes all sound. Backgrou
 * **Pushing** (new): players are solid to each other. Walking into the other player pushes them along at walking speed, even off a platform edge, where they fall normally. Equal opposite pushes cancel. Walls stop the pushed player. No damage or knockback from contact.
 * **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
 * **HUD**: 2P LIFE left, 1P LIFE right (12 segments), and in the centre a beer mug × the shots so far: `floor((1P floors + 2P floors) / 10) × 0.5`, so 10 floors = 0.5, 20 = 1, 30 = 1.5. It starts at 0. Rate (`penalty.floorsPerStep`, `penalty.shotsPerStep`) and an optional cap (`penalty.maxShots`) are configurable.
-* **Round end** (new): the first player to die loses. The panel shows the loser by name (`players.pN.name`, else the custom character, else 1P/2P), `1P a + 2P b = total floors` and, largest, the shots with "LOSER'S PENALTY". Both dead in the same step = draw. Click PLAY AGAIN or press Space to rematch.
+* **Round end** (new): the first player to die loses. The panel shows the loser by name (`players.pN.name`, else the custom character, else 1P/2P), `1P a + 2P b = total floors` and, largest, the shots with "LOSER'S PENALTY". Both dead in the same step = draw. Click PLAY AGAIN or press Enter to rematch.
 
 ## Configure
 
@@ -57,6 +65,7 @@ tests/rules-tests.js           controls, identity, shot table, platform width an
 tests/audio-tests.js           sound events, mute, volume
 tests/music-tests.js           background music loop, fade, rematch, unlock
 tests/sfx-extra-tests.js       spring / beer / flip sounds
+tests/pause-tests.js           READY, pause, countdown, frozen timers, quit, rematch keys (fresh page)
 
 Run a test in the browser console on the game page:
   eval(await (await fetch('tests/push-tests.js')).text())

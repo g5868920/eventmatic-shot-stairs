@@ -11,9 +11,12 @@ ShotStairs.on('roundEnd', function (result) {
   // result.penalty: shots, a multiple of shotsPerStep (default 0.5), result.penaltyUnit: string
   // result.beers: { p1, p2 }, result.life: { p1, p2 }
 });
-ShotStairs.start();          // start / resume
+ShotStairs.start();          // start a round (READY / GAME OVER); from PAUSED: resume with countdown
+ShotStairs.pause();          // pause a running round
+ShotStairs.resume();         // 3-2-1 countdown, then play
+ShotStairs.quitRound();      // abandon without a result (no roundEnd, no penalty)
 ShotStairs.reset();          // abort and start a fresh round
-ShotStairs.getState();       // { running, players: [...], lastResult }
+ShotStairs.getState();       // { state: 'ready'|'playing'|'paused'|'quit'|'countdown'|'over', running, countdown, players, lastResult }
 ShotStairs.computePenalty(42);  // 2 (floor(42 / 10) * 0.5)
 ShotStairs.setMuted(true);      // sound effects off (audio.js); setVolume(0..1)
 ```
@@ -27,3 +30,5 @@ Platform width and penalty settings apply from the next round.
 Suggested next steps when integrating: map `p1`/`p2` to Eventmatic team names via
 `configure({ players: { p1: { label: 'Rae' }, p2: { label: 'Linda' } } })`, and forward
 `roundEnd` into the Eventmatic scoring flow.
+
+Events also include `pause`, `resumeCountdown`, `resume` and `roundAbandoned`.

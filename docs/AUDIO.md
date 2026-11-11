@@ -42,6 +42,7 @@ Behaviour (`audio.js`):
   the first key press / click / touch (the same unlock as the sound effects).
 * Loops sample-accurately between the first and last audible samples (0.009 s to 68.18 s), skipping
   the MP3 padding and the 2 s of silence at the end of the file, so the loop has no gap.
+* Pausing stops it and remembers the position; it continues from there when play resumes after the countdown. Quitting a round fades it out.
 * Fades out over 0.8 s when the round ends; a rematch starts it again from the top. Only one music
   source can exist at a time, so repeated round starts never stack loops.
 * `?music=0` disables it (the file is not even downloaded), `?musicVolume=0.15` sets the level;

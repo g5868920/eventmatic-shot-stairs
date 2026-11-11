@@ -224,12 +224,43 @@
     src.connect(fade);
     fade.connect(musicGain);
     src.start(0, musicLoop.start);
-    musicNow = { src: src, fade: fade, startedAt: ctx.currentTime };
+    musicNow = { src: src, fade: fade, startedAt: ctx.currentTime, offset: musicLoop.start };
     musicStarts++;
     return true;
   }
 
+  // pause keeps the playback position; resume continues from it (seamlessly inside the loop)
+  var musicPausedAt = null;
+  function musicPosition() {
+    if (!musicNow) return musicPausedAt;
+    var span = musicLoop.end - musicLoop.start, played = ctx.currentTime - musicNow.startedAt + musicNow.offset;
+    return musicLoop.start + (played - musicLoop.start) % span;
+  }
+  function pauseMusic() {
+    if (!musicNow) return false;
+    musicPausedAt = musicPosition();
+    var m = musicNow, t = ctx.currentTime;
+    musicNow = null;
+    m.fade.gain.cancelScheduledValues(t);
+    m.fade.gain.setValueAtTime(m.fade.gain.value, t);
+    m.fade.gain.linearRampToValueAtTime(0, t + 0.04);
+    try { m.src.stop(t + 0.05); } catch (e) { /* ignore */ }
+    return true;
+  }
+  function resumeMusic() {
+    if (musicPausedAt === null || musicNow || !ctx || ctx.state !== 'running' || !musicBuffer) return false;
+    var at = musicPausedAt;
+    musicPausedAt = null;
+    var src = ctx.createBufferSource(), fade = ctx.createGain();
+    src.buffer = musicBuffer; src.loop = true; src.loopStart = musicLoop.start; src.loopEnd = musicLoop.end;
+    fade.gain.value = 1; src.connect(fade); fade.connect(musicGain);
+    src.start(0, at);
+    musicNow = { src: src, fade: fade, startedAt: ctx.currentTime, offset: at };
+    return true;
+  }
+
   function stopMusic(fadeSeconds) {
+    musicPausedAt = null;
     if (!musicNow) return false;
     var m = musicNow, t = ctx.currentTime, f = Math.max(0.01, fadeSeconds || 0);
     musicNow = null;                                   // a rematch may start a new source right away
@@ -326,6 +357,10 @@
       wantMusic = false;
       stopMusic(music.fadeOut);
     });
+    // pause keeps the position; resume (after the 3-2-1 countdown) continues; quitting a round fades out
+    Game.on('pause', function () { pauseMusic(); });
+    Game.on('resume', function () { if (wantMusic && !resumeMusic()) startMusic(); });
+    Game.on('roundAbandoned', function () { wantMusic = false; stopMusic(music.fadeOut); });
   }
 
   var ready = init();
@@ -343,7 +378,9 @@
       return music.volume;
     },
     music: function () {
-      return { enabled: music.enabled, loaded: !!musicBuffer, playing: !!musicNow, volume: music.volume, starts: musicStarts,
+      var pos = musicPosition();
+      return { enabled: music.enabled, loaded: !!musicBuffer, playing: !!musicNow, paused: musicPausedAt !== null, position: pos === null || pos === undefined ? null : +pos.toFixed(3),
+               volume: music.volume, starts: musicStarts,
                loop: musicLoop && { start: +musicLoop.start.toFixed(3), end: +musicLoop.end.toFixed(3) } };
     },
     settings: function () { return { enabled: settings.enabled, muted: settings.muted, volume: settings.volume, available: ready }; },

@@ -178,7 +178,11 @@
 			shots: '{n} {unit}',
 			penaltyLabel: "LOSER'S PENALTY", penaltyLabelDraw: 'PENALTY',
 			playAgain: 'play again', resume: 'continue',
-			rematch: 'PRESS SPACE TO REMATCH'
+			rematch: 'PRESS ENTER TO REMATCH',
+			paused: 'GAME PAUSED', totalFloors: 'TOTAL FLOORS: {n}', shotPool: 'SHOT POOL: {n}',
+			resumeHint: 'SPACE - RESUME', quitHint: 'ESC - QUIT ROUND',
+			quitTitle: 'QUIT THIS ROUND?', quitNote: 'NO WINNER, NO PENALTY', quitYes: 'ENTER - QUIT', quitNo: 'ESC - BACK',
+			countdown: 'GET READY'
 		}
 	};
 	if (global.SHOT_CONFIG) {
@@ -199,6 +203,11 @@
 	var topBarChange = false;
 	var lastResult = null; // SHOT: result of the last finished round
 	var buttonRect = null; // SHOT: play again / continue button in canvas coordinates (for mouse clicks)
+	// SHOT: game states READY -> PLAYING <-> PAUSED (-> QUIT confirm) -> COUNTDOWN -> PLAYING -> OVER.
+	// Gameplay uses a game clock (rAF time minus all paused time), so every timer freezes while paused.
+	var gameState = 'ready';
+	var pausedTotal = 0, pauseRaw = 0, lastRaw = 0, countdownStart = 0;
+	var COUNTDOWN_MS = 3000;
 	// var timeCoefficient = 1, timeModifier = 0;
 
 	var FloorSeq = function() {
@@ -895,7 +904,7 @@
 		playfield: '#4c2a4e', playfieldEdge: '#3b2140', hud: '#4c2a4e', hudLine: '#4c2a4e',
 		lifeText: '#ff6ad5', lifeShadow: '#5a1848', lifeBase: '#d42a3a', pip: '#ffe24a', pipShade: '#c8a820', pipEmpty: '#8a6a8a',
 		counter: '#ff5a3c', counterShadow: '#5a1c20', panel: '#2a1630', panelBorder: '#ff6ad5', text: '#ffffff', accent: '#ffe24a',
-		overlay: 'rgba(28, 10, 36, 0.55)', hint: '#ffb3ea' // SHOT: result overlay, rematch hint
+		overlay: 'rgba(28, 10, 36, 0.55)', overlayLight: 'rgba(28, 10, 36, 0.3)', hint: '#ffb3ea' // SHOT: overlays, hints
 	};
 
 	function drawAll(context, time) {
@@ -925,28 +934,33 @@
 		context.drawImage($S.images.wall, WALL_WIDTH + STAGE_WIDTH, MARGIN_TOP);
 
 		buttonRect = null;
-		if (!isRunning) {
-			if (lastResult) {
-				// SHOT: dim the frozen playfield (not the HUD) so the result panel reads clearly
-				context.fillStyle = COLORS.overlay;
-				context.fillRect(0, MARGIN_TOP, VIEW_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
-			}
+		if (gameState !== 'playing') {
+			// SHOT: dim the frozen playfield (not the HUD) behind every overlay panel; lighter during the
+			// countdown so players can find themselves before play resumes
+			context.fillStyle = gameState === 'countdown' ? COLORS.overlayLight : COLORS.overlay;
+			context.fillRect(0, MARGIN_TOP, VIEW_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
 			context.save();
 			context.translate(VIEW_WIDTH * 0.5, STAGE_HEIGHT * 0.5);
-			var buttonY = STAGE_HEIGHT * 0.5;
-			if (lastResult) {
+			if (gameState === 'over' && lastResult) {
 				drawResultPanel(context, lastResult);
 				context.translate(0, 98);
-				buttonY += 98;
-			}
-			if (!isCooldownTime) {
-				drawButton(context, judge() ? CONFIG.text.playAgain : CONFIG.text.resume, isFinite(spacePressed));
-				buttonRect = { x0: VIEW_WIDTH * 0.5 - 85, y0: buttonY - 20, x1: VIEW_WIDTH * 0.5 + 85, y1: buttonY + 20 };
-				if (lastResult && CONFIG.text.rematch) {
-					$S.font.draw(context, CONFIG.text.rematch, 0, 30, { scale: 1, color: COLORS.hint, shadow: '#000', align: 'center' });
+				if (!isCooldownTime) {
+					drawButton(context, CONFIG.text.playAgain, isFinite(spacePressed));
+					buttonRect = { x0: VIEW_WIDTH * 0.5 - 85, y0: STAGE_HEIGHT * 0.5 + 98 - 20, x1: VIEW_WIDTH * 0.5 + 85, y1: STAGE_HEIGHT * 0.5 + 98 + 20 };
+					if (CONFIG.text.rematch) {
+						$S.font.draw(context, CONFIG.text.rematch, 0, 30, { scale: 1, color: COLORS.hint, shadow: '#000', align: 'center' });
+					}
 				}
-			} else if (!lastResult) {
-				$S.font.draw(context, 'GAME OVER', 0, -14, { scale: 4, color: COLORS.text, shadow: COLORS.panel, align: 'center' });
+			} else if (gameState === 'paused') {
+				drawPausePanel(context);
+			} else if (gameState === 'quit') {
+				drawQuitPanel(context);
+			} else if (gameState === 'countdown') {
+				drawCountdown(context, Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)));
+			} else if (gameState === 'ready') {
+				context.restore();
+				context.save();
+				drawHowToPlay(context);
 			}
 			context.restore();
 		}
@@ -1036,6 +1050,160 @@
 		context.drawImage($S.images.mug, cx0, 12);
 		$S.font.draw(context, label, cx0 + 28, 16, { scale: 3, color: COLORS.counter, shadow: COLORS.counterShadow });
 		context.restore();
+	}
+
+	// SHOT: shared panel frame (dark purple, pink pixel border, drop shadow) centred on the origin
+	function drawPanelFrame(context, W, H, y) {
+		context.fillStyle = 'rgba(0,0,0,0.45)';
+		context.fillRect(-W / 2 + 5, y - H / 2 + 5, W, H);
+		context.fillStyle = COLORS.panelBorder;
+		context.fillRect(-W / 2, y - H / 2, W, H);
+		context.fillStyle = COLORS.panel;
+		context.fillRect(-W / 2 + 3, y - H / 2 + 3, W - 6, H - 6);
+	}
+
+	function totalFloorsNow() {
+		return heroes && heroes.length > 1 ? heroes[0].floors + heroes[1].floors : 0;
+	}
+
+	// SHOT: pause overlay — values from the live round
+	function drawPausePanel(context) {
+		var t = CONFIG.text, total = totalFloorsNow();
+		var W = 300, H = 168, y = -H / 2 - 10;
+		drawPanelFrame(context, W, H, -10);
+		y += 16;
+		$S.font.draw(context, t.paused, 0, y, { scale: 3, color: COLORS.text, shadow: '#000', align: 'center' }); y += 21 + 16;
+		$S.font.draw(context, fmt(t.totalFloors, { n: total }), 0, y, { scale: 2, color: COLORS.text, shadow: '#000', align: 'center' }); y += 14 + 10;
+		$S.font.draw(context, fmt(t.shotPool, { n: formatShots(computePenalty(total)) }), 0, y, { scale: 2, color: COLORS.accent, shadow: '#5a3a00', align: 'center' }); y += 14 + 18;
+		$S.font.draw(context, t.resumeHint, 0, y, { scale: 2, color: COLORS.lifeText, shadow: '#000', align: 'center' }); y += 14 + 8;
+		$S.font.draw(context, t.quitHint, 0, y, { scale: 2, color: COLORS.hint, shadow: '#000', align: 'center' });
+	}
+
+	function drawQuitPanel(context) {
+		var t = CONFIG.text, W = 300, H = 130, y = -H / 2 - 10;
+		drawPanelFrame(context, W, H, -10);
+		y += 16;
+		$S.font.draw(context, t.quitTitle, 0, y, { scale: 2, color: COLORS.text, shadow: '#000', align: 'center' }); y += 14 + 12;
+		$S.font.draw(context, t.quitNote, 0, y, { scale: 1, color: COLORS.hint, shadow: '#000', align: 'center' }); y += 7 + 20;
+		$S.font.draw(context, t.quitYes, 0, y, { scale: 2, color: COLORS.accent, shadow: '#000', align: 'center' }); y += 14 + 8;
+		$S.font.draw(context, t.quitNo, 0, y, { scale: 2, color: COLORS.lifeText, shadow: '#000', align: 'center' });
+	}
+
+	// SHOT: compact, in the upper part of the playfield so the players stay visible
+	function drawCountdown(context, n) {
+		var W = 140, H = 96, cy = -(STAGE_HEIGHT * 0.5 - MARGIN_TOP) + 30 + H / 2;
+		drawPanelFrame(context, W, H, cy);
+		$S.font.draw(context, CONFIG.text.countdown, 0, cy - H / 2 + 12, { scale: 2, color: COLORS.lifeText, shadow: '#000', align: 'center' });
+		$S.font.draw(context, String(n), 0, cy - H / 2 + 34, { scale: 7, color: COLORS.accent, shadow: '#5a3a00', align: 'center' });
+	}
+
+	// SHOT: word-wrap for the pixel font
+	function wrapText(text, maxW, scale) {
+		var words = String(text).split(' '), lines = [], line = '';
+		for (var i = 0; i < words.length; ++i) {
+			var trial = line ? line + ' ' + words[i] : words[i];
+			if (line && $S.font.width(trial, scale) > maxW) {
+				lines.push(line);
+				line = words[i];
+			} else {
+				line = trial;
+			}
+		}
+		if (line) lines.push(line);
+		return lines;
+	}
+
+	// SHOT: draw a player's current look (custom animated / static portrait / classic kid) standing at (x, feetY)
+	function drawPortrait(context, hero, x, feetY) {
+		var sk = hero.skin;
+		if (sk && sk.anim) {
+			context.drawImage(sk.anim.img, 0, 0, sk.anim.fw, sk.anim.fh, Math.round(x - sk.anim.anchorX), feetY - sk.anim.bottom, sk.anim.fw, sk.anim.fh);
+		} else if (sk) {
+			context.drawImage(sk.img, Math.round(x - sk.anchorX), feetY - sk.h, sk.w, sk.h);
+		} else {
+			context.drawImage(hero.sprite, 0, 0, SPRITE_FRAME, SPRITE_FRAME, Math.round(x - SPRITE_FRAME / 2), feetY - SPRITE_FRAME, SPRITE_FRAME, SPRITE_FRAME);
+		}
+	}
+
+	// SHOT: rule text derived from the live configuration, so the screen always matches the game
+	function penaltyRuleText() {
+		var p = CONFIG.penalty;
+		if (typeof p.compute === 'function') {
+			return "THE LOSER'S PENALTY GROWS WITH THE COMBINED FLOORS.";
+		}
+		var shots = formatShots(isFinite(p.shotsPerStep) ? p.shotsPerStep : 0.5);
+		var txt = 'EVERY ' + (p.floorsPerStep > 0 ? p.floorsPerStep : 10) + ' COMBINED FLOORS ADDS ' + shots + ' ' +
+			(shots === '1' ? p.unit : p.unit).toUpperCase() + " TO THE LOSER'S PENALTY";
+		if (p.maxShots !== null && p.maxShots !== undefined && isFinite(p.maxShots)) {
+			txt += ' (MAX ' + formatShots(p.maxShots) + ')';
+		}
+		return txt + '.';
+	}
+
+	// SHOT: How to Play, shown in the READY state (before the first round and after quitting one)
+	function drawHowToPlay(context) {
+		var t = CONFIG.text, W = VIEW_WIDTH - 24, x0 = 12, top = MARGIN_TOP + 8, H = STAGE_HEIGHT - MARGIN_TOP - 16;
+		context.save();
+		context.translate(VIEW_WIDTH / 2, top + H / 2);
+		drawPanelFrame(context, W, H, 0);
+		context.restore();
+		var cx = VIEW_WIDTH / 2, y = top + 14;
+		$S.font.draw(context, 'HOW TO PLAY', cx, y, { scale: 3, color: COLORS.text, shadow: '#000', align: 'center' });
+		y += 21 + 20;
+		// two player columns, in their starting order: 2P left, 1P right
+		var cols = [
+			{ hero: heroes[1], id: 'p2', keys: CONFIG.players.p2.keys, x: x0 + W * 0.27 },
+			{ hero: heroes[0], id: 'p1', keys: CONFIG.players.p1.keys, x: x0 + W * 0.73 }
+		];
+		for (var i = 0; i < cols.length; ++i) {
+			var c = cols[i], h = c.hero;
+			if (!h) continue;
+			drawPortrait(context, h, c.x, y + 52);
+			var label = h.label + ' - ' + playerName(c.id).toUpperCase();
+			var lab = fitText(label, W / 2 - 16, [2, 1]);
+			$S.font.draw(context, lab.text, c.x, y + 60, { scale: lab.scale, color: h.color, shadow: '#000', align: 'center' });
+			$S.font.draw(context, keyName(c.keys.left) + ' / ' + keyName(c.keys.right), c.x, y + 80, { scale: 2, color: COLORS.accent, shadow: '#000', align: 'center' });
+			$S.font.draw(context, 'MOVE LEFT / RIGHT', c.x, y + 98, { scale: 1, color: COLORS.text, shadow: '#000', align: 'center' });
+		}
+		y += 130;
+		$S.font.draw(context, 'GAME RULES', cx, y, { scale: 2, color: COLORS.lifeText, shadow: '#000', align: 'center' });
+		y += 22;
+		var rules = ['PUSH YOUR OPPONENT OFF PLATFORMS.', 'COLLECT BEER TO RESTORE HEALTH.', 'AVOID SPIKES AND FALLING OFF-SCREEN.',
+			'THE FIRST PLAYER TO DIE LOSES.', penaltyRuleText()];
+		var bx = x0 + 22, maxW = W - 44;
+		for (var r = 0; r < rules.length; ++r) {
+			var lines = wrapText(rules[r], maxW - 10, 1);
+			context.fillStyle = COLORS.accent;
+			context.fillRect(bx, y + 2, 3, 3);
+			for (var l = 0; l < lines.length; ++l) {
+				$S.font.draw(context, lines[l], bx + 10, y, { scale: 1, color: COLORS.text, shadow: '#000', align: 'left' });
+				y += 11;
+			}
+			y += 6;
+		}
+		y += 16;
+		$S.font.draw(context, 'CONTROLS', cx, y, { scale: 2, color: COLORS.lifeText, shadow: '#000', align: 'center' });
+		y += 22;
+		var controls = [['ENTER', 'START'], ['SPACE', 'PAUSE / RESUME'], ['M', 'MUTE']];
+		var keyW = 0, descW = 0;
+		for (var k = 0; k < controls.length; ++k) {
+			keyW = Math.max(keyW, $S.font.width(controls[k][0], 2));
+			descW = Math.max(descW, $S.font.width('- ' + controls[k][1], 2));
+		}
+		var colX = Math.round(cx - (keyW + 12 + descW) / 2) + keyW;   // whole block centred in the panel
+		for (k = 0; k < controls.length; ++k) {
+			$S.font.draw(context, controls[k][0], colX, y, { scale: 2, color: COLORS.accent, shadow: '#000', align: 'right' });
+			$S.font.draw(context, '- ' + controls[k][1], colX + 12, y, { scale: 2, color: COLORS.text, shadow: '#000', align: 'left' });
+			y += 22;
+		}
+		$S.font.draw(context, 'PRESS ENTER TO START', cx, top + H - 26, { scale: 2, color: COLORS.accent, shadow: '#5a3a00', align: 'center' });
+	}
+
+	// SHOT: printable key name for KeyboardEvent.code values
+	function keyName(code) {
+		var names = { ArrowLeft: '\u2190', ArrowRight: '\u2192', ArrowUp: '\u2191', ArrowDown: '\u2193', Space: 'SPACE', Enter: 'ENTER' };
+		if (names[code]) return names[code];
+		return String(code).replace(/^Key/, '').replace(/^Digit/, '').toUpperCase();
 	}
 
 	// SHOT: largest pixel-font scale (from the list) at which text fits maxW; truncates as a last resort
@@ -1221,10 +1389,27 @@
 		return judge();
 	}
 
-	function frame(time) {
+	function frame(raw) {
 		if (window.DEBUG_TIME) {
-			time *= window.DEBUG_TIME;
+			raw *= window.DEBUG_TIME;
 		}
+		// SHOT: resume countdown runs on real time while the game clock stays frozen
+		if (gameState === 'countdown') {
+			if (!countdownStart) {
+				countdownStart = raw;
+			}
+			if (raw - countdownStart < COUNTDOWN_MS) {
+				lastRaw = raw;
+				drawAll($ctx, lastTime);
+				requestAnimationFrame(frame);
+				return;
+			}
+			finishResume(raw);
+		}
+		if (gameState !== 'playing') {
+			return; // paused / ready / over screens are drawn when the state changes
+		}
+		var time = raw - pausedTotal; // SHOT: game clock
 		if (!lastTime) {
 			lastTime = time;
 		}
@@ -1233,45 +1418,112 @@
 			duration = 0;
 		}
 		if (duration > 2000) {
+			// SHOT: long gap (tab was hidden): pause at the last frame instead of upstream's 'continue'
 			console.info('Pause, duration: ' + duration);
-			isRunning = false;
-			window.addEventListener('touchmove', onMove, false);
-		} else {
-			var ended = false;
-			for (; duration > MAX_ACTION_INTERVAL; duration -= MAX_ACTION_INTERVAL) {
-				ended = loop(MAX_ACTION_INTERVAL, time - duration);
-				if (ended) {
-					break;
-				}
-			}
-			if (!ended) {
-				ended = loop(duration, time);
-			}
+			pauseGame(raw - duration);
+			return;
+		}
+		lastRaw = raw;
+		var ended = false;
+		for (; duration > MAX_ACTION_INTERVAL; duration -= MAX_ACTION_INTERVAL) {
+			ended = loop(MAX_ACTION_INTERVAL, time - duration);
 			if (ended) {
-				isCooldownTime = true;
-				setTimeout(function() {
-					isCooldownTime = false;
-					drawAll($ctx, time);
-				}, 1000);
-				// SHOT: announce who went down and why, once per round (audio layer listens; no gameplay effect)
-				for (var d = 0; d < heroes.length; ++d) {
-					if (heroes[d].isDead()) {
-						fireEvent('playerDown', heroes[d].id, heroes[d].life <= 0 ? 'health' : 'fall');
-					}
-				}
-				lastResult = buildResult(); // SHOT
-				bestScore = Math.max(score, bestScore);
-				fireEvent('roundEnd', lastResult); // SHOT
-				fireEvent('gameOver', score, bestScore);
-				isRunning = false;
-				window.addEventListener('touchmove', onMove, false);
+				break;
 			}
+		}
+		if (!ended) {
+			ended = loop(duration, time);
+		}
+		if (ended) {
+			isCooldownTime = true;
+			setTimeout(function() {
+				isCooldownTime = false;
+				drawAll($ctx, lastTime);
+			}, 1000);
+			// SHOT: announce who went down and why, once per round (audio layer listens; no gameplay effect)
+			for (var d = 0; d < heroes.length; ++d) {
+				if (heroes[d].isDead()) {
+					fireEvent('playerDown', heroes[d].id, heroes[d].life <= 0 ? 'health' : 'fall');
+				}
+			}
+			lastResult = buildResult(); // SHOT
+			bestScore = Math.max(score, bestScore);
+			gameState = 'over';
+			isRunning = false;
+			fireEvent('roundEnd', lastResult); // SHOT
+			fireEvent('gameOver', score, bestScore);
+			window.addEventListener('touchmove', onMove, false);
 		}
 		drawAll($ctx, time);
 		lastTime = time;
-		if (isRunning) {
+		if (gameState === 'playing') {
 			requestAnimationFrame(frame);
 		}
+	}
+
+	// SHOT: drop all held movement so nothing carries over a pause, countdown or new round
+	function clearInputs() {
+		for (var i = 0; heroes && i < heroes.length; ++i) {
+			heroes[i].leftPressed = heroes[i].rightPressed = false;
+			heroes[i].stay();
+		}
+	}
+
+	function pauseGame(atRaw) {
+		if (gameState !== 'playing') {
+			return false;
+		}
+		gameState = 'paused';
+		isRunning = false;
+		pauseRaw = isFinite(atRaw) ? atRaw : lastRaw;
+		clearInputs();
+		fireEvent('pause');
+		drawAll($ctx, lastTime);
+		return true;
+	}
+
+	function resumeGame() {
+		if (gameState !== 'paused') {
+			return false;
+		}
+		gameState = 'countdown';
+		countdownStart = 0;
+		clearInputs();
+		fireEvent('resumeCountdown');
+		drawAll($ctx, lastTime);
+		requestAnimationFrame(frame);
+		return true;
+	}
+
+	function finishResume(raw) {
+		pausedTotal += raw - pauseRaw;   // the whole pause + countdown is removed from the game clock
+		lastTime = raw - pausedTotal;
+		countdownStart = 0;
+		gameState = 'playing';
+		isRunning = true;
+		clearInputs();
+		fireEvent('resume');
+	}
+
+	// SHOT: leave an unfinished round from the quit confirmation: no winner, no loser, no penalty
+	function abandonRound() {
+		if (gameState !== 'quit') {
+			return false;
+		}
+		gameState = 'ready';
+		isRunning = false;
+		lastResult = null;
+		countdownStart = 0;
+		createWorld(true);   // fresh, silent scene: the abandoned round's floors / shots leave the HUD
+		clearInputs();
+		fireEvent('roundAbandoned');
+		drawAll($ctx, lastTime);
+		return true;
+	}
+
+	function setOverlayState(state) {
+		gameState = state;
+		drawAll($ctx, lastTime);
 	}
 
 	function resizeCanvas($wrap, $canvas, $ctx) {
@@ -1335,40 +1587,55 @@
 		}, false);
 
 		//regist control
+		// SHOT: keys — movement only while PLAYING; Space pause/resume; Enter start/rematch (and confirm quit);
+		// Esc quit confirmation from the pause screen. Space never starts a round.
 		window.addEventListener('keydown', function(e) {
 			var hit = heroForKey(e);
 			if (hit) {
-				if (!e.repeat) hit.hero.press(hit.side);
+				if (gameState === 'playing' && !e.repeat) hit.hero.press(hit.side);
 				e.preventDefault();
 				e.stopPropagation();
-			} else if (e.keyCode == 32 || e.keyCode == 13) { // space or enter
-				if (!isRunning && !isCooldownTime) {
-					spacePressed = 0;
-					drawAll($ctx, lastTime);
-				}
+				return;
+			}
+			var code = e.code || '', kc = e.keyCode;
+			if (code === 'Space' || kc === 32) {
 				e.preventDefault();
 				e.stopPropagation();
+				if (e.repeat) return;
+				if (gameState === 'playing') pauseGame();
+				else if (gameState === 'paused') resumeGame();
+				else if (gameState === 'quit') setOverlayState('paused');
+			} else if (code === 'Enter' || code === 'NumpadEnter' || kc === 13) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (e.repeat) return;
+				if (gameState === 'ready' || (gameState === 'over' && !isCooldownTime)) start();
+				else if (gameState === 'quit') abandonRound();
+			} else if (code === 'Escape' || kc === 27) {
+				if (gameState === 'paused') setOverlayState('quit');
+				else if (gameState === 'quit') setOverlayState('paused');
+				e.preventDefault();
+			} else if (code === 'ArrowUp' || code === 'ArrowDown' || kc === 38 || kc === 40) {
+				e.preventDefault(); // no page scrolling during play
 			}
 		}, false);
 		window.addEventListener('keyup', function(e) {
 			var hit = heroForKey(e);
 			if (hit) {
 				hit.hero.release(hit.side);
-			} else if (isFinite(spacePressed) && (e.keyCode == 32 || e.keyCode == 13)) {
-				spacePressed = NaN;
-				start();
 			}
 		}, false);
-		// SHOT: release every key when the window loses focus so nobody keeps sliding
-		window.addEventListener('blur', function() {
-			for (var i = 0; i < heroes.length; ++i) {
-				heroes[i].leftPressed = heroes[i].rightPressed = false;
-				heroes[i].stay();
-			}
-		}, false);
+		// SHOT: losing focus or hiding the tab pauses a running round (and stops a countdown)
+		function autoPause() {
+			clearInputs();
+			if (gameState === 'playing') pauseGame();
+			else if (gameState === 'countdown') setOverlayState('paused');
+		}
+		window.addEventListener('blur', autoPause, false);
+		document.addEventListener('visibilitychange', function() { if (document.hidden) autoPause(); }, false);
 		// Touch: left/right half of the screen drives player 1 (upstream behaviour)
 		var touchLeft = NaN, touchRight = NaN;
-		// SHOT: mouse click on the play again / continue button (keyboard Space / Enter and touch unchanged)
+		// SHOT: mouse click on the PLAY AGAIN button after a round
 		function overButton(e) {
 			if (!buttonRect) return false;
 			var r = $canvas.getBoundingClientRect();
@@ -1376,8 +1643,8 @@
 			return gx >= buttonRect.x0 && gx <= buttonRect.x1 && gy >= buttonRect.y0 && gy <= buttonRect.y1;
 		}
 		$canvas.addEventListener('mousedown', function(e) {
-			if (!isRunning && !isCooldownTime && e.button === 0 && overButton(e)) {
-				spacePressed = -1; // pressed look, same as Space
+			if (gameState === 'over' && !isCooldownTime && e.button === 0 && overButton(e)) {
+				spacePressed = -1; // pressed look
 				drawAll($ctx, lastTime);
 				e.preventDefault();
 			}
@@ -1385,7 +1652,7 @@
 		window.addEventListener('mouseup', function(e) {
 			if (spacePressed === -1) {
 				spacePressed = NaN;
-				if (!isRunning && overButton(e)) {
+				if (gameState === 'over' && overButton(e)) {
 					start();
 				} else {
 					drawAll($ctx, lastTime);
@@ -1393,12 +1660,12 @@
 			}
 		}, false);
 		$canvas.addEventListener('mousemove', function(e) {
-			$canvas.style.cursor = (!isRunning && !isCooldownTime && overButton(e)) ? 'pointer' : '';
+			$canvas.style.cursor = (gameState === 'over' && !isCooldownTime && overButton(e)) ? 'pointer' : '';
 		}, false);
 		window.addEventListener('touchstart', function(e) {
 			var touch = e.changedTouches[0];
 			if (touch) {
-				if (!isRunning) {
+				if (gameState !== 'playing') {
 					if (!isCooldownTime && e.target == $canvas) {
 						spacePressed = touch.identifier;
 						drawAll($ctx, lastTime);
@@ -1421,7 +1688,7 @@
 			if (touch) {
 				if (touch.identifier == spacePressed) {
 					spacePressed = NaN;
-					start();
+					start(); // tap: start / rematch, or resume (with countdown) when paused
 				} else if (touch.identifier == touchLeft) {
 					touchLeft = NaN;
 					heroes[0].release('left');
@@ -1433,8 +1700,12 @@
 		};
 		window.addEventListener('touchend', touchEnd, false);
 		window.addEventListener('touchcancel', touchEnd, false);
-		//start loop
-		start();
+		// SHOT: show How to Play over a silent, frozen scene; Enter starts the first round
+		createWorld(true);
+		gameState = 'ready';
+		isRunning = false;
+		drawAll($ctx, 0);
+		setTimeout(function() { drawAll($ctx, 0); }, 60); // after the first resize
 	}
 
 	// SHOT: metadata of the selected custom skins (null for the classic kids or if anything is missing)
@@ -1471,8 +1742,10 @@
 	}
 
 	// SHOT: extracted from start() so Game.reset() can rebuild the round in place
-	function createWorld() {
-		fireEvent('gameStart');
+	function createWorld(silent) {
+		if (!silent) {
+			fireEvent('gameStart');
+		}
 		//create world
 		FloorSeq.reset();
 		floorArray = [];
@@ -1497,16 +1770,26 @@
 		topBarChange = true;
 	}
 
+	// SHOT: begin a new round (from READY or after GAME OVER); from PAUSED it starts the resume countdown
 	function start() {
-		if (isRunning) {
+		if (gameState === 'playing' || gameState === 'countdown') {
 			return;
 		}
-		if (judge()) {
-			createWorld();
+		if (gameState === 'paused') {
+			resumeGame();
+			return;
 		}
+		if (gameState === 'quit') {
+			setOverlayState('paused');
+			return;
+		}
+		createWorld();
 		window.removeEventListener('touchmove', onMove, false);
+		gameState = 'playing';
 		isRunning = true;
+		isCooldownTime = false;
 		lastTime = 0;
+		clearInputs();
 		$canvas.scrollIntoView();
 		requestAnimationFrame(frame);
 	}
@@ -1546,14 +1829,27 @@
 	Game.reset = function() {
 		// abort whatever is going on and begin a fresh round
 		isCooldownTime = false;
-		createWorld();
-		if (!isRunning) {
+		countdownStart = 0;
+		if (gameState === 'playing') {
+			createWorld();
+			lastTime = 0;   // new round: no frame gap carried over from the old one
+		} else {
+			gameState = 'over';
 			start();
 		}
 	};
+	Game.pause = function() { return pauseGame(); };
+	Game.resume = function() { return resumeGame(); };         // with the 3-2-1 countdown
+	Game.quitRound = function() {                               // abandon without confirmation (API)
+		if (gameState === 'playing') pauseGame();
+		if (gameState === 'paused') gameState = 'quit';
+		return abandonRound();
+	};
 	Game.getState = function() {
 		return {
+			state: gameState,
 			running: isRunning,
+			countdown: gameState === 'countdown' ? Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)) : null,
 			players: (heroes || []).map(function(h) {
 				return { id: h.id, label: h.label, life: h.life, floors: h.floors, beers: h.beers, alive: !h.isDead() };
 			}),

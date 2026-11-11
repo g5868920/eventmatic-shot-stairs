@@ -16,17 +16,12 @@
 	dt{font-weight:bold; font-size: 18pt;}
 	dd{display: list-item; font-size: 12pt; margin-left: 1.5em;}
 	footer{font-size: 10pt; color: #666; text-align: center; margin: 1em;}
+	html, body{background: #1c0f22;}
 </style>
 </head>
 <body>
 	<div id="content">Loading...</div>
-	<dl>
-		<dt>How to play</dt>
-		<dd><strong>1P</strong> (blue cap, green shirt, starts right): <kbd>&larr;</kbd> / <kbd>&rarr;</kbd>. <strong>2P</strong> (red cap, pink shirt, starts left): <kbd>Z</kbd> / <kbd>C</kbd>. Walk into the other player to push them. On a touch screen the left/right half of the screen moves 1P.</dd>
-		<dd><strong>start / restart</strong>: press <kbd>Space</kbd> / <kbd>Enter</kbd>, or tap the button on screen. <kbd>M</kbd> mutes / unmutes the sound.</dd>
-		<dd><strong>life</strong>: spikes on the ceiling or on a floor cost life; landing on a normal floor restores one bar; a beer mug restores more</dd>
-		<dd><strong>round over</strong>: the first player to run out of life or fall off the bottom loses. The screen shows the loser, both players' floors and the shots: 0.5 per 10 combined floors (see <code>config.js</code>)</dd>
-	</dl>
+	<!-- How to Play is drawn on the game canvas before the first round (pixel-art screen in game.js). -->
 	<footer>Based on <a href="https://github.com/iPel/NS-SHAFT">NS-SHAFT by iPel</a> (Apache-2.0). Modifications &copy; Eventmatic, see NOTICE.</footer>
 	<script>
 	window.onerror = function (msg, url, lineNo, columnNo, error) {

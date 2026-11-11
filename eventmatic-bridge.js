@@ -21,8 +21,12 @@
     start: function () { Game.start(); },
     /** Abort the current round and start a fresh one. */
     reset: function () { Game.reset(); },
+    /** Pause the running round; resume() runs the 3-2-1 countdown first. quitRound() abandons it (no result). */
+    pause: function () { return Game.pause(); },
+    resume: function () { return Game.resume(); },
+    quitRound: function () { return Game.quitRound(); },
 
-    /** { running, players:[{id,label,life,floors,beers,alive}], lastResult } */
+    /** { state: 'ready'|'playing'|'paused'|'quit'|'countdown'|'over', running, countdown, players:[...], lastResult } */
     getState: function () { return Game.getState(); },
 
     /**

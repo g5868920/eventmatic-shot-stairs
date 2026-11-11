@@ -151,6 +151,7 @@
 	var ROLLING_VELOCITY = 0.1; // 传送带速度
 	var CONTROL_VELOCITY = 0.2; // 左右操作的速度
 	var MAX_ACTION_INTERVAL = 20;
+	var SPRITE_FRAME = 32; // SHOT: character sheet frame size (art only; collision box stays HERO_WIDTH)
 	var MAX_LIFE = 12; // SHOT: 12 segments as in the reference (upstream hard-coded 10); damage values unchanged
 
 	/**
@@ -437,14 +438,15 @@
 		this.vx = 0;
 		this.vy = 0;
 		this.life = MAX_LIFE;
+		// SHOT: frame indices into the 32x32 sheet (see docs/CHARACTERS.md); upstream used pixel offsets
 		this.pos = {
 			standing : {
-				middle : [2],
-				right : [62, 32, 62, 92]
+				middle : [0],
+				right : [2, 1, 2, 3]
 			},
 			falling : {
-				middle : [122, 152],
-				right : [182, 212]
+				middle : [4, 5],
+				right : [6, 7]
 			}
 		};
 		this.hurtTime = 0;
@@ -516,9 +518,10 @@
 				++this.frameIndex;
 			}
 			this.frameIndex = this.frameIndex % frames.length;
+			// SHOT: 32x32 art drawn around the 26x26 collision box (3 px each side), feet on the box bottom
 			context.drawImage(this.sprite,
-				frames[this.frameIndex], this.blink ? 32 : 2, 26, 26,
-				0, -this.height, this.width, this.height);
+				frames[this.frameIndex] * SPRITE_FRAME, this.blink ? SPRITE_FRAME : 0, SPRITE_FRAME, SPRITE_FRAME,
+				-(SPRITE_FRAME - this.width) / 2, -SPRITE_FRAME, SPRITE_FRAME, SPRITE_FRAME);
 			context.restore();
 		},
 		regain : function() {

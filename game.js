@@ -173,10 +173,12 @@
 		characterSkin: { mode: 'classic', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
 		penalty: { floorsPerStep: 10, shotsPerStep: 0.5, maxShots: null, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {
-			loses: '{player} LOSES', draw: 'DRAW',
-			floors: '1P {p1} + 2P {p2}\n= {total} FLOORS',
-			penalty: 'PENALTY: {n} {unit}',
-			playAgain: 'play again', resume: 'continue'
+			loses: '{player} LOSES!', draw: 'DRAW!',
+			floors: '1P {p1} + 2P {p2} = {total} FLOORS',
+			shots: '{n} {unit}',
+			penaltyLabel: "LOSER'S PENALTY", penaltyLabelDraw: 'PENALTY',
+			playAgain: 'play again', resume: 'continue',
+			rematch: 'PRESS SPACE TO REMATCH'
 		}
 	};
 	if (global.SHOT_CONFIG) {
@@ -196,6 +198,7 @@
 	var spacePressed = NaN;
 	var topBarChange = false;
 	var lastResult = null; // SHOT: result of the last finished round
+	var buttonRect = null; // SHOT: play again / continue button in canvas coordinates (for mouse clicks)
 	// var timeCoefficient = 1, timeModifier = 0;
 
 	var FloorSeq = function() {
@@ -886,7 +889,8 @@
 	var COLORS = {
 		playfield: '#4c2a4e', playfieldEdge: '#3b2140', hud: '#4c2a4e', hudLine: '#4c2a4e',
 		lifeText: '#ff6ad5', lifeShadow: '#5a1848', lifeBase: '#d42a3a', pip: '#ffe24a', pipShade: '#c8a820', pipEmpty: '#8a6a8a',
-		counter: '#ff5a3c', counterShadow: '#5a1c20', panel: '#2a1630', panelBorder: '#ff6ad5', text: '#ffffff', accent: '#ffe24a'
+		counter: '#ff5a3c', counterShadow: '#5a1c20', panel: '#2a1630', panelBorder: '#ff6ad5', text: '#ffffff', accent: '#ffe24a',
+		overlay: 'rgba(28, 10, 36, 0.55)', hint: '#ffb3ea' // SHOT: result overlay, rematch hint
 	};
 
 	function drawAll(context, time) {
@@ -915,15 +919,27 @@
 		context.drawImage($S.images.wall, 0, MARGIN_TOP);
 		context.drawImage($S.images.wall, WALL_WIDTH + STAGE_WIDTH, MARGIN_TOP);
 
+		buttonRect = null;
 		if (!isRunning) {
+			if (lastResult) {
+				// SHOT: dim the frozen playfield (not the HUD) so the result panel reads clearly
+				context.fillStyle = COLORS.overlay;
+				context.fillRect(0, MARGIN_TOP, VIEW_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
+			}
 			context.save();
 			context.translate(VIEW_WIDTH * 0.5, STAGE_HEIGHT * 0.5);
+			var buttonY = STAGE_HEIGHT * 0.5;
 			if (lastResult) {
 				drawResultPanel(context, lastResult);
-				context.translate(0, 84);
+				context.translate(0, 98);
+				buttonY += 98;
 			}
 			if (!isCooldownTime) {
 				drawButton(context, judge() ? CONFIG.text.playAgain : CONFIG.text.resume, isFinite(spacePressed));
+				buttonRect = { x0: VIEW_WIDTH * 0.5 - 85, y0: buttonY - 20, x1: VIEW_WIDTH * 0.5 + 85, y1: buttonY + 20 };
+				if (lastResult && CONFIG.text.rematch) {
+					$S.font.draw(context, CONFIG.text.rematch, 0, 30, { scale: 1, color: COLORS.hint, shadow: '#000', align: 'center' });
+				}
 			} else if (!lastResult) {
 				$S.font.draw(context, 'GAME OVER', 0, -14, { scale: 4, color: COLORS.text, shadow: COLORS.panel, align: 'center' });
 			}
@@ -1017,32 +1033,96 @@
 		context.restore();
 	}
 
-	// SHOT: end-of-round panel
+	// SHOT: largest pixel-font scale (from the list) at which text fits maxW; truncates as a last resort
+	function fitText(text, maxW, scales) {
+		text = String(text);
+		for (var i = 0; i < scales.length; ++i) {
+			if ($S.font.width(text, scales[i]) <= maxW) {
+				return { text: text, scale: scales[i] };
+			}
+		}
+		var sc = scales[scales.length - 1];
+		while (text.length > 1 && $S.font.width(text + '..', sc) > maxW) {
+			text = text.slice(0, -1);
+		}
+		return { text: text + '..', scale: sc };
+	}
+
+	// SHOT: like fitText, but when it must shorten, it shortens the name and keeps the rest ("..LOSES!")
+	function fitName(template, name, maxW, scales) {
+		var full = fitText(fmt(template, { player: name }), maxW, scales);
+		if (full.text.slice(-2) !== '..' || !name) {
+			return full;
+		}
+		var sc = scales[scales.length - 1], n = name;
+		while (n.length > 1 && $S.font.width(fmt(template, { player: n + '..' }), sc) > maxW) {
+			n = n.slice(0, -1);
+		}
+		return { text: fmt(template, { player: n.replace(/\s+$/, '') + '..' }), scale: sc };
+	}
+
+	// SHOT: display name: players.pN.name, else the custom character's name (custom skin), else 1P / 2P
+	function playerName(id) {
+		var p = CONFIG.players[id] || {};
+		if (p.name) {
+			return String(p.name);
+		}
+		var cs = CONFIG.characterSkin || {};
+		if (customSkinMeta() && cs[id]) {
+			return String(cs[id]);
+		}
+		return p.label || String(id).toUpperCase();
+	}
+
+	/**
+	 * SHOT: end-of-round panel. Hierarchy: loser title, floors line, big mug + shots (main focus),
+	 * "LOSER'S PENALTY". Uses the existing penalty value (result.penalty) unchanged.
+	 */
 	function drawResultPanel(context, result) {
-		var cfg = CONFIG;
-		var title = result.loser ? fmt(cfg.text.loses, { player: result.loserLabel }) : cfg.text.draw;
+		var cfg = CONFIG, t = cfg.text;
+		var W = 356, inner = W - 28;
+		var loserName = result.loser ? playerName(result.loser) : null;
+		var title = result.loser ? fitName(t.loses, loserName.toUpperCase(), inner, [3, 2]) : fitText(t.draw, inner, [3, 2]);
+		var floorsText = fmt(t.floors, { p1: result.floors.p1, p2: result.floors.p2, total: result.floors.total,
+			n1: playerName('p1').toUpperCase(), n2: playerName('p2').toUpperCase() });
+		var floorLines = floorsText.split('\n');
+		if (floorLines.length == 1 && $S.font.width(floorsText, 2) > inner && floorsText.indexOf(' = ') > 0) {
+			var cut = floorsText.indexOf(' = ');
+			floorLines = [floorsText.slice(0, cut), floorsText.slice(cut + 1)];
+		}
+		floorLines = floorLines.map(function(l) { return fitText(l, inner, [2, 1]); });
 		var unit = result.penalty == 1 ? cfg.penalty.unit : cfg.penalty.unitPlural;
-		var lines = fmt(cfg.text.floors, { p1: result.floors.p1, p2: result.floors.p2, total: result.floors.total }).split('\n');
-		var penaltyLine = fmt(cfg.text.penalty, { n: formatShots(result.penalty), unit: unit });
-		var w = 300, h = 150;
+		var MUG_W = 36, MUG_H = 38, GAP = 10;
+		var shots = fitText(fmt(t.shots, { n: formatShots(result.penalty), unit: unit }), inner - MUG_W - GAP, [5, 4, 3]);
+		var label = fitText(result.loser ? t.penaltyLabel : t.penaltyLabelDraw, inner, [2, 1]);
+		var shotsH = Math.max(MUG_H, 7 * shots.scale);
+		var H = 14 + 7 * title.scale + 12 + floorLines.length * 18 - 4 + 14 + shotsH + 10 + 7 * label.scale + 16;
 		context.save();
 		context.translate(0, -30);
 		context.fillStyle = 'rgba(0,0,0,0.45)';
-		context.fillRect(-w / 2 + 5, -h / 2 + 5, w, h);
+		context.fillRect(-W / 2 + 5, -H / 2 + 5, W, H);
 		context.fillStyle = COLORS.panelBorder;
-		context.fillRect(-w / 2, -h / 2, w, h);
+		context.fillRect(-W / 2, -H / 2, W, H);
 		context.fillStyle = COLORS.panel;
-		context.fillRect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6);
-		var y = -h / 2 + 14;
-		$S.font.draw(context, title, 0, y, { scale: 3, color: result.loserColor || COLORS.text, shadow: '#000', align: 'center' });
-		y += 32;
-		for (var i = 0; i < lines.length; ++i) {
-			$S.font.draw(context, lines[i], 0, y, { scale: 2, color: COLORS.text, shadow: '#000', align: 'center' });
+		context.fillRect(-W / 2 + 3, -H / 2 + 3, W - 6, H - 6);
+		var y = -H / 2 + 14;
+		// 1. loser
+		$S.font.draw(context, title.text, 0, y, { scale: title.scale, color: result.loserColor || COLORS.text, shadow: '#000', align: 'center' });
+		y += 7 * title.scale + 12;
+		// 2. floors
+		for (var i = 0; i < floorLines.length; ++i) {
+			$S.font.draw(context, floorLines[i].text, 0, y, { scale: floorLines[i].scale, color: COLORS.text, shadow: '#000', align: 'center' });
 			y += 18;
 		}
-		y += 6;
-		context.drawImage($S.images.mug, -$S.font.width(penaltyLine, 2) / 2 - 26, y - 4);
-		$S.font.draw(context, penaltyLine, 0, y, { scale: 2, color: COLORS.accent, shadow: '#000', align: 'center' });
+		y += 10;
+		// 3. big mug + shots (main focus)
+		var tw = $S.font.width(shots.text, shots.scale), total = MUG_W + GAP + tw, x0 = Math.round(-total / 2);
+		context.drawImage($S.images.mug, x0, Math.round(y + (shotsH - MUG_H) / 2), MUG_W, MUG_H);
+		$S.font.draw(context, shots.text, x0 + MUG_W + GAP, Math.round(y + (shotsH - 7 * shots.scale) / 2),
+			{ scale: shots.scale, color: COLORS.accent, shadow: '#5a3a00', align: 'left' });
+		y += shotsH + 10;
+		// 4. label
+		$S.font.draw(context, label.text, 0, y, { scale: label.scale, color: COLORS.lifeText, shadow: '#000', align: 'center' });
 		context.restore();
 	}
 
@@ -1283,6 +1363,33 @@
 		}, false);
 		// Touch: left/right half of the screen drives player 1 (upstream behaviour)
 		var touchLeft = NaN, touchRight = NaN;
+		// SHOT: mouse click on the play again / continue button (keyboard Space / Enter and touch unchanged)
+		function overButton(e) {
+			if (!buttonRect) return false;
+			var r = $canvas.getBoundingClientRect();
+			var gx = (e.clientX - r.left) / r.width * VIEW_WIDTH, gy = (e.clientY - r.top) / r.height * STAGE_HEIGHT;
+			return gx >= buttonRect.x0 && gx <= buttonRect.x1 && gy >= buttonRect.y0 && gy <= buttonRect.y1;
+		}
+		$canvas.addEventListener('mousedown', function(e) {
+			if (!isRunning && !isCooldownTime && e.button === 0 && overButton(e)) {
+				spacePressed = -1; // pressed look, same as Space
+				drawAll($ctx, lastTime);
+				e.preventDefault();
+			}
+		}, false);
+		window.addEventListener('mouseup', function(e) {
+			if (spacePressed === -1) {
+				spacePressed = NaN;
+				if (!isRunning && overButton(e)) {
+					start();
+				} else {
+					drawAll($ctx, lastTime);
+				}
+			}
+		}, false);
+		$canvas.addEventListener('mousemove', function(e) {
+			$canvas.style.cursor = (!isRunning && !isCooldownTime && overButton(e)) ? 'pointer' : '';
+		}, false);
 		window.addEventListener('touchstart', function(e) {
 			var touch = e.changedTouches[0];
 			if (touch) {

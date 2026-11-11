@@ -15,8 +15,9 @@ window.SHOT_CONFIG = {
     // 1P: blue cap / green shirt, starts on the right. 2P: red cap / pink shirt, starts on the left.
     // `sheet` may point to a 256x64 PNG with the same frame layout as assets/kid-p1.png
     // to swap a player's character (see docs/CHARACTERS.md). null = default art.
-    p1: { label: '1P', keys: { left: 'ArrowLeft', right: 'ArrowRight' }, sheet: null },
-    p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyC' }, sheet: null }
+    // name: shown on the result screen ('RAE LOSES!'); null = custom character name, else the label.
+    p1: { label: '1P', name: null, keys: { left: 'ArrowLeft', right: 'ArrowRight' }, sheet: null },
+    p2: { label: '2P', name: null, keys: { left: 'KeyZ', right: 'KeyC' }, sheet: null }
   },
 
   // Character look (visual only; physics, controls and hitboxes never change).
@@ -75,12 +76,17 @@ window.SHOT_CONFIG = {
   },
 
   text: {
-    loses: '{player} LOSES',
-    draw: 'DRAW',
-    floors: '1P {p1} + 2P {p2}\n= {total} FLOORS',
-    penalty: 'PENALTY: {n} {unit}',
+    // Result screen. {player} = loser's name (players.pN.name, else the custom character, else 1P/2P).
+    // floors may also use {n1} / {n2} (player names); add '\n' to force two lines.
+    loses: '{player} LOSES!',
+    draw: 'DRAW!',
+    floors: '1P {p1} + 2P {p2} = {total} FLOORS',
+    shots: '{n} {unit}',
+    penaltyLabel: "LOSER'S PENALTY",
+    penaltyLabelDraw: 'PENALTY',
     playAgain: 'play again',
-    resume: 'continue'
+    resume: 'continue',
+    rematch: 'PRESS SPACE TO REMATCH'
   }
 };
 

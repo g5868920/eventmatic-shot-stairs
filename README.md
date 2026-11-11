@@ -33,7 +33,7 @@ Space / Enter starts, resumes or restarts. M mutes / unmutes the sound effects (
 * **Pushing** (new): players are solid to each other. Walking into the other player pushes them along at walking speed, even off a platform edge, where they fall normally. Equal opposite pushes cancel. Walls stop the pushed player. No damage or knockback from contact.
 * **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
 * **HUD**: 2P LIFE left, 1P LIFE right (12 segments), and in the centre a beer mug × the shots so far: `floor((1P floors + 2P floors) / 10) × 0.5`, so 10 floors = 0.5, 20 = 1, 30 = 1.5. It starts at 0. Rate (`penalty.floorsPerStep`, `penalty.shotsPerStep`) and an optional cap (`penalty.maxShots`) are configurable.
-* **Round end** (new): the first player to die loses. The panel shows the loser, `1P a + 2P b = total floors` and the penalty. Both dead in the same step = draw.
+* **Round end** (new): the first player to die loses. The panel shows the loser by name (`players.pN.name`, else the custom character, else 1P/2P), `1P a + 2P b = total floors` and, largest, the shots with "LOSER'S PENALTY". Both dead in the same step = draw. Click PLAY AGAIN or press Space to rematch.
 
 ## Configure
 

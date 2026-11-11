@@ -135,31 +135,54 @@
     });
   }
 
+  function slice(ctx, sheet, sy, sh, x, y, w, cap) {
+    x = Math.round(x); y = Math.round(y); w = Math.round(w);
+    var sw = sheet.width;
+    if (w === sw) { ctx.drawImage(sheet, 0, sy, sw, sh, x, y, sw, sh); return; }
+    cap = Math.min(cap, Math.floor(w / 2));
+    if (cap > 0) {
+      ctx.drawImage(sheet, 0, sy, cap, sh, x, y, cap, sh);
+      ctx.drawImage(sheet, sw - cap, sy, cap, sh, x + w - cap, y, cap, sh);
+    }
+    var mid = sw - 2 * cap, dx = x + cap, end = x + w - cap;
+    while (dx < end) {
+      var piece = Math.min(mid, end - dx);
+      ctx.drawImage(sheet, cap, sy, piece, sh, dx, y, piece, sh);
+      dx += piece;
+    }
+  }
+
   function finish(img) {
     var S = {
       images: img,
       font: { draw: drawText, width: textWidth, has: hasGlyphs, h: FONT_H, w: FONT_W },
-      /** draw conveyor frame f (0..3) with its bottom edge at (x, y) */
-      drawConveyor: function (ctx, dir, f, x, y) {
+      /**
+       * 3-slice horizontal draw: left cap, tiled middle, right cap, so a platform sheet drawn at its
+       * native width is pixel-identical and any other width stays crisp (no stretching).
+       */
+      slice: slice,
+      /** draw conveyor frame f (0..3), width w, bottom edge at (x, y) */
+      drawConveyor: function (ctx, dir, f, x, y, w) {
         var sheet = dir > 0 ? img.conveyorRight : img.conveyorLeft;
-        var w = sheet.width;
-        ctx.drawImage(sheet, 0, (f & 3) * 12, w, 12, Math.round(x), Math.round(y) - 12, w, 12);
+        slice(ctx, sheet, (f & 3) * 12, 12, x, y - 12, w || sheet.width, 12);
       },
-      /** draw the spring at its current height (bottom edge at y) */
-      drawSpring: function (ctx, x, y, height) {
+      /** draw the spring at its current height (bottom edge at y), width w */
+      drawSpring: function (ctx, x, y, height, w) {
         var h = Math.max(SPRING_MIN, Math.min(SPRING_MAX, Math.round(height)));
-        var fi = h - SPRING_MIN;
-        var w = img.spring.width;
-        ctx.drawImage(img.spring, 0, fi * SPRING_MAX, w, SPRING_MAX, Math.round(x), Math.round(y) - SPRING_MAX, w, SPRING_MAX);
+        slice(ctx, img.spring, (h - SPRING_MIN) * SPRING_MAX, SPRING_MAX, x, y - SPRING_MAX, w || img.spring.width, 2);
       },
-      drawFloor: function (ctx, sheet, x, y) {
-        ctx.drawImage(sheet, Math.round(x), Math.round(y) - 12);
+      drawFloor: function (ctx, sheet, x, y, w) {
+        slice(ctx, sheet, 0, 12, x, y - 12, w || sheet.width, 1);
       },
       /** a floor skin clipped to a height (used while the flipping floor turns) */
-      drawFloorClipped: function (ctx, sheet, x, y, height) {
+      drawFloorClipped: function (ctx, sheet, x, y, height, w) {
         var h = Math.max(0, Math.min(12, Math.round(height)));
         if (h <= 0) return;
-        ctx.drawImage(sheet, 0, 12 - h, sheet.width, h, Math.round(x), Math.round(y) - h, sheet.width, h);
+        slice(ctx, sheet, 12 - h, h, x, y - h, w || sheet.width, 1);
+      },
+      /** spike row on top of a spike platform (tiles whole teeth) */
+      drawSpikes: function (ctx, x, y, w) {
+        slice(ctx, img.spikes, 0, img.spikes.height, x, y, w || img.spikes.width, 0);
       }
     };
     return S;

@@ -96,3 +96,12 @@ Estimated size: ~400 lines of sprite data + ~250 lines of drawing code; engine d
 * **HUD counter**: shows `computePenalty(p1.floors + p2.floors)` every frame; at round end it equals the panel's penalty (verified 96 floors → 10 on both). Beer pickups heal only: a pickup with floors held constant left the counter unchanged. Note the configured `minDrinks: 1` makes the counter read ×1 from the first frame; set `minDrinks: 0` for a counter that starts at 0.
 * Acceptance screenshots: `docs/reference/acceptance/01-start.png`, `02-midgame.png`, `03a-beer-before.png`, `03b-beer-after.png`, `04-round-end.png`.
 * **Platform width** narrowed to 64 px on Eventmatic's decision (2026-11-12) after the proportions review; sprites regenerated, start positions adjusted so both kids fit on the start floor without overlapping.
+
+## 10. Gameplay changes (2026-11-12, Eventmatic)
+
+* **Player pushing** added at the physics layer (see docs/MODIFICATIONS.md, "Pushing"). Verified by `tests/push-tests.js` (20 scenarios).
+* **Identity and controls**: 1P = blue cap / green shirt, starts right, ←/→; 2P = red cap / pink shirt, starts left, Z/C (X removed). Sheets recoloured only (palettes swapped), drawings unchanged.
+* **Shots**: `floor(total floors / 10) × 0.5`, starts at 0, no minimum, optional cap; HUD and result panel show 0, 0.5, 1, 1.5.
+* **Platform width** 80 px default, configurable, with a reach guarantee for new floors. Verified by `tests/rules-tests.js`.
+* Acceptance screenshots refreshed: `docs/reference/acceptance/01-start.png`, `02-midgame.png` (2P pushing 1P, X 1.5), `03a/03b` (beer pickup), `04-round-end.png` (39 floors → 1.5 shots).
+

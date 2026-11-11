@@ -302,10 +302,11 @@ KID['fallR2'] = [
     '....KKKKKKK......KKKKKKK',
 ]
 KID_PALETTES = {
-    'p1': dict(K='#2b1430', C='#e8402c', c='#ff8a5c', B='#9c2418', F='#ffd9b0', f='#e8a884', E='#201020', W='#ffffff',
-               S='#ff5fb0', s='#c43a84', P='#3a5ad8', p='#24399c', O='#5a2a24', o='#a0584a', H='#ffd9b0'),
-    'p2': dict(K='#102030', C='#2f6ff0', c='#7fb4ff', B='#1c3fa0', F='#ffd9b0', f='#e8a884', E='#201020', W='#ffffff',
+    # 1P = blue cap / green shirt (starts right, arrow keys); 2P = red cap / pink shirt (starts left, Z/C)
+    'p1': dict(K='#102030', C='#2f6ff0', c='#7fb4ff', B='#1c3fa0', F='#ffd9b0', f='#e8a884', E='#201020', W='#ffffff',
                S='#39d47c', s='#1f9454', P='#f0b030', p='#b87c18', O='#5a2a24', o='#a0584a', H='#ffd9b0'),
+    'p2': dict(K='#2b1430', C='#e8402c', c='#ff8a5c', B='#9c2418', F='#ffd9b0', f='#e8a884', E='#201020', W='#ffffff',
+               S='#ff5fb0', s='#c43a84', P='#3a5ad8', p='#24399c', O='#5a2a24', o='#a0584a', H='#ffd9b0'),
 }
 HURT = dict(K='#ff3860', C='#ffffff', c='#ffffff', B='#ffb0c0', F='#ffffff', f='#ffd0d8', E='#ff3860', W='#ffffff',
             S='#ffffff', s='#ffd0d8', P='#ffffff', p='#ffd0d8', O='#ffb0c0', o='#ffffff', H='#ffffff')
@@ -357,7 +358,7 @@ MUG_PAL = dict(w='#ffffff', K='#3a2410', G='#c88a2a', y='#ffc428', Y='#ffd860', 
 
 
 # ---------------------------------------------------------------- platforms
-FW, FH, SPIKE_H = 64, 12, 15   # platform width must match FLOOR_WIDTH in game.js
+FW, FH, SPIKE_H = 80, 12, 15   # native platform width (default platform.width); other widths are 3-sliced at runtime
 
 
 def build_stone():
@@ -465,7 +466,7 @@ def build_conveyor(direction):
         for x in range(0, belt, 8):
             sx = (x + shift) % belt
             img.rect(12 + sx, 4, min(3, belt - sx), FH - 8, hexc('#7a7c96'))
-        for a in ([22, 34] if direction > 0 else [28, 40]):
+        for a in ([30, 44] if direction > 0 else [36, 50]):
             for k in range(3):
                 span = k if direction > 0 else 2 - k
                 img.set(a + span, 3 + k, hexc('#ffffff')); img.set(a + span, FH - 4 - k, hexc('#ffffff'))

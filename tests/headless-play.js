@@ -6,9 +6,9 @@
  */
 (async function () {
   window.requestAnimationFrame = function () { return 0; };
-  var KC = { ArrowLeft: 37, ArrowRight: 39, KeyZ: 90, KeyX: 88, Space: 32 };
+  var KC = { ArrowLeft: 37, ArrowRight: 39, KeyZ: 90, KeyC: 67, Space: 32 };
   var key = function (code, type) { window.dispatchEvent(new KeyboardEvent(type, { code: code, keyCode: KC[code], bubbles: true })); };
-  var keys = { p1: { left: 'ArrowLeft', right: 'ArrowRight' }, p2: { left: 'KeyZ', right: 'KeyX' } };
+  var keys = { p1: { left: 'ArrowLeft', right: 'ArrowRight' }, p2: { left: 'KeyZ', right: 'KeyC' } };
   var held = { p1: null, p2: null };
   function steer(h, dir) { var code = dir ? keys[h.id][dir] : null; if (held[h.id] === code) return; if (held[h.id]) key(held[h.id], 'keyup'); if (code) key(code, 'keydown'); held[h.id] = code; }
   function isSpike(f) { return f.landing.toString().indexOf('hurt(4') >= 0; }
@@ -21,8 +21,8 @@
       var beer = cands.filter(function (f) { return f.beer; })[0];
       var target = beer || (h.id === 'p1' ? cands[0] : (cands[1] || cands[0]));
       if (!target) { steer(h, null); return; }
-      var cx = target.x + w.floorWidth / 2 - w.heroWidth / 2;
-      if (h.onFloor) { var F = h.onFloor; steer(h, Math.abs(cx - (F.x - w.heroWidth)) < Math.abs(cx - (F.x + w.floorWidth)) ? 'left' : 'right'); }
+      var cx = target.x + target.width / 2 - w.heroWidth / 2;
+      if (h.onFloor) { var F = h.onFloor; steer(h, Math.abs(cx - (F.x - w.heroWidth)) < Math.abs(cx - (F.x + F.width)) ? 'left' : 'right'); }
       else { var d = cx - h.x; steer(h, Math.abs(d) < 3 ? null : (d < 0 ? 'left' : 'right')); }
     });
   }

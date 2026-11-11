@@ -18,21 +18,24 @@ window, so a full-screen browser on a projector works as is.
 
 | | Left | Right |
 |---|---|---|
-| 1P (pink shirt, red cap) | ← | → |
-| 2P (green shirt, blue cap) | Z | X |
+| 1P (blue cap, green shirt; starts on the right) | ← | → |
+| 2P (red cap, pink shirt; starts on the left) | Z | C |
+
+Controls belong to the player, not to a side of the screen, so they keep working after the players swap places.
 
 Space / Enter starts, resumes or restarts.
 
 ## Rules (unchanged from the original except where noted)
 
-* Floors rise; walk off the edge to fall to the next one. Platforms are 64 px wide (upstream 100) to match the reference's proportions. Spiked ceiling −5 life, spike floor −4, every safe landing +1 (max 10). Spring, conveyor and flipping floors behave as in the original.
+* Floors rise; walk off the edge to fall to the next one. Platforms are 80 px wide by default (`platform.width`, upstream 100), and each new platform is placed within falling reach of the one above. Spiked ceiling −5 life, spike floor −4, every safe landing +1 (max 12). Spring, conveyor and flipping floors behave as in the original.
+* **Pushing** (new): players are solid to each other. Walking into the other player pushes them along at walking speed, even off a platform edge, where they fall normally. Equal opposite pushes cancel. Walls stop the pushed player. No damage or knockback from contact.
 * **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
-* **HUD** : 2P LIFE left, 1P LIFE right (12 segments), and in the centre a beer mug × the accumulated penalty units computed from `1P floors + 2P floors` with `penalty.floorsPerDrink` (rounding, min/max and unit configurable, or a custom formula).
+* **HUD**: 2P LIFE left, 1P LIFE right (12 segments), and in the centre a beer mug × the shots so far: `floor((1P floors + 2P floors) / 10) × 0.5`, so 10 floors = 0.5, 20 = 1, 30 = 1.5. It starts at 0. Rate (`penalty.floorsPerStep`, `penalty.shotsPerStep`) and an optional cap (`penalty.maxShots`) are configurable.
 * **Round end** (new): the first player to die loses. The panel shows the loser, `1P a + 2P b = total floors` and the penalty. Both dead in the same step = draw.
 
 ## Configure
 
-Edit `config.js`, or append URL parameters (`?floorsPerDrink=8&beerChance=0.2&beerHeal=4&unit=shot`),
+Edit `config.js`, or append URL parameters (`?floorsPerStep=10&shotsPerStep=0.5&maxShots=5&platformWidth=80&beerChance=0.2&beerHeal=4&unit=shot`),
 or call `ShotStairs.configure({...})`. See `docs/INTEGRATION.md`.
 
 ## Repository layout
@@ -46,7 +49,12 @@ docs/CANDIDATE_COMPARISON.md   why this upstream was chosen
 docs/LICENSES.md               code + asset audit
 docs/MODIFICATIONS.md          what changed vs upstream, remaining differences
 docs/INTEGRATION.md            future Eventmatic hook-up
-tests/headless-play.js         console-driven bot play test
+tests/headless-play.js         five bot-played rounds (regression)
+tests/push-tests.js            player-to-player pushing scenarios
+tests/rules-tests.js           controls, identity, shot table, platform width and reach
+
+Run a test in the browser console on the game page:
+  eval(await (await fetch('tests/push-tests.js')).text())
 tools/serve.py                 tiny static server
 tools/build_sprites.py         regenerates assets/*.png from the bitmaps inside it
 ```

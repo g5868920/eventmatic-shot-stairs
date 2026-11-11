@@ -138,7 +138,7 @@
 	var STAGE_WIDTH = 360, STAGE_HEIGHT = 480 + MARGIN_TOP; // playable area, unchanged from upstream
 	var WALL_WIDTH = 18; // SHOT: decorative brick walls drawn OUTSIDE the playable area
 	var VIEW_WIDTH = STAGE_WIDTH + 2 * WALL_WIDTH; // SHOT: canvas width
-	var FLOOR_WIDTH = 64, FLOOR_HEIGHT = 12, FLOOR_DISTANCE = 60; // SHOT: FLOOR_WIDTH was 100; 64 approved by Eventmatic to match the reference's platform:spacing ratio
+	var FLOOR_WIDTH = 80, FLOOR_HEIGHT = 12, FLOOR_DISTANCE = 60; // SHOT: FLOOR_WIDTH was 100 upstream; now the default of CONFIG.platform.width, applied at the start of every round. Each floor keeps its own .width.
 	var SPRING_HEIGHT = FLOOR_HEIGHT - 4;
 	var HERO_WIDTH = 26;
 	var ARROW_HEIGHT = 15, ARROW_WIDTH = 5; // 钉子尺寸
@@ -160,13 +160,15 @@
 	var CONFIG = {
 		players: {
 			p1: { label: '1P', keys: { left: 'ArrowLeft', right: 'ArrowRight' } },
-			p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyX' } }
+			p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyC' } }
 		},
 		beer: { spawnChance: 0.12, healAmount: 3, onlySafeFloors: true },
+		// SHOT: platform width (px) and the minimum width of the two-player start floor
+		platform: { width: 80, startMinWidth: 80, guaranteeReach: true },
 		// SHOT: visual skins per mechanic; appearance only, never changes behaviour
 		skins: { normal: 'blueBrick', spring: 'spring', conveyorLeft: 'conveyorLeft', conveyorRight: 'conveyorRight', spike: 'steelSpikes', fake: 'stone' },
 		sprites: {}, // manifest overrides, e.g. { kidP1: 'skins/alice.png' }
-		penalty: { floorsPerDrink: 10, roundUp: true, minDrinks: 1, maxDrinks: 10, compute: null, unit: 'shot', unitPlural: 'shots' },
+		penalty: { floorsPerStep: 10, shotsPerStep: 0.5, maxShots: null, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {
 			loses: '{player} LOSES', draw: 'DRAW',
 			floors: '1P {p1} + 2P {p2}\n= {total} FLOORS',
@@ -220,10 +222,11 @@
 		this.x = x || 0;
 		this.y = y || 0;
 		this.seq = FloorSeq.get();
+		this.width = FLOOR_WIDTH; // SHOT: per-floor width (collision + drawing)
 		this.beer = false; // SHOT: carries a beer mug pickup
 	}, {
 		draw : function(context) { // SHOT: sprite skin (was a dashed black bar)
-			$S.drawFloor(context, skinSheet('normal'), this.x, this.y);
+			$S.drawFloor(context, skinSheet('normal'), this.x, this.y, this.width);
 		},
 		getHeight : function() {
 			return FLOOR_HEIGHT;
@@ -240,7 +243,7 @@
 		// SHOT: beer mug drawn on top of the floor surface
 		drawBeer : function(context) {
 			if (this.beer) {
-				context.drawImage($S.images.mug, Math.round(this.x + FLOOR_WIDTH * 0.5 - 9), Math.round(this.y - this.getHeight() - 19));
+				context.drawImage($S.images.mug, Math.round(this.x + this.width * 0.5 - 9), Math.round(this.y - this.getHeight() - 19));
 			}
 		}
 	});
@@ -256,7 +259,7 @@
 			if (this.restoring) {
 				this.restore(time);
 			}
-			$S.drawSpring(context, this.x, this.y, this.getHeight()); // SHOT: sprite frames per height
+			$S.drawSpring(context, this.x, this.y, this.getHeight(), this.width); // SHOT: sprite frames per height
 		},
 		landing : function(hero, time) {
 			this.touchTime = time;
@@ -307,7 +310,7 @@
 			if (--this.offset <0) {
 				this.offset = 20;
 			}
-			$S.drawConveyor(context, 1, Math.floor(this.offset / 5), this.x, this.y); // SHOT: sprite belt animation
+			$S.drawConveyor(context, 1, Math.floor(this.offset / 5), this.x, this.y, this.width); // SHOT: sprite belt animation
 		},
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
@@ -327,7 +330,7 @@
 			if (++this.offset >= 20) {
 				this.offset = 0;
 			}
-			$S.drawConveyor(context, -1, Math.floor(this.offset / 5), this.x, this.y); // SHOT: sprite belt animation
+			$S.drawConveyor(context, -1, Math.floor(this.offset / 5), this.x, this.y, this.width); // SHOT: sprite belt animation
 		},
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
@@ -343,8 +346,8 @@
 	var ARROW_FLOOR = defineClass(function(x, y) {
 	}, {
 		draw : function(context) { // SHOT: steel base + spike sprite (same footprint as upstream's drawing)
-			$S.drawFloor(context, skinSheet('spike'), this.x, this.y);
-			context.drawImage($S.images.spikes, Math.round(this.x), Math.round(this.y - this.getHeight() - ARROW_HEIGHT));
+			$S.drawFloor(context, skinSheet('spike'), this.x, this.y, this.width);
+			$S.drawSpikes(context, this.x, this.y - this.getHeight() - ARROW_HEIGHT, this.width);
 		},
 		landing : function(hero, time) {
 			hero.vy = floorVelocity;
@@ -368,14 +371,14 @@
 			// "turned" is drawn faded so the player can see it is no longer solid.
 			var sheet = skinSheet('fake');
 			if (this.height >= FLOOR_HEIGHT) {
-				$S.drawFloor(context, sheet, this.x, this.y);
+				$S.drawFloor(context, sheet, this.x, this.y, this.width);
 			} else {
 				context.save();
 				context.globalAlpha = 0.35;
-				$S.drawFloor(context, sheet, this.x, this.y);
+				$S.drawFloor(context, sheet, this.x, this.y, this.width);
 				context.restore();
 				if (this.height > 0) {
-					$S.drawFloorClipped(context, sheet, this.x, this.y, this.height);
+					$S.drawFloorClipped(context, sheet, this.x, this.y, this.height, this.width);
 				}
 			}
 		},
@@ -566,6 +569,27 @@
 	/**
 	 * action
 	 */
+	// SHOT: width of the two-player start floor
+	function startFloorWidth() {
+		return Math.min(STAGE_WIDTH, Math.max(FLOOR_WIDTH, CONFIG.platform.startMinWidth || 0));
+	}
+
+	/**
+	 * SHOT: x for a new floor. Uniform inside [0, STAGE_WIDTH - FLOOR_WIDTH]; with platform.guaranteeReach
+	 * it is additionally limited to positions a player can reach by walking off either edge of the floor
+	 * above (prev) and drifting sideways while falling one FLOOR_DISTANCE (90 % of the kinematic maximum),
+	 * so narrower platforms never create a gap that cannot be crossed. Uniform within that window.
+	 */
+	function randomFloorX(prev) {
+		var lo = 0, hi = STAGE_WIDTH - FLOOR_WIDTH;
+		if (prev && CONFIG.platform.guaranteeReach) {
+			var drift = 0.9 * CONTROL_VELOCITY * Math.sqrt(2 * FLOOR_DISTANCE / GRAVITY_ACC);
+			lo = Math.max(lo, Math.ceil(prev.x - HERO_WIDTH - drift - FLOOR_WIDTH));
+			hi = Math.min(hi, Math.floor(prev.x + prev.width + drift + HERO_WIDTH - 1));
+		}
+		return lo + Math.round(Math.random() * (hi - lo));
+	}
+
 	function generateFloor() {
 		var firstInit = floorArray.length == 0;
 		var floor = floorArray[floorArray.length - 1];
@@ -574,12 +598,15 @@
 			postion += FLOOR_DISTANCE;
 			var floorY = postion;
 			// SHOT: spawn fully inside the playable area (upstream allowed x in [-50, 310), half under the edges)
-			var floorX = Math.round(Math.random() * (STAGE_WIDTH - FLOOR_WIDTH));
+			// and, when platform.guaranteeReach is on, within falling reach of the floor above (randomFloorX)
+			var floorX = randomFloorX(floorArray[floorArray.length - 1]);
 			if (firstInit) { // make sure can land on a floor at the beginning
 				if (floorY > STAGE_HEIGHT - FLOOR_DISTANCE) {
 					FloorSeq.start();
-					floorX = (STAGE_WIDTH - FLOOR_WIDTH) * 0.5;
+					// SHOT: centred start floor, at least startMinWidth wide so both players spawn safely
+					floorX = (STAGE_WIDTH - startFloorWidth()) * 0.5;
 					newFloor = new Floor(floorX, floorY);
+					newFloor.width = startFloorWidth();
 					floorArray.push(newFloor);
 					continue;
 				}
@@ -623,17 +650,86 @@
 	}
 
 	function updateHeroHorizontalPostion(hero, step, time) {
-		var velocity = hero.vx + hero.direction * CONTROL_VELOCITY;
+		var velocity = heroVelocityX(hero);
 		if (velocity != 0) {
 			hero.x = Math.min(Math.max(0, hero.x + velocity * step), STAGE_WIDTH - HERO_WIDTH);
-			if (hero.onFloor) {
-				var floor = hero.onFloor;
-				if (hero.x < floor.x - HERO_WIDTH || hero.x >= floor.x + FLOOR_WIDTH) {
-					hero.onFloor = null; //leaving the floor
-					floor.leaving(hero, time);
-				}
+			checkLeftFloor(hero, time);
+		}
+	}
+
+	// SHOT: horizontal speed from input plus conveyor (same formula upstream used inline)
+	function heroVelocityX(hero) {
+		return hero.vx + hero.direction * CONTROL_VELOCITY;
+	}
+
+	// SHOT: upstream's walk-off-the-edge test, extracted so pushes use the same rule
+	function checkLeftFloor(hero, time) {
+		if (hero.onFloor) {
+			var floor = hero.onFloor;
+			if (hero.x < floor.x - HERO_WIDTH || hero.x >= floor.x + floor.width) {
+				hero.onFloor = null; //leaving the floor
+				floor.leaving(hero, time);
 			}
 		}
+	}
+
+	/**
+	 * SHOT: player-to-player pushing.
+	 *
+	 * Runs once per physics step, after both heroes moved horizontally and before vertical movement.
+	 * Hitboxes are the existing HERO_WIDTH x HERO_WIDTH boxes (x .. x+W, y-W .. y; y = feet).
+	 * If the boxes overlap on both axes, they are separated along x only:
+	 *  - pushing force is walking input only (direction x CONTROL_VELOCITY). Overlap up to the two
+	 *    players' combined push this step is given to the other player in proportion to the pushes
+	 *    toward each other: a walker moves a standing player along with it, equal opposing pushes cancel
+	 *    (both stand still). Conveyors carry players but are not a push, so two players on the same belt
+	 *    push each other exactly as on a stable floor;
+	 *  - overlap nobody pushed into (a belt carried one into the other, or one fell beside the other) is
+	 *    eased apart at PUSH_SEPARATE_VELOCITY per player instead of snapping, so there is no teleport;
+	 *  - walls clamp the pushed player and the remaining overlap goes back to the pusher.
+	 * No damage, knockback or vertical effect. Left/right order comes from positions before this
+	 * step's movement (ties: 1P left), so players never pass through each other.
+	 */
+	var PUSH_SEPARATE_VELOCITY = 0.1; // px per ms, per player; only for overlap with no pusher
+	function resolvePlayerPush(prevX, step, time) {
+		if (!heroes || heroes.length < 2) {
+			return;
+		}
+		var h0 = heroes[0], h1 = heroes[1];
+		if (Math.abs(h0.y - h1.y) >= HERO_WIDTH) {
+			return; // no vertical overlap
+		}
+		var leftIsH0 = prevX[0] < prevX[1] || (prevX[0] == prevX[1] && h0.x <= h1.x);
+		var A = leftIsH0 ? h0 : h1, B = leftIsH0 ? h1 : h0;
+		var overlap = A.x + HERO_WIDTH - B.x;
+		if (overlap <= 0) {
+			return;
+		}
+		var a = Math.max(0, A.direction * CONTROL_VELOCITY); // A pushing right
+		var b = Math.max(0, -B.direction * CONTROL_VELOCITY); // B pushing left
+		var pushPart = Math.min(overlap, (a + b) * step);
+		if (pushPart > 0) {
+			A.x -= pushPart * b / (a + b);
+			B.x += pushPart * a / (a + b);
+		}
+		var rest = overlap - pushPart;
+		if (rest > 0) {
+			var ease = Math.min(rest, 2 * PUSH_SEPARATE_VELOCITY * step) / 2;
+			A.x -= ease;
+			B.x += ease;
+		}
+		// walls: clamp, then hand any remaining overlap back to the other player
+		var maxX = STAGE_WIDTH - HERO_WIDTH;
+		if (B.x > maxX) {
+			B.x = maxX;
+			A.x = Math.min(A.x, B.x - HERO_WIDTH);
+		}
+		if (A.x < 0) {
+			A.x = 0;
+			B.x = Math.max(B.x, A.x + HERO_WIDTH);
+		}
+		checkLeftFloor(A, time);
+		checkLeftFloor(B, time);
 	}
 
 	// SHOT: floors move once per step; each hero is then resolved against them
@@ -654,10 +750,11 @@
 			var newY = hero.y + heroDistance;
 			//detect collision
 			var hasCollision = false;
-			var minX = hero.x - FLOOR_WIDTH, maxX = hero.x + HERO_WIDTH;
+			var maxX = hero.x + HERO_WIDTH;
 			for (var i = 0, len = floorArray.length; i < len; ++i) {
 				var floor = floorArray[i];
-				if (floor.x >= minX && floor.x < maxX && floor.getHeight() > 0) {
+				// SHOT: per-floor width; same test as upstream's floor.x >= hero.x - FLOOR_WIDTH
+				if (floor.x + floor.width >= hero.x && floor.x < maxX && floor.getHeight() > 0) {
 					if (newY >= floor.y - floor.getHeight() && hero.y < floor.y - floor.getHeight() - floorDistance) { //collision
 						if (window.DEBUG) {
 							console.info(newY, floor.y - floor.getHeight(), hero.y, floor.y - floor.getHeight() - floorDistance);
@@ -835,7 +932,7 @@
 		}
 		// centre: mug × penalty units
 		var units = (p1 && p2) ? computePenalty(p1.floors + p2.floors) : 0;
-		var label = 'X ' + units;
+		var label = 'X ' + formatShots(units);
 		var tw = $S.font.width(label, 3);
 		var total = 18 + 10 + tw;
 		var cx0 = Math.round(VIEW_WIDTH / 2 - total / 2);
@@ -850,7 +947,7 @@
 		var title = result.loser ? fmt(cfg.text.loses, { player: result.loserLabel }) : cfg.text.draw;
 		var unit = result.penalty == 1 ? cfg.penalty.unit : cfg.penalty.unitPlural;
 		var lines = fmt(cfg.text.floors, { p1: result.floors.p1, p2: result.floors.p2, total: result.floors.total }).split('\n');
-		var penaltyLine = fmt(cfg.text.penalty, { n: result.penalty, unit: unit });
+		var penaltyLine = fmt(cfg.text.penalty, { n: formatShots(result.penalty), unit: unit });
 		var w = 300, h = 150;
 		context.save();
 		context.translate(0, -30);
@@ -888,16 +985,27 @@
 	}
 
 	// SHOT: penalty conversion, fully configurable
+	// SHOT: shots = floor(totalFloors / floorsPerStep) * shotsPerStep, optionally capped at maxShots.
+	// Default 10 floors -> 0.5 shot. Starts at 0; beer pickups never feed into it.
 	function computePenalty(totalFloors) {
 		var p = CONFIG.penalty;
+		var n;
 		if (typeof p.compute === 'function') {
-			return p.compute(totalFloors);
+			n = Number(p.compute(totalFloors)) || 0;
+		} else {
+			var stepFloors = p.floorsPerStep > 0 ? p.floorsPerStep : 10;
+			var stepShots = isFinite(p.shotsPerStep) ? p.shotsPerStep : 0.5;
+			n = Math.floor(Math.max(0, totalFloors) / stepFloors) * stepShots;
 		}
-		var raw = totalFloors / (p.floorsPerDrink || 1);
-		var n = p.roundUp ? Math.ceil(raw) : Math.floor(raw);
-		if (isFinite(p.maxDrinks)) n = Math.min(p.maxDrinks, n);
-		if (isFinite(p.minDrinks)) n = Math.max(p.minDrinks, n);
-		return n;
+		if (p.maxShots !== null && p.maxShots !== undefined && isFinite(p.maxShots)) {
+			n = Math.min(p.maxShots, n);
+		}
+		return Math.round(n * 1000) / 1000; // keep 0.5 steps exact, trim float noise for other rates
+	}
+
+	// SHOT: number text for the HUD and result panel: 0, 0.5, 1, 1.5 (no trailing zeros)
+	function formatShots(n) {
+		return String(Math.round(n * 100) / 100);
 	}
 
 	// SHOT: build the result of a finished round
@@ -918,7 +1026,7 @@
 			life: { p1: p1.life, p2: p2.life },
 			penalty: computePenalty(total),
 			penaltyUnit: CONFIG.penalty.unit,
-			config: { floorsPerDrink: CONFIG.penalty.floorsPerDrink, beerHeal: CONFIG.beer.healAmount, beerChance: CONFIG.beer.spawnChance }
+			config: { floorsPerStep: CONFIG.penalty.floorsPerStep, shotsPerStep: CONFIG.penalty.shotsPerStep, maxShots: CONFIG.penalty.maxShots, platformWidth: FLOOR_WIDTH, beerHeal: CONFIG.beer.healAmount, beerChance: CONFIG.beer.spawnChance }
 		};
 	}
 
@@ -937,10 +1045,17 @@
 		generateFloor();
 		removeOutboundFloor();
 		var floorDistance = updateFloorsVerticalPosition(step);
+		// SHOT: both heroes move horizontally first so pushes see both moves; each hero still runs
+		// horizontal then vertical exactly as upstream did, so single-player physics is unchanged.
+		var prevX = [];
 		for (var i = 0; i < heroes.length; ++i) {
+			prevX[i] = heroes[i].x;
 			updateHeroHorizontalPostion(heroes[i], step, time);
-			updateHeroVerticalPosition(heroes[i], step, time, floorDistance);
-			checkHittingTop(heroes[i], time);
+		}
+		resolvePlayerPush(prevX, step, time);
+		for (var j = 0; j < heroes.length; ++j) {
+			updateHeroVerticalPosition(heroes[j], step, time, floorDistance);
+			checkHittingTop(heroes[j], time);
 		}
 		return judge();
 	}
@@ -1021,7 +1136,7 @@
 	// SHOT: map a KeyboardEvent to { hero, side } using the configured keys
 	function heroForKey(e) {
 		var code = e.code || '';
-		var legacy = { 37: 'ArrowLeft', 39: 'ArrowRight', 90: 'KeyZ', 88: 'KeyX' }[e.keyCode];
+		var legacy = { 37: 'ArrowLeft', 39: 'ArrowRight', 90: 'KeyZ', 67: 'KeyC' }[e.keyCode];
 		for (var i = 0; i < heroes.length; ++i) {
 			var k = heroes[i].keys;
 			if (code == k.left || legacy == k.left) return { hero: heroes[i], side: 'left' };
@@ -1135,16 +1250,19 @@
 		FloorSeq.reset();
 		floorArray = [];
 		lastResult = null;
-		// SHOT: two heroes, both standing on the centred starting floor
-		var floorX = (STAGE_WIDTH - FLOOR_WIDTH) * 0.5;
+		// SHOT: platform width for this round (configurable; clamped to something a player can stand on)
+		FLOOR_WIDTH = Math.round(Math.min(STAGE_WIDTH, Math.max(HERO_WIDTH + 4, CONFIG.platform.width || 80)));
+		// SHOT: two heroes on the centred start floor: 2P (red/pink) on the left, 1P (blue/green) on the right
+		var startW = startFloorWidth();
+		var floorX = (STAGE_WIDTH - startW) * 0.5;
 		// SHOT: the start floor sits at the last FLOOR_DISTANCE multiple inside the stage (see generateFloor);
 		// upstream placed heroes at STAGE_HEIGHT - FLOOR_DISTANCE, which with a taller HUD band ends up below
 		// the floor's top, so they fell through it. Spawn them a few px above the floor instead.
 		var startFloorY = FLOOR_DISTANCE * Math.floor(STAGE_HEIGHT / FLOOR_DISTANCE);
 		var startY = startFloorY - FLOOR_HEIGHT - 16;
 		heroes = [
-			new Hero(floorX + 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#ff5fb0' }),
-			new Hero(floorX + FLOOR_WIDTH - HERO_WIDTH - 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#39d47c' })
+			new Hero(floorX + startW - HERO_WIDTH - 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, color: '#39d47c' }),
+			new Hero(floorX + 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, color: '#ff5fb0' })
 		];
 		floorVelocity = FLOOR_VELOCITY_BASE;
 		score = 0;
@@ -1207,8 +1325,10 @@
 		};
 	};
 	Game.computePenalty = computePenalty;
+	Game.formatShots = formatShots;
 	// SHOT: live world objects for automated tests / debugging only (not part of the integration API)
 	Game._debugFrame = function(time) { frame(time); }; // drive one frame with a synthetic clock
+	Game._debugTypes = { Floor: Floor, SPRING: SPRING, ROLLING_LEFT: ROLLING_LEFT, ROLLING_RIGHT: ROLLING_RIGHT, FAKE_FLOOR: FAKE_FLOOR, ARROW_FLOOR: ARROW_FLOOR }; // tests only
 	Game._debugWorld = function() {
 		return { floors: floorArray, heroes: heroes, marginTop: MARGIN_TOP, stageWidth: STAGE_WIDTH, viewWidth: VIEW_WIDTH, wallWidth: WALL_WIDTH, maxLife: MAX_LIFE, stageHeight: STAGE_HEIGHT, floorWidth: FLOOR_WIDTH, heroWidth: HERO_WIDTH };
 	};

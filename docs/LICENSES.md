@@ -20,6 +20,8 @@
 
 No third-party audio files are stored in the repository. By Eventmatic's decision the hurt and fall/death sounds are the NS-SHAFT recordings loaded at runtime from their public URLs (no license stated by the hosts; not redistributed here). Original synthesised fallbacks in `audio.js` are Apache-2.0. See docs/AUDIO.md.
 
+Background music `assets/audio/bgm-moodmode-8-bit-retro-game-music.mp3`: "8 Bit Retro Game Music" by moodmode, Pixabay Content License (no standalone redistribution; Content ID registered). Credits in `assets/audio/CREDITS.md`.
+
 ## Fonts
 
 No font files are shipped. Text is rendered with the browser's default `monospace` family, as upstream did.

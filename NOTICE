@@ -20,3 +20,7 @@ Assets:
   Upstream bg.png / led.png are no longer used; they remain only in the
   pristine vendor/ snapshot. No audio files are shipped; the HUD uses an
   original 5x7 pixel font defined in sprites.js.
+
+Background music: "8 Bit Retro Game Music" by moodmode, from Pixabay
+(https://pixabay.com/music/video-games-8-bit-retro-game-music-233964/), used under the
+Pixabay Content License. Not licensed for standalone redistribution. See assets/audio/CREDITS.md.

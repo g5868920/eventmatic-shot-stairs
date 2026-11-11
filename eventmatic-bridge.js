@@ -40,7 +40,8 @@
 
     /** Sound (audio.js): mute on/off and volume 0..1. No-ops if audio is unavailable. */
     setMuted: function (m) { return global.ShotAudio ? global.ShotAudio.setMuted(m) : null; },
-    setVolume: function (v) { return global.ShotAudio ? global.ShotAudio.setVolume(v) : null; }
+    setVolume: function (v) { return global.ShotAudio ? global.ShotAudio.setVolume(v) : null; },
+    setMusicVolume: function (v) { return global.ShotAudio ? global.ShotAudio.setMusicVolume(v) : null; }
   };
 
   // Also mirror round results to the parent window when embedded in an iframe.

@@ -34,7 +34,10 @@ window.SHOT_CONFIG = {
   // assets/audio/local/ (git-ignored) and point these at e.g. 'assets/audio/local/fall-dead.mp3'.
   // null = use the built-in synthesised sound. If a file fails to load, the synthesised one plays.
   audio: {
-    enabled: true, muted: false, volume: 0.6,
+    enabled: true, muted: false, volume: 0.6,   // volume = sound effects
+    // Background music: 8 Bit Retro Game Music by moodmode (Pixabay Content License; docs/AUDIO.md).
+    // Own volume, independent of the sound effects. URL: ?music=0  ?musicVolume=0.25
+    music: { enabled: true, file: 'assets/audio/bgm-moodmode-8-bit-retro-game-music.mp3', volume: 0.25 },
     files: {
       hurt: 'https://awiclass.monoame.com/audio/%E5%B0%8F%E6%9C%8B%E5%8F%8B%E4%B8%8B%E6%A8%93%E6%A2%AF%20%E8%A2%AB%E5%88%BA.mp3', // spike / ceiling hit
       fall: 'https://comebuycb.github.io/files/NS-SHAFT/fall-dead.mp3',   // fell below the playfield

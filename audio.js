@@ -11,8 +11,14 @@
  *   'playerDown' (playerId, 'health' | 'fall')  -> death SFX (out of health) or fall SFX (off the bottom)
  * 1P is panned slightly right and 2P slightly left so both players are heard independently.
  *
- * Settings: SHOT_CONFIG.audio = { enabled, muted, volume (0..1) }; M toggles mute (remembered in
- * this browser); URL ?mute=1 / ?volume=0.4; window.ShotAudio.setMuted / setVolume / toggleMute.
+ * Settings: SHOT_CONFIG.audio = { enabled, muted, volume (0..1), music: { enabled, file, volume } };
+ * M toggles mute for everything (remembered in this browser); URL ?mute=1 / ?volume=0.4 /
+ * ?music=0 / ?musicVolume=0.25; window.ShotAudio.setMuted / setVolume / setMusicVolume / toggleMute.
+ *
+ * Background music: one looping track on its own gain (default 25 %, independent of the SFX volume).
+ * Starts with each round once the browser allows audio, loops sample-accurately between the first
+ * and last audible samples, fades out over 0.8 s when the round ends, restarts from the top on a
+ * rematch. Only one music source ever exists.
  */
 ;(function (global) {
   'use strict';
@@ -37,6 +43,20 @@
     if (q.has('mute')) settings.muted = q.get('mute') !== '0';
     if (q.has('volume') && isFinite(parseFloat(q.get('volume')))) settings.volume = Math.max(0, Math.min(1, parseFloat(q.get('volume'))));
   } catch (e) { /* ignore */ }
+
+  var mcfg = cfg.music || {};
+  var music = {
+    enabled: mcfg.enabled !== false,
+    file: mcfg.file || 'assets/audio/bgm-moodmode-8-bit-retro-game-music.mp3',
+    volume: isFinite(mcfg.volume) ? Math.max(0, Math.min(1, mcfg.volume)) : 0.25,
+    fadeOut: 0.8
+  };
+  try {
+    var mq = new URLSearchParams(global.location.search);
+    if (mq.has('music')) music.enabled = mq.get('music') !== '0';
+    if (mq.has('musicVolume') && isFinite(parseFloat(mq.get('musicVolume')))) music.volume = Math.max(0, Math.min(1, parseFloat(mq.get('musicVolume'))));
+  } catch (e) { /* ignore */ }
+  var musicGain = null, musicBuffer = null, musicLoop = null, musicNow = null, wantMusic = false, musicStarts = 0;
 
   var AC = global.AudioContext || global.webkitAudioContext;
   var ctx = null, master = null, buffers = {}, lastPlayed = {}, log = [];
@@ -103,9 +123,13 @@
       master = ctx.createGain();
       master.gain.value = settings.muted ? 0 : settings.volume;
       master.connect(ctx.destination);
+      musicGain = ctx.createGain();
+      musicGain.gain.value = settings.muted ? 0 : music.volume;
+      musicGain.connect(ctx.destination);
       build();
       for (var k in buffers) sources[k] = 'synth';
       loadFiles();
+      loadMusic();
       return true;
     } catch (e) {
       ctx = null;
@@ -152,10 +176,57 @@
     });
   }
 
+  /* ---------- background music ---------- */
+  function loadMusic() {
+    if (!music.enabled || !music.file || !global.fetch) return;
+    global.fetch(music.file).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.arrayBuffer();
+    }).then(decode).then(function (buf) {
+      // loop between the first and last audible samples (skips MP3 padding and the silent tail)
+      var d = buf.getChannelData(0), n = d.length, a = 0, b = n - 1;
+      while (a < n && Math.abs(d[a]) < 0.003) a++;
+      while (b > a && Math.abs(d[b]) < 0.003) b--;
+      musicBuffer = buf;
+      musicLoop = { start: a / buf.sampleRate, end: (b + 1) / buf.sampleRate };
+      if (wantMusic) startMusic();
+    }, function () { musicBuffer = null; });
+  }
+
+  function startMusic() {
+    if (!ctx || !musicBuffer || musicNow || ctx.state !== 'running') return false;
+    var src = ctx.createBufferSource(), fade = ctx.createGain();
+    src.buffer = musicBuffer;
+    src.loop = true;
+    src.loopStart = musicLoop.start;
+    src.loopEnd = musicLoop.end;
+    fade.gain.value = 1;
+    src.connect(fade);
+    fade.connect(musicGain);
+    src.start(0, musicLoop.start);
+    musicNow = { src: src, fade: fade, startedAt: ctx.currentTime };
+    musicStarts++;
+    return true;
+  }
+
+  function stopMusic(fadeSeconds) {
+    if (!musicNow) return false;
+    var m = musicNow, t = ctx.currentTime, f = Math.max(0.01, fadeSeconds || 0);
+    musicNow = null;                                   // a rematch may start a new source right away
+    m.fade.gain.cancelScheduledValues(t);
+    m.fade.gain.setValueAtTime(m.fade.gain.value, t);
+    m.fade.gain.linearRampToValueAtTime(0, t + f);
+    try { m.src.stop(t + f + 0.02); } catch (e) { /* already stopped */ }
+    return true;
+  }
+
   /* ---------- browser autoplay unlock ---------- */
   function unlock() {
     if (ctx && ctx.state === 'suspended') {
-      ctx.resume();
+      var p = ctx.resume();
+      if (p && p.then) p.then(function () { if (wantMusic) startMusic(); });
+    } else if (ctx && wantMusic) {
+      startMusic();
     }
   }
   ['keydown', 'pointerdown', 'touchstart', 'mousedown'].forEach(function (type) {
@@ -197,6 +268,7 @@
   function setMuted(m) {
     settings.muted = !!m;
     if (master) master.gain.value = settings.muted ? 0 : settings.volume;
+    if (musicGain) musicGain.gain.value = settings.muted ? 0 : music.volume;
     try { global.localStorage.setItem(MUTE_KEY, settings.muted ? '1' : '0'); } catch (e) { /* ignore */ }
     return settings.muted;
   }
@@ -222,6 +294,15 @@
     Game.on('playerDown', function (playerId, cause) {
       play(cause === 'health' ? 'death' : 'fall', playerId);
     });
+    // background music follows the round: start (or keep playing) on a new round, fade out at the end
+    Game.on('gameStart', function () {
+      wantMusic = music.enabled;
+      if (wantMusic) startMusic();
+    });
+    Game.on('roundEnd', function () {
+      wantMusic = false;
+      stopMusic(music.fadeOut);
+    });
   }
 
   var ready = init();
@@ -233,10 +314,19 @@
     setMuted: setMuted,
     toggleMute: function () { return setMuted(!settings.muted); },
     setVolume: setVolume,
+    setMusicVolume: function (v) {
+      music.volume = Math.max(0, Math.min(1, +v || 0));
+      if (musicGain && !settings.muted) musicGain.gain.value = music.volume;
+      return music.volume;
+    },
+    music: function () {
+      return { enabled: music.enabled, loaded: !!musicBuffer, playing: !!musicNow, volume: music.volume, starts: musicStarts,
+               loop: musicLoop && { start: +musicLoop.start.toFixed(3), end: +musicLoop.end.toFixed(3) } };
+    },
     settings: function () { return { enabled: settings.enabled, muted: settings.muted, volume: settings.volume, available: ready }; },
     durations: function () { var o = {}; for (var k in buffers) o[k] = Math.round(buffers[k].duration * 100) / 100; return o; },
     sources: function () { var o = {}; for (var k in sources) o[k] = sources[k]; return o; },
     _log: log,
-    _debug: function () { return { ctx: ctx, master: master }; } // tests only
+    _debug: function () { return { ctx: ctx, master: master, musicGain: musicGain, musicNow: musicNow }; } // tests only
   };
 })(window);

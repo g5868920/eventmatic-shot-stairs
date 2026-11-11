@@ -20,6 +20,30 @@ sounds in the same frame.
 * URL: `?mute=1`, `?volume=0.4`.
 * API: `ShotStairs.setMuted(true|false)`, `ShotStairs.setVolume(0..1)` (or `ShotAudio.*`).
 
+## Background music
+
+| | |
+|---|---|
+| Track | **8 Bit Retro Game Music** by **moodmode** (publisher IPI: KROTOV VLADYSLAV, 378003660) |
+| Source | https://pixabay.com/music/video-games-8-bit-retro-game-music-233964/ |
+| File | `assets/audio/bgm-moodmode-8-bit-retro-game-music.mp3` (downloaded from Pixabay's own download URL on 2026-11-12, unmodified, 70.17 s; checksum in `assets/audio/CREDITS.md`) |
+| License | Pixabay Content License: free for commercial and non-commercial use, no attribution required (credited here anyway), may be modified; **may not be sold or distributed on a standalone basis** (i.e. do not offer the MP3 itself for download; shipping it inside the game is fine). |
+| Content ID | The track page says **"Content ID Registered"**. Playing it at the event is unaffected. If anyone uploads a recording or stream of the game to YouTube (or another platform that uses Content ID), the upload can receive an automated claim from the artist's publisher, which may monetise it or show the claim. This is not a license violation; claims on Pixabay tracks can usually be released by contacting the artist / disputing with the Pixabay license, but the simplest option for recordings is `?music=0`. |
+
+Behaviour (`audio.js`):
+
+* One looping source on its own gain node, default **25 %** (`audio.music.volume`), independent of
+  the sound-effect volume (`audio.volume`, 60 %). M mutes both.
+* Starts when a round starts and audio is allowed; if the browser still blocks audio, it starts on
+  the first key press / click / touch (the same unlock as the sound effects).
+* Loops sample-accurately between the first and last audible samples (0.009 s to 68.18 s), skipping
+  the MP3 padding and the 2 s of silence at the end of the file, so the loop has no gap.
+* Fades out over 0.8 s when the round ends; a rematch starts it again from the top. Only one music
+  source can exist at a time, so repeated round starts never stack loops.
+* `?music=0` disables it (the file is not even downloaded), `?musicVolume=0.15` sets the level;
+  API `ShotStairs.setMusicVolume(v)`.
+* Tests: `tests/music-tests.js`.
+
 ## Which audio is used (decision 2026-11-12)
 
 Eventmatic chose the classic NS-SHAFT recordings for this private event build:

@@ -61,5 +61,160 @@ window.SHOT_CUSTOM_ANIMS = {
         11
       ]
     }
+  },
+  "ariel": {
+    "file": "assets/characters/custom/ariel-anim.png",
+    "frameW": 40,
+    "frameH": 52,
+    "anchorX": 20,
+    "anchorBottom": 52,
+    "frames": {
+      "idle": [
+        0,
+        1
+      ],
+      "walk": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fall": [
+        8,
+        9
+      ],
+      "land": [
+        10
+      ],
+      "hurt": [
+        11
+      ]
+    }
+  },
+  "cindy": {
+    "file": "assets/characters/custom/cindy-anim.png",
+    "frameW": 40,
+    "frameH": 52,
+    "anchorX": 20,
+    "anchorBottom": 52,
+    "frames": {
+      "idle": [
+        0,
+        1
+      ],
+      "walk": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fall": [
+        8,
+        9
+      ],
+      "land": [
+        10
+      ],
+      "hurt": [
+        11
+      ]
+    }
+  },
+  "ken": {
+    "file": "assets/characters/custom/ken-anim.png",
+    "frameW": 40,
+    "frameH": 52,
+    "anchorX": 20,
+    "anchorBottom": 52,
+    "frames": {
+      "idle": [
+        0,
+        1
+      ],
+      "walk": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fall": [
+        8,
+        9
+      ],
+      "land": [
+        10
+      ],
+      "hurt": [
+        11
+      ]
+    }
+  },
+  "linda": {
+    "file": "assets/characters/custom/linda-anim.png",
+    "frameW": 40,
+    "frameH": 52,
+    "anchorX": 20,
+    "anchorBottom": 52,
+    "frames": {
+      "idle": [
+        0,
+        1
+      ],
+      "walk": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fall": [
+        8,
+        9
+      ],
+      "land": [
+        10
+      ],
+      "hurt": [
+        11
+      ]
+    }
+  },
+  "sandy": {
+    "file": "assets/characters/custom/sandy-anim.png",
+    "frameW": 40,
+    "frameH": 52,
+    "anchorX": 20,
+    "anchorBottom": 52,
+    "frames": {
+      "idle": [
+        0,
+        1
+      ],
+      "walk": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fall": [
+        8,
+        9
+      ],
+      "land": [
+        10
+      ],
+      "hurt": [
+        11
+      ]
+    }
   }
 };

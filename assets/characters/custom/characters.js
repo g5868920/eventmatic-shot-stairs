@@ -10,8 +10,8 @@
  *   Optional: animated (false = always use the static sprite), flip (false = never mirror when walking
  *   left), plus any custom fields an embedder wants to carry (ignored by the game).
  *
- * Gina and Rae have hand-rigged animation sheets. Ariel, Cindy, Ken, Linda and Sandy use their static
- * game sprite (mirrored by direction, 1 px walking bob, damage blink) until animation sheets exist.
+ * All seven have animation sheets (idle, walk, fall, land, hurt) from tools/build_custom_anim.py: the head,
+ * face and hair come from each portrait; body, arms and legs are redrawn in the portrait's colours.
  */
 window.SHOT_CHARACTERS = [
   { id: 'gina',  name: 'Gina',  source: 'assets/characters/custom/source/gina-q-version.png' },

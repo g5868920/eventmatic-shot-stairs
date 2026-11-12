@@ -40,6 +40,40 @@ CHARACTERS = {
     'rae': dict(cx=12, bottom=46, head_end=18, torso='tee', torso_rows=(18, 28), torso_half=5,
                 shoulder_y=19, hip_y=28, shoe_top=43, arm_len=10, sleeve='short',
                 eye_rows=(10, 15), mouth_rows=(14, 18), eye_boxes=((8, 11, 10, 13), (13, 11, 15, 13)), mouth=(10, 15), back_hair=(18, 28), tuft_rows=(0, 4), idle_arms='clasp'),
+    # The five friends below use the optional keys: head_drop (portrait hand removed from the head layer),
+    # hair_box / tee_box / sleeve_box (colour samples where a hat or coloured clothes break the defaults),
+    # inner (scarf / inner top stripe), belt, skirt (skirt, dress or coat tails), legs (bare legs or
+    # non-denim trousers), leg_w, sock (leg warmers), eye_lum, idle_arms 'crossed' / 'hat'.
+    'ariel': dict(cx=13, bottom=46, head_end=20, head_drop=((0, 13, 8, 20),), torso='tee', torso_rows=(20, 33), torso_half=6,
+                  tee_box=(17, 24, 21, 31), tee_pick=0.35, inner=dict(box=(9, 21, 14, 30), w=4), belt=False,
+                  skirt=dict(box=(3, 33, 8, 38), rows=5, flare=2, half=6),
+                  shoulder_y=21, hip_y=33, shoe_top=44, arm_len=10, sleeve='full',
+                  eye_rows=(12, 17), mouth_rows=(16, 20), eye_boxes=((10, 14, 12, 17), (15, 13, 17, 15)), mouth=(13, 17),
+                  hair_box=(2, 20, 6, 24), back_hair=(20, 31), tuft_rows=(0, 0), idle_arms='hat'),
+    'cindy': dict(cx=11, bottom=47, head_end=18, torso='tee', torso_rows=(18, 29), torso_half=5,
+                  tee_box=(7, 21, 16, 28), inner=dict(box=(9, 18, 13, 23), w=3), belt=False,
+                  skirt=dict(box=(6, 30, 18, 33), rows=5, flare=2, half=5),
+                  legs=dict(kind='bare', box=(9, 33, 15, 39)), leg_w=4, sock=dict(box=(7, 39, 17, 43), rows=4),
+                  shoulder_y=19, hip_y=29, shoe_top=43, arm_len=10, sleeve='full',
+                  eye_rows=(9, 14), mouth_rows=(14, 17), eye_boxes=((8, 11, 10, 13), (15, 10, 18, 11)), mouth=(13, 15),
+                  hair_box=(1, 15, 5, 20), back_hair=(18, 29), tuft_rows=(0, 0), idle_arms='clasp'),
+    'ken': dict(cx=8, bottom=47, head_end=18, torso='tee', torso_rows=(18, 30), torso_half=5,
+                tee_box=(6, 19, 15, 22), belt=False,
+                shoulder_y=19, hip_y=30, shoe_top=44, arm_len=10, sleeve='short',
+                eye_rows=(11, 15), mouth_rows=(14, 18), eye_boxes=((5, 12, 8, 14), (11, 11, 14, 13)), mouth=(10, 15),
+                back_hair=None, tuft_rows=(0, 0), idle_arms='crossed'),
+    'linda': dict(cx=12, bottom=45, head_end=18, torso='tee', torso_rows=(18, 30), torso_half=5,
+                  tee_box=(16, 19, 20, 24), tee_pick=0.85, inner=dict(box=(12, 20, 15, 25), w=2), belt=False,
+                  legs=dict(kind='cloth', box=(10, 32, 17, 40)),
+                  shoulder_y=19, hip_y=30, shoe_top=42, arm_len=10, sleeve='full',
+                  eye_rows=(10, 15), mouth_rows=(14, 18), eye_boxes=((7, 13, 10, 15), (14, 11, 17, 13)), mouth=None,
+                  hair_box=(1, 15, 6, 20), back_hair=(18, 30), tuft_rows=(0, 4), idle_arms='clasp'),
+    'sandy': dict(cx=10, bottom=46, head_end=16, torso='tee', torso_rows=(16, 25), torso_half=4,
+                  tee_box=(9, 17, 13, 21), belt=False, skirt=dict(box=(9, 17, 13, 21), rows=5, flare=2, half=4),
+                  legs=dict(kind='bare', box=(10, 31, 16, 37)), leg_w=4,
+                  shoulder_y=17, hip_y=25, shoe_top=41, arm_len=9, sleeve='none',
+                  eye_rows=(8, 12), mouth_rows=(11, 15), eye_boxes=((6, 9, 9, 11), (12, 9, 15, 11)), eye_lum=0.55, mouth=(10, 13),
+                  hair_box=(2, 15, 7, 22), back_hair=(16, 28), tuft_rows=(0, 3), idle_arms='clasp'),
 }
 
 
@@ -96,16 +130,36 @@ def analyse(name, cfg):
     cx = cfg['cx']
     allp = [P[y][x] for y in range(h) for x in range(w) if P[y][x]]
     head = [[P[y][x] if y < cfg['head_end'] else None for x in range(w)] for y in range(h)]
+    for (x0, y0, x1, y1) in cfg.get('head_drop', ()):   # e.g. a hand raised to the hat in the portrait
+        for y in range(y0, min(y1, h)):
+            for x in range(x0, min(x1, w)):
+                head[y][x] = None
+    def box_px(b, keep=lambda c: True):
+        x0, y0, x1, y1 = b
+        return [P[y][x] for y in range(y0, min(y1, h)) for x in range(x0, min(x1, w)) if P[y][x] and keep(P[y][x])]
     face = [P[y][x] for y in range(cfg['eye_rows'][0], cfg['mouth_rows'][1]) for x in range(cx - 5, cx + 5)
             if P[y][x] and cls_skin(P[y][x])]
     skin = pct(face, 0.6)
-    hair_px = [P[y][x] for y in range(0, 6) for x in range(w) if P[y][x]]
+    hair_px = box_px(cfg['hair_box']) if cfg.get('hair_box') else [P[y][x] for y in range(0, 6) for x in range(w) if P[y][x]]
     hair_mid = pct(hair_px, 0.5)
     jeans = [P[y][x] for y in range(cfg['hip_y'] + 1, cfg['shoe_top'] - 1) for x in range(w) if P[y][x] and cls_jeans(P[y][x])]
     shoes = [P[y][x] for y in range(cfg['shoe_top'], h) for x in range(w) if P[y][x]]
+    legs = cfg.get('legs')
+    if legs:   # bare legs or non-denim trousers: sample the leg colour from a box instead of blue denim
+        lp = box_px(legs['box'], cls_skin if legs.get('kind') == 'bare' else (lambda c: lum(c) > 0.2))
+        jeans = lp or jeans
     pal = dict(skin=skin, skin_sh=shade(skin, 0.86), hair=hair_mid,
                j_light=pct(jeans, 0.85), j_mid=pct(jeans, 0.5), j_dark=pct(jeans, 0.15),
                shoe=pct(shoes, 0.95), shoe_sh=pct(shoes, 0.45))
+    if cfg.get('sock'):   # leg warmers / socks above the shoes
+        sp = box_px(cfg['sock']['box'], lambda c: lum(c) > 0.6)
+        pal['sock'] = pct(sp, 0.7) if sp else (235, 228, 214, 255); pal['sock_sh'] = shade(pal['sock'], 0.82)
+    if cfg.get('inner'):  # scarf / inner top shown down the middle of the torso
+        ip = box_px(cfg['inner']['box'], lambda c: not cls_skin(c))
+        pal['inner'] = pct(ip, 0.5) if ip else OUTLINE; pal['inner_sh'] = shade(pal['inner'], 0.8)
+    if cfg.get('skirt'):  # skirt / dress / coat tails below the hips
+        kp = box_px(cfg['skirt']['box'], lambda c: not cls_skin(c))
+        pal['skirt'] = pct(kp, 0.5) if kp else OUTLINE; pal['skirt_sh'] = shade(pal['skirt'], 0.82)
     if cfg['torso'] == 'portrait':
         r0, r1 = cfg['torso_rows']; c0, c1 = cfg['torso_cols']
         jacket = [P[y][x] for y in range(r0 + 2, r0 + 8) for x in range(c0, c0 + 4) if P[y][x]]
@@ -116,12 +170,19 @@ def analyse(name, cfg):
         def is_tee(c):
             h_, l_, s_ = colorsys.rgb_to_hls(c[0] / 255, c[1] / 255, c[2] / 255)
             return l_ > 0.80 and s_ < 0.45
-        tee = [P[y][x] for y in range(r0, r1) for x in range(cx - 4, cx + 4) if P[y][x] and is_tee(P[y][x])]
-        pal['tee'] = pct(tee, 0.6) if tee else (240, 228, 230, 255)
+        if cfg.get('tee_box'):   # coloured top (red tee, blue shirt, coat ...): sample a box, skip skin
+            tee = box_px(cfg['tee_box'], lambda c: not cls_skin(c) and lum(c) > 0.08)
+            pal['tee'] = pct(tee, cfg.get('tee_pick', 0.5)) if tee else (240, 228, 230, 255)
+        else:
+            tee = [P[y][x] for y in range(r0, r1) for x in range(cx - 4, cx + 4) if P[y][x] and is_tee(P[y][x])]
+            pal['tee'] = pct(tee, 0.6) if tee else (240, 228, 230, 255)
         pal['tee_sh'] = shade(pal['tee'], 0.86)
         belt = [p for p in allp if lum(p) < 0.2]
         pal['belt'] = pct(belt, 0.5) if belt else (40, 30, 30, 255)
         pal['sleeve'] = pal['tee']; pal['sleeve_hi'] = pal['tee']
+        if cfg.get('sleeve_box'):
+            sv = box_px(cfg['sleeve_box'], lambda c: not cls_skin(c) and lum(c) > 0.08)
+            if sv: pal['sleeve'] = pct(sv, 0.5)
         torso = None
     back = None
     if cfg['back_hair']:
@@ -132,7 +193,7 @@ def analyse(name, cfg):
     # eyes: darkest pixels inside the face, in the eye rows
     def eye(box):
         x0, y0, x1, y1 = box
-        return [(x, y) for y in range(y0, y1) for x in range(x0, x1) if P[y][x] and lum(P[y][x]) < 0.45]
+        return [(x, y) for y in range(y0, y1) for x in range(x0, x1) if P[y][x] and lum(P[y][x]) < cfg.get('eye_lum', 0.45)]
     left, right = eye(cfg['eye_boxes'][0]), eye(cfg['eye_boxes'][1])
     lips = [(x, y) for y in range(*cfg['mouth_rows']) for x in range(cx - 4, cx + 4)
             if P[y][x] and P[y][x][0] > P[y][x][1] + 60 and lum(P[y][x]) < 0.75]
@@ -176,6 +237,8 @@ def draw_arm(F, sx, sy, hx, hy, pal, sleeve, elbow=None):
     for x, y, t in pts:
         if sleeve == 'full':
             col = pal['sleeve'] if t < 0.86 else pal['skin']
+        elif sleeve == 'none':
+            col = pal['skin']
         else:
             col = pal['sleeve'] if t < 0.3 else pal['skin']
         stamp(F, x, y, 2, col)
@@ -185,7 +248,7 @@ def draw_arm(F, sx, sy, hx, hy, pal, sleeve, elbow=None):
 SHOE = ['.KWWWK.', 'KWWWWWK', 'KWWWWWK', '.KGGGK.']
 
 
-def draw_leg(F, hx, hy, ax, ay, pal, width=6):
+def draw_leg(F, hx, hy, ax, ay, pal, width=6, sock_rows=0):
     """Wide jeans from hip centre (hx,hy) to ankle centre (ax,ay); shoe below the ankle (toe right)."""
     ay = int(round(ay))
     for y in range(int(round(hy)), ay + 1):
@@ -196,6 +259,8 @@ def draw_leg(F, hx, hy, ax, ay, pal, width=6):
             x = x0 + i
             if i == 0 or i == width - 1:
                 col = OUTLINE
+            elif ay - y < sock_rows:
+                col = pal['sock'] if i < width - 2 else pal['sock_sh']
             elif i == 1:
                 col = pal['j_light']
             elif i == width - 2:
@@ -206,7 +271,7 @@ def draw_leg(F, hx, hy, ax, ay, pal, width=6):
     # cuff
     x0 = int(round(ax - width / 2))
     for i in range(1, width - 1):
-        F.set(x0 + i, ay, pal['j_dark'])
+        F.set(x0 + i, ay, pal['sock_sh'] if sock_rows else pal['j_dark'])
     sx = int(round(ax)) - 3
     for r, row in enumerate(SHOE):
         for i, ch in enumerate(row):
@@ -215,14 +280,18 @@ def draw_leg(F, hx, hy, ax, ay, pal, width=6):
                 F.set(sx + i, ay + 1 + r, col)
 
 
-def draw_tee(F, cx, r0, r1, half, pal, dy):
+def draw_tee(F, cx, r0, r1, half, pal, dy, belt=True, inner=0):
     for y in range(r0, r1):
         for x in range(cx - half, cx + half):
             edge = x == cx - half or x == cx + half - 1
-            if y == r1 - 1:
+            if y == r1 - 1 and not belt:
+                col = OUTLINE if edge else pal['tee_sh']
+            elif y == r1 - 1:
                 col = OUTLINE if edge else (pal['belt'] if abs(x - cx + 0.5) > 1 else (170, 170, 176, 255))
             elif edge:
                 col = OUTLINE
+            elif inner and abs(x - cx + 0.5) < inner / 2:
+                col = pal['inner'] if x < cx else pal['inner_sh']
             elif x in (cx - half + 1, cx + half - 2):
                 col = pal['tee_sh']
             else:
@@ -230,6 +299,15 @@ def draw_tee(F, cx, r0, r1, half, pal, dy):
             F.set(x, y + dy, col)
     F.set(cx - 1, r0 + dy, pal['skin']); F.set(cx, r0 + dy, pal['skin'])          # neckline
     F.set(cx - 1, r0 + 1 + dy, pal['skin_sh'])
+
+
+def draw_skirt(F, cx, top, rows, half, flare, pal, dy):
+    """Skirt, dress or coat tails: a trapezoid from the hips widening by `flare` px over `rows` rows."""
+    for r in range(rows):
+        w = half + int(round(flare * (r + 1) / rows))
+        for x in range(cx - w, cx + w):
+            edge = x == cx - w or x == cx + w - 1 or r == rows - 1
+            F.set(x, top + r + dy, OUTLINE if edge else (pal['skirt_sh'] if x >= cx + w - 2 or (r % 3 == 2 and x % 3 == 0) else pal['skirt']))
 
 
 # ------------------------------------------------------------------ face edits
@@ -284,17 +362,28 @@ def pose_frame(name, cfg, A, pose):
         blit_layer(F, A['back'], ox + hdx, oy + bdy + hdy)
     a = arms[0]
     p0 = S(*shoulders[0]); p1 = S(cx + a[0], sy + a[1]); el = S(cx + a[2][0], sy + a[2][1]) if a[2] else None
-    draw_arm(F, p0[0], p0[1], p1[0], p1[1], pal, cfg['sleeve'], el)
+    back_arm = (p0, p1, el)
+    if not pose.get('back_arm_front'):
+        draw_arm(F, p0[0], p0[1], p1[0], p1[1], pal, cfg['sleeve'], el)
     # legs
     for i, (lx, lift) in enumerate(pose['legs']):
         h0 = S(*hips[i]); ank = S(cx + lx, ankle_y - lift)
-        draw_leg(F, h0[0], h0[1], ank[0], ank[1], pal)
+        if 'leg_w' in cfg or 'sock' in cfg:
+            draw_leg(F, h0[0], h0[1], ank[0], ank[1], pal, cfg.get('leg_w', 6), cfg['sock']['rows'] if cfg.get('sock') else 0)
+        else:
+            draw_leg(F, h0[0], h0[1], ank[0], ank[1], pal)
     # torso
     if cfg['torso'] == 'portrait':
         blit_layer(F, A['torso'], ox, oy + bdy)
     else:
         r0, r1 = cfg['torso_rows']
-        draw_tee(F, cx + ox, r0 + oy, r1 + oy, cfg['torso_half'], pal, bdy)
+        if 'belt' in cfg or 'inner' in cfg:
+            draw_tee(F, cx + ox, r0 + oy, r1 + oy, cfg['torso_half'], pal, bdy, cfg.get('belt', True), cfg['inner']['w'] if cfg.get('inner') else 0)
+        else:
+            draw_tee(F, cx + ox, r0 + oy, r1 + oy, cfg['torso_half'], pal, bdy)
+    if cfg.get('skirt'):
+        sk = cfg['skirt']
+        draw_skirt(F, cx + ox, cfg['torso_rows'][1] + oy - 1, sk['rows'], sk.get('half', cfg.get('torso_half', 5)), sk['flare'] + pose.get('skirt_dx', 0), pal, bdy)
     if pose.get('front_arm_behind'):
         a = arms[1]
         p0 = S(*shoulders[1]); p1 = S(cx + a[0], sy + a[1]); el = S(cx + a[2][0], sy + a[2][1]) if a[2] else None
@@ -303,6 +392,9 @@ def pose_frame(name, cfg, A, pose):
     head = face_edit(A['head'], A, pose['face']) if pose.get('face') else A['head']
     t0, t1 = cfg['tuft_rows']; tdx = pose.get('tuft_dx', 0)
     blit_layer(F, head, ox, oy + bdy + pose.get('head_dy', 0), lambda y: tdx if t0 <= y < t1 else 0)
+    if pose.get('back_arm_front'):   # e.g. crossed arms or a hand raised to the hat: drawn over the body
+        q0, q1, qel = back_arm
+        draw_arm(F, q0[0], q0[1], q1[0], q1[1], pal, cfg['sleeve'], qel)
     # front arm (unless the pose tucks it behind the head, e.g. hands on cheeks)
     if not pose.get('front_arm_behind'):
         a = arms[1]
@@ -320,12 +412,18 @@ def poses_for(cfg):
     # idle arms keep the portrait's signature pose
     if cfg['idle_arms'] == 'cheeks':   # elbows down, hands up to the cheeks (hands end under the head)
         idle_arms = [(sl + 2, -3, (sl - 1, 7)), (sr - 2, -3, (sr + 1, 7))]
+    elif cfg['idle_arms'] == 'crossed':   # forearms folded across the chest, both in front of the body
+        idle_arms = [(sr - 1, 6, (sl - 1, 8)), (sl + 1, 4, (sr + 1, 7))]
+    elif cfg['idle_arms'] == 'hat':       # one hand up at the hat brim, the other at the hip
+        idle_arms = [(sl + 1, -9, (sl - 3, -1)), (sr + 1, L - 3, None)]
     else:                              # hands clasped in front of the hips
         idle_arms = [(-1, L - 1, None), (0, L - 1, None)]
     idle_legs = [(hipL + 1, 0), (hipR - 1, 0)]
     tuck = cfg['idle_arms'] == 'cheeks'
-    P.append(dict(arms=idle_arms, legs=idle_legs, front_arm_behind=tuck))                          # 0 idle
-    P.append(dict(arms=idle_arms, legs=idle_legs, face='blink', head_dy=1, front_arm_behind=tuck)) # 1 idle: blink + breath
+    front = cfg['idle_arms'] in ('crossed', 'hat')
+    extra = dict(back_arm_front=True) if front else {}
+    P.append(dict(arms=idle_arms, legs=idle_legs, front_arm_behind=tuck, **extra))                          # 0 idle
+    P.append(dict(arms=idle_arms, legs=idle_legs, face='blink', head_dy=1, front_arm_behind=tuck, **extra)) # 1 idle: blink + breath
     for f in range(6):                                                                 # 2-7 walk
         s = math.sin(2 * math.pi * f / 6); c = math.cos(2 * math.pi * f / 6)
         bob = 1 if abs(s) > 0.8 else 0

@@ -57,9 +57,11 @@ CHARACTERS = {
                   shoulder_y=19, hip_y=29, shoe_top=43, arm_len=10, sleeve='full',
                   eye_rows=(9, 14), mouth_rows=(14, 17), eye_boxes=((8, 11, 10, 13), (15, 10, 18, 11)), mouth=(13, 15),
                   hair_box=(1, 15, 5, 20), back_hair=(18, 29), tuft_rows=(0, 0), idle_arms='clasp'),
-    'ken': dict(cx=8, bottom=47, head_end=18, torso='tee', torso_rows=(18, 30), torso_half=5,
-                tee_box=(6, 19, 15, 22), belt=False,
-                shoulder_y=19, hip_y=30, shoe_top=44, arm_len=10, sleeve='short',
+    # Ken: body centred under the head (cx 10), sturdier 12 px tee, torso and legs 2-3 rows shorter
+    # (bottom / shoe_top moved up: the drawn shoes still stand on the frame's bottom row).
+    'ken': dict(cx=10, bottom=44, head_end=18, torso='tee', torso_rows=(18, 28), torso_half=6,
+                tee_box=(6, 19, 15, 22), belt=False, legs=dict(kind='jeans', box=(4, 31, 15, 44)),
+                shoulder_y=19, hip_y=28, shoe_top=41, arm_len=9, sleeve='short',
                 eye_rows=(11, 15), mouth_rows=(14, 18), eye_boxes=((5, 12, 8, 14), (11, 11, 14, 13)), mouth=(10, 15),
                 back_hair=None, tuft_rows=(0, 0), idle_arms='crossed'),
     'linda': dict(cx=12, bottom=45, head_end=18, torso='tee', torso_rows=(18, 30), torso_half=5,
@@ -146,7 +148,7 @@ def analyse(name, cfg):
     shoes = [P[y][x] for y in range(cfg['shoe_top'], h) for x in range(w) if P[y][x]]
     legs = cfg.get('legs')
     if legs:   # bare legs or non-denim trousers: sample the leg colour from a box instead of blue denim
-        lp = box_px(legs['box'], cls_skin if legs.get('kind') == 'bare' else (lambda c: lum(c) > 0.2))
+        lp = box_px(legs['box'], cls_skin if legs.get('kind') == 'bare' else (cls_jeans if legs.get('kind') == 'jeans' else (lambda c: lum(c) > 0.2)))
         jeans = lp or jeans
     pal = dict(skin=skin, skin_sh=shade(skin, 0.86), hair=hair_mid,
                j_light=pct(jeans, 0.85), j_mid=pct(jeans, 0.5), j_dark=pct(jeans, 0.15),
@@ -412,8 +414,8 @@ def poses_for(cfg):
     # idle arms keep the portrait's signature pose
     if cfg['idle_arms'] == 'cheeks':   # elbows down, hands up to the cheeks (hands end under the head)
         idle_arms = [(sl + 2, -3, (sl - 1, 7)), (sr - 2, -3, (sr + 1, 7))]
-    elif cfg['idle_arms'] == 'crossed':   # forearms folded across the chest, both in front of the body
-        idle_arms = [(sr - 1, 6, (sl - 1, 8)), (sl + 1, 4, (sr + 1, 7))]
+    elif cfg['idle_arms'] == 'crossed':   # forearms folded across the chest, elbows tucked at the torso edge
+        idle_arms = [(sr - 1, 5, (sl, 7)), (sl + 1, 6, (sr, 8))]
     elif cfg['idle_arms'] == 'hat':       # one hand up at the hat brim, the other at the hip
         idle_arms = [(sl + 1, -9, (sl - 3, -1)), (sr + 1, L - 3, None)]
     else:                              # hands clasped in front of the hips

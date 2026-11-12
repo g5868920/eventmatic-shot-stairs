@@ -1731,7 +1731,11 @@
 				if (gameState === 'ready' || (gameState === 'over' && !isCooldownTime)) start();
 				else if (gameState === 'quit') abandonRound();
 			} else if (code === 'Escape' || kc === 27) {
-				if (gameState === 'paused') setOverlayState('quit');
+				// SHOT: Esc during play (or the resume countdown) pauses and asks to quit to the main menu;
+				// Enter confirms (no result, no penalty), Esc again goes back to the pause screen
+				if (gameState === 'playing') { if (!e.repeat && pauseGame()) setOverlayState('quit'); }
+				else if (gameState === 'countdown') { if (!e.repeat) setOverlayState('quit'); }
+				else if (gameState === 'paused') setOverlayState('quit');
 				else if (gameState === 'quit') setOverlayState('paused');
 				else if (gameState === 'over') backToTitle();
 				e.preventDefault();

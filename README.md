@@ -27,7 +27,7 @@ window with one uniform scale and is centred, so a full-screen browser on a proj
 |---|---|
 | Enter | start a round from How to Play; rematch after Game Over; confirm quitting |
 | Space | pause / resume (resume runs a 3-2-1 countdown); never starts or restarts a round |
-| Esc | from the pause screen: quit-round confirmation (Esc again = back) |
+| Esc | during play, the countdown or the pause screen: pause and ask to quit to the main menu (Enter = quit, no penalty; Esc again = back to pause). On the result screen: back to the title |
 | M | mute / unmute all sound |
 
 Controls belong to the player, not to a side of the screen, so they keep working after the players swap places.

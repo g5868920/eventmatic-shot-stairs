@@ -114,7 +114,7 @@ if(canvasNode){canvasNode.setAttribute('role','img');canvasNode.setAttribute('ar
       else{var other=actors&&a?(actors[0]===a?actors[1]:actors[0]):null;var close=other&&Math.abs(a.x-other.x)<90&&Math.abs(a.y-other.y)<60;var left=close?a.x<other.x:x<70;
         var px=left?x-e.label.width/2-6:x+26+e.label.width/2+6,py=e.kind===1?y+16:y-28-rise;px=Math.max(e.label.width/2+2,Math.min(358-e.label.width/2,px));if(py>=69&&py+e.label.height<532)center(c,e.label,px,py);}
     }if(active>peak)peak=active;}
-    function contact(a,b,time){var touching=Math.abs(a.y-b.y)<26&&Math.abs(Math.abs(a.x-b.x)-26)<0.05;if(touching&&!pushHeld){var e=add(5,null,'BUMP',T.ink,time,260);e.x=(a.x+b.x+26)/2;e.y=(a.y+b.y)/2;pushBursts++;}pushHeld=touching;}
+    function contact(a,b,time){var touching=Math.abs(a.y-b.y)<26&&Math.abs(Math.abs(a.x-b.x)-26)<0.05;/* contact is still counted; the BUMP cue is no longer drawn */if(touching&&!pushHeld)pushBursts++;pushHeld=touching;}
     return {
       conveyorArrows:function(c,dir,x,y,w){
         x=Math.round(x);y=Math.round(y);w=Math.round(w);

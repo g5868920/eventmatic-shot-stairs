@@ -10,3 +10,5 @@
 #projector-stage{padding:0}#projector-frame{width:min(100%,calc(100dvh * 16 / 9))}.projector-top{z-index:1}#projector-note{left:16px;bottom:16px;width:250px;text-align:left;line-height:1.6}@media(max-width:700px){.screen-list button{font-size:11px;min-height:42px}.rail label,.rail details{font-size:12px}input:not([type=checkbox]),select{font-size:14px;min-height:40px}.direction strong{font-size:11px}.direction-story,.quiet,.design-note p,.specimen strong,.specimen small{font-size:12px}.effect-buttons button{font-size:11px}.stage-bottom,.stage-bottom button{font-size:10px}.effect-status{font-size:11px}.stage-toolbar select{min-height:30px;font-size:10px}.stage-toolbar button{min-height:30px}.screen-actions button{font-size:12px;min-height:40px}#projector-note{font-size:8px;width:120px;bottom:8px}.projector-top{font-size:7px}}
 
 .stage-bottom a{font-size:9px;color:var(--ink);font-weight:bold;white-space:nowrap}
+
+.contact-review{display:flex;gap:12px;align-items:center;margin-top:12px;font-size:10px;color:var(--muted)}.contact-review button{font-size:10px;padding:6px;white-space:nowrap}@media(max-width:700px){.contact-review{flex-wrap:wrap}}

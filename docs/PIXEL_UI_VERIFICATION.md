@@ -2,6 +2,21 @@
 
 Date: 2026-11-12 (Asia/Taipei). Scope: Phase 0 visual laboratory only.
 
+## Approved B corrections — latest review
+
+B is approved as the primary visual direction. Production integration is pending approval of [the integration plan](PIXEL_UI_INTEGRATION_PLAN.md). Earlier A/C captures below are archived exploration, not additional theme work.
+
+- Center HUD now reads **SHOT POOL / 1.5 / SHOTS**. **034 FLOORS** remains separate.
+- `python3 design-preview/audit_rules.py` passes against current `config.js` and `game.js` hashes. Snapshot: `design-preview/rules-audit.json`. The audit verifies current defaults and landing/beer ordering without executing production logic.
+- Verified default beer +3, safe landing +1, max LIFE 12. Beer landing storyboard is 8→9→12 (+4 total). At pre-landing 9 LIFE, clamping gives 9→10→12 (+3 total, only +2 from beer). Prior +4 reports could reflect combined landing recovery or a configuration override; their exact runtime configuration was not supplied.
+- Other displayed values checked: spike −4, ceiling −5, 80 px platforms, 396 × 532 canvas, controls, and 34→1.5 / 40→2 SHOT conversion. Production custom formula/cap/URL/runtime settings remain authoritative at integration time.
+- All six effects exercised and captured. Flip cue sits beneath brackets on its affected brown platform. Spring uses a tiny side arrow, with no floating BOING text or particles over the action. Chinese badges size to content; push name markers separate vertically.
+- The sustained-contact scenario produced **181 samples / 1 visual burst**. A new contact after separation produced a new burst. Repeated Push clicks during the same active contact did not restart the effect. The latch observes mock visual contact only and cannot affect production collision or audio.
+- Chinese names 吉娜 / 小蕊 were checked at native 1× and projector 2×. Cached 14 × 16 px raster cells, thresholded solid pixels and a 15 px advance improve legibility. Existing Latin artwork remains intact. Complex glyph rendering can vary by installed system font.
+- Projector result and Chinese names checked at requested 1920 × 1080: measured canvas **792 × 1064**, ratio 396:532; at 1280 × 720: **396 × 532**. Pillarboxes remain; neither axis stretches. The result quantity is 168 px tall at 2×, 84 px at 1×; HUD quantity is 42/21 px. Small secondary labels still need actual venue-distance/brightness verification.
+- Browser console recorded no warnings/errors after corrected feedback/name checks. Reduced-motion spring treatment was checked. L3 screen geometry, palette and interaction structure are preserved.
+- Updated captures are in `design-preview/screenshots/approved-B/` and lead the gallery. Earlier captures are retained as history. No production behavior tests were rerun because production code was not changed; source audit and browser preview checks are the evidence for this correction.
+
 ## Story verified
 
 A reviewer selects a direction → the shared renderer applies its tokens and art details → the same gameplay sample, screen layouts and cosmetic feedback are shown → comparison and projector views display those same renderers. There is no API, backend, production runtime or persisted game state in this workflow.
@@ -64,4 +79,4 @@ Existing production work was present when the task began and was left untouched.
 - Only a right-moving conveyor is in the representative scene. Both directions and all width configurations must be covered in Phase 1.
 - Native small labels retain the existing 52 px HUD constraint. Phone Fit is a review convenience, not a claim of playable/readable mobile gameplay.
 - No production behavior tests were needed or run: production code was neither imported nor modified. Existing regressions are mandatory when an approved direction is integrated.
-- No production deployment, integration, push, or direction approval is implied by this preview.
+- B visual direction is approved. No production deployment, integration or push is authorized by that visual approval; the integration plan awaits approval.

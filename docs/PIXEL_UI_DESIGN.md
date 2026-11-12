@@ -1,10 +1,10 @@
 # Eventmatic Pixel Arcade UI System
 
-Phase 0 · design exploration · 2026-11-12 · **Proposed, not approved for production**
+Phase 0 · design exploration · 2026-11-12 · **B visual direction approved; production integration awaiting plan approval**
 
-## Recommendation
+## Approved direction
 
-Choose **B — Playful Pixel Arcade** as the Eventmatic foundation. Its warm cream text, lilac frames, peach/pink accents, small heart LIFE segments and ticket-like panels suit a social game featuring friends. Keep the party personality around important information: expressive mugs, badges and short local effects. Keep the platform colors and silhouettes literal.
+**B — Playful Pixel Arcade is approved as the primary Eventmatic direction.** A/C remain archived exploration only. Preserve B’s existing palette, pixel art, HUD hierarchy and L3 layouts; do not explore more themes. Its warm cream text, lilac frames, peach/pink accents, small heart LIFE segments and ticket-like panels suit a social game featuring friends. Keep the party personality around important information: expressive mugs, badges and short local effects. Keep the platform colors and silhouettes literal.
 
 | Direction | Identity | Strength | Trade-off |
 | --- | --- | --- | --- |
@@ -16,11 +16,21 @@ The three directions use the same geometry, character files, sample data, text, 
 
 ## Preview and review procedure
 
-Run `python3 -m http.server 8766 --bind 127.0.0.1` from the repository root and open `/design-preview/`. Start at **Actual · 1×**; compare A/B/C before using the convenient Fit setting. Select every screen and trigger all six effects. Open the comparison strip for simultaneous, native-resolution views. Review the 16:9 stage for projector framing. Source and run instructions: `design-preview/README.md`.
+Run `python3 -m http.server 8766 --bind 127.0.0.1` from the repository root and open `/design-preview/`. Start with approved B at **Actual · 1×** before using the convenient Fit setting. A/C comparison remains available as historical context only. Select every screen and trigger all six effects. Open the comparison strip for simultaneous, native-resolution views. Review the 16:9 stage for projector framing. Source and run instructions: `design-preview/README.md`.
 
 The sample is 396 × 532 logical pixels, matching the current game: 52 px HUD; 360 × 480 playable shaft; 18 px decorative wall on either side; default platforms 80 × 12 px. 1P Rae occupies the right HUD, with 18 floors and 7/12 LIFE; 2P Gina occupies the left HUD, with 16 floors and 9/12 LIFE. Combined 34 floors produce 1.5 shots. The result demonstrates a fall loss; nonzero LIFE at round end is valid. Names can change without changing controls, IDs or sides.
 
 SHOT feedback briefly uses 1P 22 + 2P 18 = 40 floors and 2.0 shots, then returns to the shared sample. All other effects also reset. Hold frame can pin the 45% storyboard pose for inspection; it does not run or pause any gameplay. The lab never loads `game.js`, `config.js`, `sprites.js`, `audio.js` or `eventmatic-bridge.js`, and never writes to production state. Its only production dependencies are read-only PNG character images. The bitmap font has a scoped preview copy.
+
+## Verified gameplay values and the +3 / +4 distinction
+
+`python3 design-preview/audit_rules.py` checks the read-only snapshot against current production source hashes and values. `rules-audit.json` records the sources and exact defaults; it must be reviewed again when production configuration changes. No production scripts are loaded into this preview.
+
+- `config.js` and the engine default both set `beer.healAmount = 3`. `Floor.landing()` calls `hero.regain()` (+1) before `onLand()` calls `hero.heal(CONFIG.beer.healAmount)` (+3). A default safe beer landing can therefore restore +4 total.
+- Example: 8 → 9 from landing → 12 from beer. At 9 LIFE before landing: 9 → 10 → 12, so beer contributes only +2 and the net gain is +3. This is clamping, not a different configured beer amount.
+- Prior +4 test reports cannot alone establish a beer setting of 4. They may include landing recovery; `?beerHeal=4` or runtime configuration can also override the default. A future renderer must use the effective `ShotStairs.getConfig()` and observed HP delta, never copy the preview's default into gameplay.
+- Other verified displayed defaults: LIFE maximum 12; spike −4; ceiling −5; default platform width 80; 1P ←/→, 2P Z/C; 396 × 532 canvas; floor penalty `floor(total / 10) × 0.5`, no default cap/custom formula. 34 floors = 1.5 shots; 40 floors = 2 shots. Configured units remain shot/shots.
+- Production spring compression is 100 ms and launch occurs at 200 ms; temporary state transitions begin at 300 ms and 600 ms. The lab's 900 ms effect-inspection timeline is cosmetic only and must not retime these mechanics.
 
 ## Color tokens
 
@@ -47,7 +57,7 @@ Use semantic names in a future renderer. Do not hardcode a selected palette thro
 | `wall` | `#39305C` | `#4C365D` | `#242442` | Low-contrast architectural texture |
 | `wallHi` | `#5D4C85` | `#805271` | `#3B3D6E` | Mortar, fine separators, decorative detail |
 
-Golden SHOT means **penalty**, not healing. Beer healing is communicated by the mug silhouette and a green **+3 HP** cue. Avoid using a second mug as the only identifier of the penalty; the central HUD explicitly says SHOT.
+Golden SHOT means **penalty**, not healing. Beer healing is communicated by the mug silhouette and a green **+3 BEER** cue under current default settings. A separate **+1 LAND** cue explains the existing safe-landing recovery; both are capped at LIFE 12. Avoid using a second mug as the only identifier of the penalty; the central HUD explicitly says SHOT.
 
 The lab surround uses paper `#F1EEF6`, ink `#29243E`, muted `#70687E` and lines `#CBC5D7` so the dark game canvas can be judged neutrally. The surround is a design tool, not a proposed in-game menu.
 
@@ -58,7 +68,7 @@ The lab surround uses paper `#F1EEF6`, ink `#29243E`, muted `#70687E` and lines 
 - Suggested scale ladder: 1× (7 px) for secondary labels; 2× (14 px) for actions/rules where space permits; 3× (21 px) for screen headings; 4× (28 px) for SHOTS; 10× title word; 12× (84 px tall) for the result quantity.
 - The 52 px HUD is constrained. Preserve 12 segments, numeric LIFE and the 21 px central SHOT number. Move explanations to How to Play or results, not into a taller HUD.
 - Names are data, never layout. Choose an integer type size that fits; abbreviate only as a last resort, keeping the underlying value and accessible name intact. Preserve player IDs. Keep outcome wording readable, even with long names.
-- Names outside the bitmap alphabet use measured native monospace fallback. This supports CJK and diacritics in Phase 0; these glyphs may be antialiased. Production localization should commission a licensed pixel font with the necessary scripts instead of replacing names with `?`.
+- Chinese/non-bitmap name glyphs use a cached 14 × 16 logical-pixel raster cell from a local CJK system font (PingFang TC, Microsoft JhengHei, Noto Sans TC, then sans-serif). Alpha is thresholded to solid pixels, then drawn at integer scale. Mixed names retain the existing 5 × 7 Latin glyphs. Measurements and truncation use the same 15 px CJK advance as rendering. The HUD fits the larger glyphs above the hearts; floating CJK badges size to their content, up to 72 px and separate vertically during the push storyboard. Result names retain a separate LOSES line. No fonts are downloaded or copied; glyph appearance can vary by installed font. Verify unfamiliar/complex Chinese names at 1× and 2× before production integration.
 - The preview's surrounding controls use native monospace text and HTML labels for legibility and accessibility; they are not character art.
 
 ## Pixel grid, scaling and surfaces
@@ -82,7 +92,7 @@ The preview reuses `assets/characters/custom/gina-48.png`, `rae-48.png`, and the
 
 **Player block:** fixed left 2P and right 1P identity, configurable name, 12 discrete LIFE segments, current/max numeric label. A uses beveled bars, B uses twelve small hearts with baseline ticks, C uses energy cells. Empty segments have an explicit contrasting silhouette. Keep the count numeric; color alone must never convey health.
 
-**Central SHOT:** constant-width 108 × 44 px compartment; label above, numeric penalty below, small combined-floor context. Values do not move neighboring LIFE blocks. B adds ticket slots; C uses paired neon rules. Production must fit longer/capped/custom penalty values without clipping and retain correct units. The lab intentionally uses one comparable sample, not every possible configuration.
+**Central SHOT:** constant-width 108 × 44 px compartment; **SHOT POOL** label above, numeric quantity below, **SHOTS** unit below the number. The separate **034 FLOORS** marker identifies combined floors; it must never label the 1.5-shot quantity. Values do not move neighboring LIFE blocks. B adds ticket slots; C uses paired neon rules. Production must fit longer/capped/custom penalty values without clipping and retain correct units. The lab intentionally uses one comparable sample, not every possible configuration.
 
 **In-world player marker:** compact ID/name label and downward pointer. Identity stays with the player when positions swap. Names in a narrow floating marker may abbreviate; the HUD and accessible summary retain the identity. Avoid permanent outlines around the entire character art.
 
@@ -105,12 +115,12 @@ All feedback in Phase 0 is a self-resetting visual storyboard. No collisions are
 
 | Trigger | Preview grammar | Preview duration | Production principle |
 | --- | --- | --- | --- |
-| Beer | Mug disappears; +3 HP, local green sparkle, LIFE 9 → 12 | 1,100 ms | Show the **actual clamped HP delta**; never change SHOT |
+| Beer | LIFE 8 → 9 (+1 landing) → 12 (+3 beer); separate small +1 LAND / +3 BEER labels | 1,100 ms | Measure beer delta after landing recovery; never change SHOT |
 | Spike | Local outline, −4 HP, LIFE 7 → 3 | 900 ms | Emit on the existing damage event; no added damage, delay or invulnerability |
-| Spring | Five integer compression/release poses, BOING/BOUNCE label | 900 ms | Observe the existing spring phase; do not retime the spring |
-| Temporary | 12 → 8 → 3 → 8 → 12 px art poses, FLIP label | 900 ms | Bind to existing flip state; art must never imply a safe surface when collision is absent |
+| Spring | Five integer compression/release poses; tiny arrow beside the spring, no floating BOING text | 900 ms | Keep cues outside character/HUD/hazard silhouettes; observe the existing spring phase |
+| Temporary | 12 → 8 → 3 → 8 → 12 px art poses; brackets and small FLIP marker below that platform | 900 ms | Anchor feedback to that platform’s render coordinates; respect existing collision/state timing |
 | SHOT | Immediate 1.5 → 2.0, +0.5 SHOT callout | 1,400 ms | Numeric value updates immediately; decoration never delays the result |
-| Push | One local BUMP/PUSH puff at contact | 900 ms | No hit flash, HP loss, stun, force, launch or new cooldown |
+| Push | One local BUMP puff on contact onset; sustained-contact samples cannot retrigger it | 900 ms | Per-pair visual latch, reset on separation; no gameplay cooldown, damage, stun or force |
 
 These deliberately readable lab timings are **not gameplay timing specifications**. Proposed production accents: 80–120 ms pose steps, 160–240 ms particles, 500–700 ms numeric labels; cap local decorative occupancy to roughly 24 px from the event. The authoritative object state always wins, even if that cuts an animation short. Avoid full-screen flashes, trailing sprites that obscure hazards and effects that hide a second collision.
 
@@ -149,34 +159,9 @@ Production copy must continue to derive penalty rules, healing amounts, units, n
 - A 7 px bitmap label is not ideal for distant audiences. Keep critical result quantities large; verify on the actual venue projector before rollout. The 52 px HUD is an inherited constraint and cannot be fixed by decorative contrast alone.
 - Preserve CJK/Unicode names, measure rendered width, and abbreviate visually only. Verify bright and dim projector modes, grayscale platform recognition and custom characters with light/dark clothing before production approval.
 
-## Implementation after direction approval
+## Production integration plan — approval pending
 
-### Phase 1 — L1 + L2
-
-**Scope:** gameplay artwork and cosmetic feedback only.
-
-1. Snapshot current production behavior and identify its authoritative draw/event boundaries. Reconcile any existing work-in-progress separately; do not replace working gameplay with the lab's fake state.
-2. Extract the approved theme tokens and pure pixel primitives into a production renderer. Provide both conveyor directions and all existing width-dependent/platform animation states. Keep current image loaders, custom sprite sheets, anchors and the 396 × 532 coordinate system.
-3. Swap HUD visuals while preserving 12 LIFE values, player identity/order, configured labels, penalty computation and immediate updates. Test 0, 0.5, 1, 1.5, cap boundaries and large/custom outputs.
-4. Bind cosmetic feedback to existing beer, damage, spring, flip, penalty and contact events. Read actual HP deltas and existing timestamps; never modify velocities, damage, hitboxes, timer state or floor reachability. Ensure repeated contact does not create a continuously flashing effect.
-5. Add reduced-motion treatment and bound particle counts/lifetimes. Keep rendering pure and avoid allocating effect objects every frame.
-6. Run existing rules, push, pause, music/audio and headless-play regressions. Verify freeze/resume, equal/opposed pushes, walls, spike/ceiling damage, capped healing and custom portraits. Compare before/after replay state where feasible.
-7. Visual acceptance: all five platform categories recognized without color; no art/collision mismatch; HUD readable at 1×; no effect hides hazards; clean 16:9 pillarboxing. Review with users before merging.
-
-**Deliverable:** one scoped L1/L2 change with before/after captures and behavior test evidence. No screen-flow redesign.
-
-### Phase 2 — L3
-
-**Scope:** ready, instructions, pause, quit, countdown, result and rematch presentation.
-
-1. Apply approved panel and type primitives to the existing state machine. Choose one ready-state presentation; do not insert another mandatory screen. Keep Enter/Space/Escape/M semantics and pointer behavior.
-2. Generate copy from current configuration, including names, keys, healing, penalty formula/cap and singular/plural units. Preserve a visible loss suffix for long names and a distinct draw treatment.
-3. Add accessible native action equivalents without double-firing canvas actions. Keep input focus, held-key resets, visibility pauses, quit cancellation and the three-second resume clock intact.
-4. Keep result penalty dominant; allow long names/CJK/custom units and large penalty quantities to fit using integer type sizes. Rematch must reset exactly the same game state as before.
-5. Run existing pause/countdown/rematch and audio regressions plus manual keyboard/pointer flows. Check desktop, 1280 × 720 and 1920 × 1080 projections, tablet review and phone review layouts.
-6. Capture screenshots, audit accessibility/readability, and obtain final production review before rollout.
-
-**Deliverable:** a separate screen-layer change after Phase 1 acceptance. Phase 0 authorizes neither production phase.
+See [PIXEL_UI_INTEGRATION_PLAN.md](PIXEL_UI_INTEGRATION_PLAN.md) for the concise approval artifact. Phase 1 covers L1/L2; Phase 2 covers L3. Direction approval does not authorize production edits. This preview and this design system remain the visual source of truth.
 
 ## Reuse across Eventmatic party games
 

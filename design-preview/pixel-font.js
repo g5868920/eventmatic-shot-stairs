@@ -72,12 +72,7 @@
     var scale = opts.scale || 1, color = opts.color || '#fff', align = opts.align || 'left';
     str = String(str);
     if (!hasGlyphs(str)) {
-      ctx.save();
-      ctx.font = 'bold ' + (FONT_H * scale) + 'px monospace';
-      ctx.textAlign = align; ctx.textBaseline = 'top';
-      if (opts.shadow) { ctx.fillStyle = opts.shadow; ctx.fillText(str, x + scale, y + scale); }
-      ctx.fillStyle = color; ctx.fillText(str, x, y);
-      ctx.restore();
+      drawMixed(ctx, str, x, y, scale, color, align, opts.shadow);
       return;
     }
     str = str.toUpperCase();
@@ -102,5 +97,33 @@
   }
 
 
-window.PixelFont = {draw: drawText, width: textWidth, glyphs: FONT};
+
+  // Local system CJK raster, thresholded once at a 14 px cell and cached.
+  // No font download; Latin keeps the original 5x7 artwork even in mixed names.
+  var nameGlyphs = new Map();
+  function nameGlyph(ch) {
+    if(nameGlyphs.has(ch)) return nameGlyphs.get(ch);
+    var cv=document.createElement('canvas');cv.width=14;cv.height=16;
+    var c=cv.getContext('2d');c.font='400 14px "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif';
+    c.fillStyle='#fff';c.textBaseline='alphabetic';c.fillText(ch,0,13);
+    var pixels=c.getImageData(0,0,14,16), points=[];
+    for(var yy=0;yy<16;yy++)for(var xx=0;xx<14;xx++)if(pixels.data[(yy*14+xx)*4+3]>=170)points.push([xx,yy]);
+    nameGlyphs.set(ch,points);return points;
+  }
+  function measure(str,scale) {
+    return Array.from(String(str)).reduce(function(w,ch){return w+(FONT[ch.toUpperCase()]?6:15)*scale;},0)-scale;
+  }
+  function drawMixed(ctx,str,x,y,scale,color,align,shadow){
+    var width=measure(str,scale);if(align==='center')x-=Math.round(width/2);else if(align==='right')x-=width;
+    x=Math.round(x);y=Math.round(y);
+    var passes=shadow?[[shadow,scale,scale],[color,0,0]]:[[color,0,0]];
+    passes.forEach(function(pass){var at=x+pass[1];ctx.fillStyle=pass[0];
+      Array.from(str).forEach(function(ch){var latin=FONT[ch.toUpperCase()];
+        if(latin){latin.forEach(function(row,yy){Array.from(row).forEach(function(px,xx){if(px==='#')ctx.fillRect(at+xx*scale,y+pass[2]+2*scale+yy*scale,scale,scale);});});at+=6*scale;}
+        else{nameGlyph(ch).forEach(function(p){ctx.fillRect(at+p[0]*scale,y+pass[2]+p[1]*scale,scale,scale);});at+=13*scale;}
+      });
+    });
+  }
+
+window.PixelFont = {draw: drawText, width: textWidth, glyphs: FONT, measure: measure, hasGlyphs: hasGlyphs};
 })();

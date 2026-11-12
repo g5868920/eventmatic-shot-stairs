@@ -1,0 +1,45 @@
+{
+  "production_commit": "63d6797f97a2a8662d12f89f4d2d0b89fb733c88",
+  "sources": {
+    "config.js": "3b991f2716175d85bd3859ab2b5534d782084f60ca9e691d03aa41405d7a941f",
+    "game.js": "ac45b43a64543709931424cab0d6a6855dfa40e36f6d5b329be514d19b3941a0"
+  },
+  "defaults": {
+    "beer": 3.0,
+    "landing": 1,
+    "maxLife": 12.0,
+    "spike": 4.0,
+    "ceiling": 5.0,
+    "floorsPerStep": 10.0,
+    "shotsPerStep": 0.5
+  },
+  "sample": {
+    "floors": 34,
+    "shotPool": 1.5,
+    "beerLanding": {
+      "before": 8,
+      "afterLanding": 9,
+      "afterBeer": 12,
+      "landingDelta": 1,
+      "beerDelta": 3,
+      "totalDelta": 4
+    },
+    "clampedLanding": {
+      "before": 9,
+      "afterLanding": 10,
+      "afterBeer": 12,
+      "beerDelta": 2,
+      "totalDelta": 3
+    },
+    "spike": {
+      "before": 7,
+      "after": 3
+    }
+  },
+  "notes": [
+    "Default configuration; URL/runtime overrides can change beer amount and penalty settings.",
+    "Safe landing regain() precedes onLand() beer healing. +4 can mean +1 landing plus +3 beer; a beerHeal=4 override is also possible.",
+    "All health is clamped to 12. Actual beer popup delta must be measured after landing regain.",
+    "This audit reads source and verifies the preview snapshot; it does not execute production physics."
+  ]
+}

@@ -9,7 +9,7 @@
   var root=document.createElement('div');root.className='shot-screen-actions';root.setAttribute('aria-label','Game screen actions');
   var style=document.createElement('style');style.textContent='.shot-screen-actions{position:absolute;pointer-events:none}.shot-screen-actions button{position:absolute;pointer-events:auto;margin:0;padding:0;background:transparent;border:0;border-radius:0;color:transparent;font-size:0;cursor:pointer}.shot-screen-actions button:focus-visible{outline:2px solid #fff3da;outline-offset:2px;box-shadow:0 0 0 4px #211b38}.shot-screen-actions button[hidden]{display:none}';
   wrap.style.position='relative';wrap.appendChild(style);wrap.appendChild(root);canvas.tabIndex=0;
-  var buttons=[];for(var i=0;i<6;i++){var b=document.createElement('button');b.type='button';b.hidden=true;root.appendChild(b);buttons.push(b);}
+  var buttons=[];for(var i=0;i<8;i++){var b=document.createElement('button');b.type='button';b.hidden=true;root.appendChild(b);buttons.push(b);}
   function click(e){var b=e.target;if(!b.dataset.action||b.disabled||b.hidden)return;action(b.dataset.action);}
   // Global Enter/Space/Escape continue through the original engine handlers, even with a focused button.
   root.addEventListener('click',click);
@@ -33,6 +33,10 @@
   function secondary(y,s,id,w,scale){label(s,198,y+6,scale||1,T.muted,w||294,18);return {id:id,label:String(s),x:Math.floor(198-(w||294)/2),y:y,w:w||294,h:24};}
   function tri(x,y,dir,color){for(var i=0;i<4;i++)rect(dir<0?x+i:x+3-i,y+3-i,1,1+2*i,color);}
   function arrowAction(x,id,label){return {id:id,label:label,x:x-7,y:378,w:18,h:22};}
+  // 1 PLAYER - SOLO / 2 PLAYERS - VERSUS on the READY title (selected option filled gold)
+  function modeToggle(y,mode){return [['solo','1 PLAYER - SOLO',60],['versus','2 PLAYERS - VERSUS',200]].map(function(o){var on=mode===o[0];if(on)rect(o[2],y,136,18,T.gold);else{rect(o[2],y,136,18,T.wallHi);rect(o[2]+1,y+1,134,16,T.bg);}label(o[1],o[2]+68,y+6,1,on?T.bg:T.muted,128,8);return {id:o[0],label:o[1]+(on?' (selected)':''),x:o[2],y:y,w:136,h:18};});}
+  // "PRESS ENTER TO REMATCH   ESC - TITLE": the title part is also a pointer target
+  function rematchLine(t){var back=t.toTitle||'ESC - TITLE',full=t.rematch+'   '+back,w=measure(full).w,bw=measure(back).w;label(full,198,477,1,T.muted,294,13);var x=Math.round(198-w/2)+w-bw;return {id:'title',label:'Back to title',x:x-4,y:473,w:bw+8,h:15};}
   function star(x,y){rect(x,y-3,1,7,T.gold);rect(x-3,y,7,1,T.gold);rect(x-1,y-1,3,3,T.gold);}
   function fmt(s,v){return String(s||'').replace(/\{(\w+)\}/g,function(_,k){return v[k]===undefined?'':v[k];});}
   function keys(k){return [k.left,k.right].map(function(x){return String(x).replace('Key','').replace('ArrowLeft','←').replace('ArrowRight','→');}).join('  ');}
@@ -43,24 +47,34 @@
    if(d.state==='playing'){if(lastState!=='playing'){sync([]);key='';}lastState=d.state;return null;}
    if(d.state==='ready'&&lastState!=='ready')view='title';
    var names=d.names,t=d.cfg.text,p=d.cfg.penalty,result=d.result,actions=[];
-   var next=[d.state,view,d.count,d.locked,names.join('\n'),d.pick,JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
+   var next=[d.state,view,d.count,d.locked,names.join('\n'),d.pick,d.mode,JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
    if(next!==key){key=next;builds++;layout=[];issues=[];c.clearRect(0,0,396,532);rect(19,61,358,471,T.bg);
     if(d.state==='ready'&&view==='title'){
      box(34,83,328,410);label('EVENTMATIC ARCADE CLUB',198,104,1,T.muted);star(65,148);star(329,197);star(73,266);star(321,324);
      label('SHOT',201,145,10,'#120e23');label('SHOT',198,141,10,T.gold);label('THE STAIRS',198,226,4,T.ink);ribbon(269,'GOOD FRIENDS. BAD INFLUENCE.');
+     var solo=d.mode==='solo';
+     if(solo){d.portrait(c,d.heroes[0],198,369);c.drawImage(S.images.blueBrick,158,369);
+      if(d.pick){label(names[0],198,389,1,T.p1,84,17);tri(147,389,-1,T.gold);tri(246,389,1,T.gold);label(keys(d.cfg.players.p1.keys).replace('  ',' / '),198,402,1,T.muted,84,10);}
+      else label(names[0],198,389,1,T.p1,110,17);
+     }else{
      d.portrait(c,d.heroes[1],139,369);d.portrait(c,d.heroes[0],257,369);c.drawImage(S.images.blueBrick,99,369);c.drawImage(S.images.stone,217,369);
      if(d.pick){ // optional character choice: 2P Z/C, 1P arrows (no extra screen; Enter still starts)
       label(names[1],139,389,1,T.p2,84,17);label(names[0],257,389,1,T.p1,84,17);tri(88,389,-1,T.gold);tri(188,389,1,T.gold);tri(206,389,-1,T.gold);tri(306,389,1,T.gold);
       label(keys(d.cfg.players.p2.keys).replace('  ',' / '),139,402,1,T.muted,84,10);label(keys(d.cfg.players.p1.keys).replace('  ',' / '),257,402,1,T.muted,84,10);
      }else{label(names[1],139,389,1,T.p2,110,17);label(names[0],257,389,1,T.p1,110,17);}
-     actions.push(button(426,'ENTER - START','start'));label('2 PLAYERS / ONE KEYBOARD',198,474,1,T.muted);actions.push(secondary(500,'H - HOW TO PLAY','help',126));
-     if(d.pick){actions.push(arrowAction(90,'p2-prev','Previous character for 2P'));actions.push(arrowAction(190,'p2-next','Next character for 2P'));actions.push(arrowAction(208,'p1-prev','Previous character for 1P'));actions.push(arrowAction(308,'p1-next','Next character for 1P'));}
-     summary='SHOT THE STAIRS. '+names[1]+' and '+names[0]+'. Enter to start. H for optional How to Play.'+(d.pick?' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.':'');
+     }
+     actions.push(button(420,'ENTER - START','start'));modeToggle(459,d.mode).forEach(function(a){actions.push(a);});label('\u2191 / \u2193  OR  1 / 2  -  MODE',198,481,1,T.muted,294,8);actions.push(secondary(500,'H - HOW TO PLAY','help',126));
+     if(d.pick&&solo){actions.push(arrowAction(149,'p1-prev','Previous character'));actions.push(arrowAction(248,'p1-next','Next character'));}
+     else if(d.pick){actions.push(arrowAction(90,'p2-prev','Previous character for 2P'));actions.push(arrowAction(190,'p2-next','Next character for 2P'));actions.push(arrowAction(208,'p1-prev','Previous character for 1P'));actions.push(arrowAction(308,'p1-next','Next character for 1P'));}
+     summary='SHOT THE STAIRS. '+(solo?'1 player solo: '+names[0]:'2 players versus: '+names[1]+' and '+names[0])+'. Up / Down or 1 / 2 changes mode. Enter to start. H for optional How to Play.'+(d.pick?(solo?' Change character: '+keys(d.cfg.players.p1.keys)+'.':' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.'):'');
     }else if(d.state==='ready'){
-     box(27,70,342,445);label('HOW TO PLAY',198,88,3,T.ink);d.portrait(c,d.heroes[1],112,166);d.portrait(c,d.heroes[0],284,166);
-     label(d.cfg.players.p2.label+' '+names[1],112,177,2,T.p2,145,18);label(d.cfg.players.p1.label+' '+names[0],284,177,2,T.p1,145,18);label(keys(d.cfg.players.p2.keys),112,201,2,T.gold,145,17);label(keys(d.cfg.players.p1.keys),284,201,2,T.gold,145,17);label('MOVE LEFT / RIGHT',198,226,1,T.muted);rect(46,246,304,1,T.wallHi);
-     var rules=['WALK OFF EDGES TO DESCEND.','PUSH EACH OTHER. CONTACT DOES NOT HURT.','BEER +'+d.cfg.beer.healAmount+' HP. SAFE LANDING +1 HP.','SPIKES -4. CEILING -5. MAX LIFE '+d.maxLife+'.','FIRST TO DIE OR FALL OFF-SCREEN LOSES.'];rules.forEach(function(s,i){rect(46,263+i*20,3,3,T.accent);label(s,55,261+i*20,1,T.ink,292,18,2,'left');});rect(45,369,306,46,T.bg);var custom=typeof p.compute==='function',caption=custom?'CONFIGURED CUSTOM RULE':'EVERY '+(p.floorsPerStep>0?p.floorsPerStep:10)+' COMBINED FLOORS';if(p.maxShots!==null&&p.maxShots!==undefined&&isFinite(p.maxShots))caption+=' / CAP '+d.format(p.maxShots);label(caption,198,377,1,T.muted,294,12);label(custom?'CONFIGURED PENALTY':'+'+d.format(p.shotsPerStep)+' '+p.unit+' TO LOSER',198,393,2,T.gold,294,18);label('SPACE PAUSE / RESUME     M MUTE',198,431,1,T.muted);actions.push(button(460,'ENTER - START','start'));actions.push(secondary(494,'B - BACK TO TITLE','back',126));
-     summary='How to Play. '+names[1]+': '+keys(d.cfg.players.p2.keys)+'. '+names[0]+': '+keys(d.cfg.players.p1.keys)+'. '+rules.join(' ')+' '+formula(d)+'. Enter to start. B returns to title.';
+     var soloHelp=d.mode==='solo';box(27,70,342,445);label('HOW TO PLAY',198,88,3,T.ink);
+     if(soloHelp){d.portrait(c,d.heroes[0],198,166);label(d.cfg.players.p1.label+' '+names[0],198,177,2,T.p1,200,18);label(keys(d.cfg.players.p1.keys),198,201,2,T.gold,145,17);}
+     else{d.portrait(c,d.heroes[1],112,166);d.portrait(c,d.heroes[0],284,166);
+     label(d.cfg.players.p2.label+' '+names[1],112,177,2,T.p2,145,18);label(d.cfg.players.p1.label+' '+names[0],284,177,2,T.p1,145,18);label(keys(d.cfg.players.p2.keys),112,201,2,T.gold,145,17);label(keys(d.cfg.players.p1.keys),284,201,2,T.gold,145,17);}
+     label('MOVE LEFT / RIGHT',198,226,1,T.muted);rect(46,246,304,1,T.wallHi);
+     var rules=soloHelp?['WALK OFF EDGES TO DESCEND.','IT GETS FASTER EVERY 50 FLOORS.','BEER +'+d.cfg.beer.healAmount+' HP. SAFE LANDING +1 HP.','SPIKES -4. CEILING -5. MAX LIFE '+d.maxLife+'.','GAME OVER WHEN YOU DIE OR FALL OFF-SCREEN.']:['WALK OFF EDGES TO DESCEND.','PUSH EACH OTHER. CONTACT DOES NOT HURT.','BEER +'+d.cfg.beer.healAmount+' HP. SAFE LANDING +1 HP.','SPIKES -4. CEILING -5. MAX LIFE '+d.maxLife+'.','FIRST TO DIE OR FALL OFF-SCREEN LOSES.'];rules.forEach(function(s,i){rect(46,263+i*20,3,3,T.accent);label(s,55,261+i*20,1,T.ink,292,18,2,'left');});rect(45,369,306,46,T.bg);var custom=typeof p.compute==='function',caption=custom?'CONFIGURED CUSTOM RULE':'EVERY '+(p.floorsPerStep>0?p.floorsPerStep:10)+(soloHelp?' FLOORS':' COMBINED FLOORS');if(p.maxShots!==null&&p.maxShots!==undefined&&isFinite(p.maxShots))caption+=' / CAP '+d.format(p.maxShots);label(caption,198,377,1,T.muted,294,12);label(custom?'CONFIGURED PENALTY':'+'+d.format(p.shotsPerStep)+' '+p.unit+(soloHelp?' TO YOUR POOL':' TO LOSER'),198,393,2,T.gold,294,18);label('SPACE PAUSE / RESUME     M MUTE',198,431,1,T.muted);actions.push(button(460,'ENTER - START','start'));actions.push(secondary(494,'B - BACK TO TITLE','back',126));
+     summary='How to Play. '+(soloHelp?'Solo. '+names[0]+': '+keys(d.cfg.players.p1.keys)+'. ':names[1]+': '+keys(d.cfg.players.p2.keys)+'. '+names[0]+': '+keys(d.cfg.players.p1.keys)+'. ')+rules.join(' ')+' '+formula(d)+'. Enter to start. B returns to title.';
     }else if(d.state==='paused'){
      box(34,163,328,255);label('TAKE A BREATHER',198,180,1,T.muted);label(t.paused,198,206,3,T.ink,300,30);rect(59,247,278,1,T.wallHi);label(fmt(t.totalFloors,{n:d.total}),198,265,2,T.ink,294,23);label(fmt(t.shotPool,{n:d.format(d.pool)}),198,294,2,T.gold,294,24);actions.push(button(333,t.resumeHint,'resume'));actions.push(secondary(385,t.quitHint,'quit'));
      summary=t.paused+'. '+fmt(t.totalFloors,{n:d.total})+'. '+fmt(t.shotPool,{n:d.format(d.pool)})+'. '+t.resumeHint+'. '+t.quitHint;
@@ -68,6 +82,12 @@
      box(34,186,328,206);label(t.quitTitle,198,211,2,T.ink,300,28);label(t.quitNote,198,248,1,T.muted,294,19,2);actions.push(button(279,t.quitYes,'confirm'));actions.push(secondary(342,t.quitNo,'cancel',294,2));summary=t.quitTitle+'. '+t.quitNote+'. '+t.quitYes+'. '+t.quitNo;
     }else if(d.state==='countdown'){
      box(88,188,220,197);label(t.countdown,198,211,2,T.ink,198,28);label(d.count,198,249,12,T.gold,198,88);label('BACK TO THE MISCHIEF',198,354,1,T.muted,198,18);summary=t.countdown+' '+d.count;
+    }else if(d.state==='over'&&result&&result.mode==='solo'){
+     box(30,83,336,408);label('SOLO RUN',198,104,2,T.muted);label(t.gameOver||'GAME OVER',198,139,3,T.ink,304,28);
+     ribbon(181,fmt(t.soloRibbon||'{player} - FLOORS COMPLETED',{player:names[0]}));var fl=String(result.floors.total);label(fl,201,224,12,'#100e1c',304,88);label(fl,198,220,12,T.gold,304,88);label(t.soloFloors||'FLOORS',198,321,4,T.gold,304,34);
+     rect(51,365,294,1,T.wallHi);var soloShots=d.format(result.penalty),soloUnit=result.penalty===1?p.unit:p.unitPlural;label(fmt(t.soloShots||'SHOT POOL {n} {unit}',{n:soloShots,unit:soloUnit||p.unit}),198,384,1,T.ink,294,18);label('REACHED LEVEL '+(result.level||0),198,406,1,T.muted,294,19);
+     if(!d.locked)actions.push(button(436,t.playAgain,'rematch'));else label('ROUND COMPLETE',198,448,1,T.muted);actions.push(rematchLine(t));
+     summary='Solo run. '+(t.gameOver||'GAME OVER')+'. '+names[0]+': '+fl+' floors, level '+(result.level||0)+'. Shot pool '+soloShots+' '+(soloUnit||p.unit)+'. '+(!d.locked?t.playAgain:'Rematch available after the existing cooldown.')+' Escape returns to the title.';
     }else if(d.state==='over'&&result){
      box(30,83,336,408);label('ROUND OVER',198,104,2,T.muted);var loser=result.loser?names[result.loser==='p1'?0:1]:'';var outcome=result.loser?fmt(t.loses,{player:loser}):t.draw;
      if(measure(outcome).w*3<=304&&measure(outcome).h===7)label(outcome,198,139,3,T.ink,304,28);
@@ -82,7 +102,7 @@
      var unit=result.penalty===1?p.unit:p.unitPlural;label(unit||p.unit,198,321,4,T.gold,304,34);if(value!==exact)label(exact,198,351,1,T.muted,304,10);
      rect(51,365,294,1,T.wallHi);var floors=result.floors;var detail=fmt(t.floors,{p1:floors.p1,p2:floors.p2,total:floors.total,n1:names[0],n2:names[1]});var used=label(detail,198,384,1,T.ink,294,36,3);if(used<=18)label(typeof p.compute==='function'?formula(d):(p.maxShots!==null&&p.maxShots!==undefined?'MIN('+d.format(p.maxShots)+', ':'')+'FLOOR('+floors.total+' / '+(p.floorsPerStep>0?p.floorsPerStep:10)+') × '+d.format(p.shotsPerStep)+(p.maxShots!==null&&p.maxShots!==undefined?')':'')+' = '+exact,198,406,1,T.muted,294,19,2);
      }
-     if(!d.locked)actions.push(button(436,t.playAgain,'rematch'));else label('ROUND COMPLETE',198,448,1,T.muted);label(t.rematch,198,477,1,T.muted,294,13);
+     if(!d.locked)actions.push(button(436,t.playAgain,'rematch'));else label('ROUND COMPLETE',198,448,1,T.muted);actions.push(rematchLine(t));
      summary='Round over. '+outcome+'. '+(result.loser?t.penaltyLabel+': '+exact+' '+unit:(t.penaltyLabelDraw||'DRAW - REMATCH')+'. '+(t.drawShots||'NO SHOTS')+'. '+(t.drawNote||''))+'. '+detail+'. '+(!d.locked?t.playAgain:'Rematch available after the existing cooldown.');
     }
     sync(actions);

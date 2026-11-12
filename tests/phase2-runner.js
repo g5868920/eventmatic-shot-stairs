@@ -19,7 +19,7 @@ async function load(target){
 async function save(name,data){await fetch('/__report__',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,...data})});}
 async function regression(target){
  const suites=['rules-tests','push-tests','audio-tests','music-tests','sfx-extra-tests','pause-tests','headless-play'];const report=[];
- suites.push('phase1-visual-tests');if(target==='current')suites.push('phase2-ui-tests','character-tests');
+ suites.push('phase1-visual-tests');if(target==='current')suites.push('phase2-ui-tests','character-tests','solo-tests');
  for(const suite of suites){status.textContent=target+' / '+suite;const w=await load(target),tables=[];seeded(w);w.console.table=x=>tables.push(x);
   const source=await(await fetch('/tests/'+suite+'.js')).text();let rows;
   try {const value=await w.eval(source);rows=Array.isArray(value)?value:tables.at(-1);if(suite==='headless-play')rows=rows.map(x=>({test:'bot round '+x.round,pass:!!x.freshStart&&Number.isFinite(x.penalty),detail:x}));if(!Array.isArray(rows))throw Error('No result rows');}

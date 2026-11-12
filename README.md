@@ -34,6 +34,8 @@ Controls belong to the player, not to a side of the screen, so they keep working
 The game opens on a pixel-art How to Play screen; losing window focus or hiding the tab pauses a running round.
 A quit round has no winner, no loser and no penalty.
 
+Modes: **2 PLAYERS - VERSUS** (default) or **1 PLAYER - SOLO**, chosen on the title screen with ↑ / ↓, 1 / 2 or a click (`?mode=solo`). Solo uses 1P's arrow keys; same physics, damage, beer and speed progression; the round ends at that player's death with GAME OVER and the floors reached. Esc on the result screen returns to the title. See docs/SOLO_MODE.md.
+
 Characters: seven friends (Gina, Rae, Ariel, Cindy, Ken, Linda, Sandy) in `assets/characters/custom/characters.js`; any of them can play 1P or 2P. On the title screen 2P picks with Z / C and 1P with ← / → (or click the small arrows); Enter starts as usual and the choice stays for rematches. Defaults: 1P Rae, 2P Gina (`characterSkin` in `config.js`; `?skin=classic` for the original kids). Gina and Rae are animated; the other five use their static sprite. See docs/CHARACTERS.md.
 Background music: "8 Bit Retro Game Music" by moodmode (Pixabay); see docs/AUDIO.md for credits, license and Content ID notes.
 

@@ -162,6 +162,8 @@
 			p1: { label: '1P', keys: { left: 'ArrowLeft', right: 'ArrowRight' } },
 			p2: { label: '2P', keys: { left: 'KeyZ', right: 'KeyC' } }
 		},
+		// SHOT: 'versus' (two players, default) or 'solo' (one player on 1P's keys); chosen on the READY screen
+		mode: 'versus',
 		beer: { spawnChance: 0.12, healAmount: 3, onlySafeFloors: true },
 		// SHOT: platform width (px) and the minimum width of the two-player start floor
 		platform: { width: 80, startMinWidth: 80, guaranteeReach: true },
@@ -924,7 +926,7 @@
 		context.rect(0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
 		context.clip();
 		if (arcade) {
-			arcade.field(context, heroes[0].floors + heroes[1].floors);
+			arcade.field(context, totalFloorsNow());
 			// Draw cosmetic cues behind all platforms, characters and spike tips.
 			arcade.effects(context, time, heroes);
 		} else {
@@ -953,7 +955,7 @@
 		if (screens && gameState === 'playing') {
 			screens.hide();
 		} else if (screens) {
-			buttonRect = screens.draw(context, { state: gameState, cfg: CONFIG, heroes: heroes, names: [playerName('p1'), playerName('p2')], total: totalFloorsNow(), pool: gameState === 'paused' ? computePenalty(totalFloorsNow()) : 0, result: lastResult, locked: isCooldownTime, count: Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)), maxLife: MAX_LIFE, format: formatShots, portrait: drawPortrait, pick: gameState === 'ready' && canPickCharacters() });
+			buttonRect = screens.draw(context, { state: gameState, cfg: CONFIG, heroes: heroes, names: [playerName('p1'), playerName('p2')], total: totalFloorsNow(), pool: gameState === 'paused' ? computePenalty(totalFloorsNow()) : 0, result: lastResult, locked: isCooldownTime, count: Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)), maxLife: MAX_LIFE, format: formatShots, portrait: drawPortrait, pick: gameState === 'ready' && canPickCharacters(), mode: roundMode() });
 		} else if (gameState !== 'playing') {
 			// SHOT: dim the frozen playfield (not the HUD) behind every overlay panel; lighter during the
 			// countdown so players can find themselves before play resumes
@@ -1028,10 +1030,10 @@
 	function drawTopBar(context) {
 		if (!arcade) { drawLegacyTopBar(context); return; }
 		topBarChange = false;
-		var p1 = heroes[0], p2 = heroes[1];
-		var units = (p1 && p2) ? computePenalty(p1.floors + p2.floors) : 0;
+		var p1 = heroes[0], p2 = heroes[1] || null; // solo: no 2P block
+		var units = p1 ? computePenalty(totalFloorsNow()) : 0;
 		var unit = units === 1 ? CONFIG.penalty.unit : CONFIG.penalty.unitPlural;
-		if (arcade && p1 && p2) arcade.hud(context, p1, p2, units, formatShots(units), unit || CONFIG.penalty.unit || 'shot', $canvas, gameState === 'playing');
+		if (arcade && p1) arcade.hud(context, p1, p2, units, formatShots(units), unit || CONFIG.penalty.unit || 'shot', $canvas, gameState === 'playing');
 	}
 
 	function drawLegacyTopBar(context) {
@@ -1072,7 +1074,7 @@
 			}
 		}
 		// centre: mug × penalty units
-		var units = (p1 && p2) ? computePenalty(p1.floors + p2.floors) : 0;
+		var units = p1 ? computePenalty(totalFloorsNow()) : 0;
 		var label = 'X ' + formatShots(units);
 		var tw = $S.font.width(label, 3);
 		var total = 18 + 10 + tw;
@@ -1093,7 +1095,44 @@
 	}
 
 	function totalFloorsNow() {
-		return heroes && heroes.length > 1 ? heroes[0].floors + heroes[1].floors : 0;
+		var total = 0;
+		for (var i = 0; heroes && i < heroes.length; ++i) total += heroes[i].floors;
+		return total;
+	}
+
+	// SHOT: game mode. configuredMode() is the choice for the next round; roundMode() is the round on screen.
+	function configuredMode() {
+		return CONFIG.mode === 'solo' ? 'solo' : 'versus';
+	}
+	function roundMode() {
+		return heroes && heroes.length === 1 ? 'solo' : 'versus';
+	}
+	// READY screen only (a running or finished round keeps its mode; rematch reuses it)
+	function setMode(mode) {
+		if ((mode !== 'solo' && mode !== 'versus') || gameState !== 'ready') {
+			return false;
+		}
+		if (configuredMode() !== mode || roundMode() !== mode) {
+			CONFIG.mode = mode;
+			createWorld(true); // silent, frozen preview scene with the right number of players
+			clearInputs();
+			fireEvent('modeChange', mode);
+			if ($ctx) drawAll($ctx, lastTime);
+		}
+		return true;
+	}
+	// GAME OVER -> READY (title), e.g. to change mode or characters; no event, the round already ended
+	function backToTitle() {
+		if (gameState !== 'over' || isCooldownTime) {
+			return false;
+		}
+		gameState = 'ready';
+		isRunning = false;
+		lastResult = null;
+		createWorld(true);
+		clearInputs();
+		drawAll($ctx, lastTime);
+		return true;
 	}
 
 	// SHOT: pause overlay — values from the live round
@@ -1369,12 +1408,30 @@
 
 	// SHOT: build the result of a finished round
 	function buildResult() {
+		if (heroes.length === 1) {
+			// SHOT: solo — no winner / loser; the SHOT tally uses the same conversion of this player's floors
+			var me = heroes[0], mine = computePenalty(me.floors);
+			return {
+				mode: 'solo',
+				player: me.id,
+				loser: null, loserLabel: null, loserColor: null, winner: null, draw: false,
+				floors: { p1: me.floors, total: me.floors },
+				beers: { p1: me.beers },
+				life: { p1: me.life },
+				level: level,
+				penalty: mine,
+				shotPool: mine,
+				penaltyUnit: CONFIG.penalty.unit,
+				config: { floorsPerStep: CONFIG.penalty.floorsPerStep, shotsPerStep: CONFIG.penalty.shotsPerStep, maxShots: CONFIG.penalty.maxShots, platformWidth: FLOOR_WIDTH, beerHeal: CONFIG.beer.healAmount, beerChance: CONFIG.beer.spawnChance }
+			};
+		}
 		var dead = heroes.filter(function(h) { return h.isDead(); });
 		var p1 = heroes[0], p2 = heroes[1];
 		var loser = dead.length == 1 ? dead[0] : null; // both dead in the same step: draw
 		var winner = loser ? (loser === p1 ? p2 : p1) : null;
 		var total = p1.floors + p2.floors;
 		return {
+			mode: 'versus',
 			loser: loser ? loser.id : null,
 			loserLabel: loser ? loser.label : null,
 			loserColor: loser ? loser.color : null,
@@ -1383,6 +1440,7 @@
 			floors: { p1: p1.floors, p2: p2.floors, total: total },
 			beers: { p1: p1.beers, p2: p2.beers },
 			life: { p1: p1.life, p2: p2.life },
+			level: level,
 			penalty: loser ? computePenalty(total) : 0, // SHOT: a draw assigns no penalty to anybody
 			shotPool: computePenalty(total), // the round's calculated pool (assigned to the loser; unassigned on a draw)
 			penaltyUnit: CONFIG.penalty.unit,
@@ -1418,7 +1476,7 @@
 			updateHeroVerticalPosition(heroes[j], step, time, floorDistance);
 			checkHittingTop(heroes[j], time);
 		}
-		if (arcade) arcade.contact(heroes[0], heroes[1], time);
+		if (arcade && heroes.length > 1) arcade.contact(heroes[0], heroes[1], time);
 		return judge();
 	}
 
@@ -1622,6 +1680,8 @@
 		screens = global.ShotScreens ? global.ShotScreens.create($S, $canvas, $wrap, function(action) {
 			if ((action === 'help' || action === 'back') && gameState === 'ready') { screens.view(action === 'help' ? 'howto' : 'title'); drawAll($ctx, lastTime); }
 			else if (action === 'start' && gameState === 'ready') start();
+			else if ((action === 'solo' || action === 'versus') && gameState === 'ready') setMode(action);
+			else if (action === 'title' && gameState === 'over') backToTitle();
 			else if (/^p[12]-(prev|next)$/.test(action) && gameState === 'ready') cycleCharacter(action.slice(0, 2), action.slice(3) === 'next' ? 1 : -1);
 			else if (action === 'rematch' && gameState === 'over' && !isCooldownTime) start();
 			else if (action === 'resume') resumeGame();
@@ -1669,9 +1729,13 @@
 			} else if (code === 'Escape' || kc === 27) {
 				if (gameState === 'paused') setOverlayState('quit');
 				else if (gameState === 'quit') setOverlayState('paused');
+				else if (gameState === 'over') backToTitle();
 				e.preventDefault();
 			} else if (code === 'ArrowUp' || code === 'ArrowDown' || kc === 38 || kc === 40) {
 				e.preventDefault(); // no page scrolling during play
+				if (gameState === 'ready' && !e.repeat) setMode(configuredMode() === 'solo' ? 'versus' : 'solo');
+			} else if ((code === 'Digit1' || code === 'Numpad1' || code === 'Digit2' || code === 'Numpad2') && gameState === 'ready' && !e.repeat) {
+				setMode(code.slice(-1) === '1' ? 'solo' : 'versus');
 			}
 		}, false);
 		window.addEventListener('keyup', function(e) {
@@ -1837,7 +1901,7 @@
 		if (!canPickCharacters()) {
 			return false;
 		}
-		var cs = CONFIG.characterSkin, list = characterList(), other = cs[slot === 'p1' ? 'p2' : 'p1'];
+		var cs = CONFIG.characterSkin, list = characterList(), other = roundMode() === 'solo' ? null : cs[slot === 'p1' ? 'p2' : 'p1'];
 		var i = list.map(function(c) { return c.id; }).indexOf(cs[slot]);
 		for (var n = 0; n < list.length; ++n) {
 			i = (i + dir + list.length) % list.length;
@@ -1866,10 +1930,18 @@
 		// the floor's top, so they fell through it. Spawn them a few px above the floor instead.
 		var startFloorY = FLOOR_DISTANCE * Math.floor(STAGE_HEIGHT / FLOOR_DISTANCE);
 		var startY = startFloorY - FLOOR_HEIGHT - 16;
-		heroes = [
-			new Hero(floorX + startW - HERO_WIDTH - 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, skin: customSkinFor('p1'), color: '#39d47c' }),
-			new Hero(floorX + 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, skin: customSkinFor('p2'), color: '#ff5fb0' })
-		];
+		if (configuredMode() === 'solo') {
+			// SHOT: solo = exactly one hero (1P keys and character) in the middle of the start floor; no second
+			// player state exists, so pushing, contact cues and the 2P HUD simply have nothing to act on
+			heroes = [
+				new Hero(floorX + (startW - HERO_WIDTH) * 0.5, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, skin: customSkinFor('p1'), color: '#39d47c' })
+			];
+		} else {
+			heroes = [
+				new Hero(floorX + startW - HERO_WIDTH - 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, skin: customSkinFor('p1'), color: '#39d47c' }),
+				new Hero(floorX + 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, skin: customSkinFor('p2'), color: '#ff5fb0' })
+			];
+		}
 		if (arcade) arcade.identities(playerName('p1'), playerName('p2'), CONFIG.players.p1.label, CONFIG.players.p2.label);
 		floorVelocity = FLOOR_VELOCITY_BASE;
 		score = 0;
@@ -1947,6 +2019,8 @@
 		return characterList().map(function(c) { var m = characterMeta(c.id); return { id: c.id, name: m.name, animated: !!m.anim }; });
 	};
 	Game.setCharacter = function(slot, charId) { return setCharacter(slot, charId); }; // 'p1' | 'p2'
+	Game.setMode = function(mode) { return setMode(mode); }; // 'solo' | 'versus', READY screen only
+	Game.getMode = function() { return configuredMode(); };
 	Game.pause = function() { return pauseGame(); };
 	Game.resume = function() { return resumeGame(); };         // with the 3-2-1 countdown
 	Game.quitRound = function() {                               // abandon without confirmation (API)
@@ -1957,6 +2031,7 @@
 	Game.getState = function() {
 		return {
 			state: gameState,
+			mode: roundMode(),
 			running: isRunning,
 			countdown: gameState === 'countdown' ? Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)) : null,
 			players: (heroes || []).map(function(h) {

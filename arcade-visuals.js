@@ -11,7 +11,7 @@
   function heart(c,x,y,color){var bits=HEART_BITS;c.fillStyle=color;for(var y0=0;y0<bits.length;y0++)for(var x0=0;x0<7;x0++)if(bits[y0]&(1<<x0))c.fillRect(x+x0,y+y0,1,1);}
   function create(S) {
     var textCache=new Map(),glyphCache=new Map(),pool=[],cursor=0,clock=0,pushHeld=false,previousShot=null,peak=0,emitted=0,resets=0,pushBursts=0,dropped=0,lastBeerDelta=0,lastLandDelta=0,lastDamageDelta=0;
-    var CAPACITY=32, names={p1:'1P',p2:'2P'},nameLabels={p1:null,p2:null},markerLabels={p1:null,p2:null},hudCanvas=canvas(396,52),hud=hudCanvas.getContext('2d'),lastHp1=-1,lastHp2=-1,lastShots=null,lastUnit=null,lastLabel1=null,lastLabel2=null,lastAriaFloors=-1,unitSource=null,unitText=null;
+    var CAPACITY=32, names={p1:'1P',p2:'2P'},nameLabels={p1:null,p2:null},markerLabels={p1:null,p2:null},hudCanvas=canvas(396,52),hud=hudCanvas.getContext('2d'),lastHp1=-1,lastHp2=-1,lastSoloFloors=-2,lastShots=null,lastUnit=null,lastLabel1=null,lastLabel2=null,lastAriaFloors=-1,unitSource=null,unitText=null;
     var reduced=!!(global.matchMedia&&global.matchMedia('(prefers-reduced-motion: reduce)').matches);
     for(var i=0;i<CAPACITY;i++)pool.push({kind:0,born:0,life:0,x:0,y:0,anchor:null,label:null});
     function ascii(str){return S.font.has(String(str));}
@@ -53,10 +53,12 @@
     function hudDraw(c,p1,p2,quantity,formatted,unit,canvasNode,live){
       if(unit!==unitSource){unitSource=unit;unitText=String(unit).toUpperCase();}unit=unitText;
       if(previousShot!==null&&quantity>previousShot&&live){var delta=Math.round((quantity-previousShot)*1000)/1000;add(6,null,'+'+delta+' '+unit,T.gold,clock,600);}previousShot=quantity;
-      var hudChanged=p1.life!==lastHp1||p2.life!==lastHp2||formatted!==lastShots||unit!==lastUnit||p1.label!==lastLabel1||p2.label!==lastLabel2;
+      var soloFloors=p2?-1:p1.floors; // solo: no 2P state; the empty 2P slot shows the run's floors
+      var hudChanged=p1.life!==lastHp1||(p2?p2.life:-1)!==lastHp2||formatted!==lastShots||unit!==lastUnit||p1.label!==lastLabel1||(p2?p2.label:'')!==lastLabel2||soloFloors!==lastSoloFloors;
       if(hudChanged){
         rect(hud,0,0,396,52,T.panel);rect(hud,0,50,396,2,T.border);
         for(var n=0;n<2;n++){var h=n?p1:p2,x=n?277:12,color=n?T.p1:T.p2,name=n?nameLabels.p1:nameLabels.p2;
+          if(!h){hud.drawImage(text('SOLO RUN',T.muted,1,100),x,6);hud.drawImage(text(String(soloFloors).padStart(3,'0'),T.ink,2,100),x,20);hud.drawImage(floorWord,x,38);continue;}
           hud.drawImage(n?id1:id2,x,6);if(name)hud.drawImage(name,x+20,6);
           for(var pip=0;pip<12;pip++){heart(hud,x+pip*9,23,pip<h.life?color:'#756781');rect(hud,x+pip*9+2,31,3,1,pip<h.life?T.ink:'#756781');}
           hud.drawImage(lifeWord,x,38);var hp=hpLabels[Math.max(0,Math.min(12,h.life))];hud.drawImage(hp,x+106-hp.width,38);
@@ -64,12 +66,12 @@
         rect(hud,144,3,108,44,T.bg);rect(hud,146,5,2,40,T.gold);rect(hud,248,5,2,40,T.gold);rect(hud,142,14,6,4,T.panel);rect(hud,248,31,6,4,T.panel);center(hud,shotWord,198,7);
         var value=formatted;if(width(value,1)>100&&Number.isFinite(quantity))value=quantity.toExponential(2).toUpperCase();
         var mixedUnit=!ascii(unit);center(hud,text(value,T.gold,mixedUnit?2:3,96),198,20);center(hud,text(unit,T.muted,1,96),198,mixedUnit?35:43);
-        lastHp1=p1.life;lastHp2=p2.life;lastShots=formatted;lastUnit=unit;lastLabel1=p1.label;lastLabel2=p2.label;
+        lastHp1=p1.life;lastHp2=p2?p2.life:-1;lastShots=formatted;lastUnit=unit;lastLabel1=p1.label;lastLabel2=p2?p2.label:'';lastSoloFloors=soloFloors;
 
       }
-      var totalFloors=p1.floors+p2.floors;
+      var totalFloors=p1.floors+(p2?p2.floors:0);
       if(canvasNode&&(hudChanged||totalFloors!==lastAriaFloors)){
-if(canvasNode){canvasNode.setAttribute('role','img');canvasNode.setAttribute('aria-label','SHOT POOL '+formatted+' '+unit+'. 1P '+names.p1+' LIFE '+p1.life+'/12. 2P '+names.p2+' LIFE '+p2.life+'/12. '+(p1.floors+p2.floors)+' combined floors.');}
+if(canvasNode){canvasNode.setAttribute('role','img');canvasNode.setAttribute('aria-label',p2?'SHOT POOL '+formatted+' '+unit+'. 1P '+names.p1+' LIFE '+p1.life+'/12. 2P '+names.p2+' LIFE '+p2.life+'/12. '+(p1.floors+p2.floors)+' combined floors.':'SHOT POOL '+formatted+' '+unit+'. SOLO '+names.p1+' LIFE '+p1.life+'/12. '+p1.floors+' floors.');}
         lastAriaFloors=totalFloors;
       }
       c.drawImage(hudCanvas,0,0);

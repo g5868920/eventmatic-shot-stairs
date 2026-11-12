@@ -26,6 +26,10 @@ window.SHOT_CONFIG = {
   //   flip: mirror the portrait when the player last walked left.
   // URL override for testing: index.html?skin=custom&skinHeight=40  (or ?skin=classic)
   //   animated: use the animated sheets (assets/characters/custom/<name>-anim.png) when they exist.
+  // Game mode: 'versus' (two players, default) or 'solo' (one player on 1P's arrow keys and character).
+  // Players can switch on the title screen (up / down or 1 / 2); a rematch keeps the mode. ?mode=solo
+  mode: 'versus',
+
   characterSkin: { mode: 'custom', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
 
   // Sound effects (audio.js). M toggles mute during play. URL overrides: ?mute=1  ?volume=0.4
@@ -110,6 +114,12 @@ window.SHOT_CONFIG = {
     playAgain: 'play again',
     resume: 'continue',
     rematch: 'PRESS ENTER TO REMATCH',
+    toTitle: 'ESC - TITLE',
+    // Solo result screen
+    gameOver: 'GAME OVER',
+    soloRibbon: '{player} - FLOORS COMPLETED',
+    soloFloors: 'FLOORS',
+    soloShots: 'SHOT POOL {n} {unit}',
     // Pause / quit / countdown screens
     paused: 'GAME PAUSED',
     totalFloors: 'TOTAL FLOORS: {n}',
@@ -148,6 +158,7 @@ window.SHOT_CONFIG = {
         c.audio.files[k] = mode === '0' ? null : (mode === 'local' ? 'assets/audio/local/' + (k === 'hurt' ? 'hurt' : 'fall-dead') + '.mp3' : c.audio.files[k]);
       });
     }
+    if (q.get('mode') === 'solo' || q.get('mode') === 'versus') { c.mode = q.get('mode'); }
     if (q.has('fit')) { c.display.fit = q.get('fit'); }
     if (q.has('unit')) { c.penalty.unit = q.get('unit'); c.penalty.unitPlural = q.get('unitPlural') || q.get('unit') + 's'; }
   } catch (e) { /* ignore malformed URLs */ }

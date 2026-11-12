@@ -28,6 +28,9 @@
     /** Character library: characters() -> [{ id, name, animated }]; setCharacter('p1' | 'p2', id) (cosmetic only). */
     characters: function () { return Game.characters(); },
     setCharacter: function (slot, id) { return Game.setCharacter(slot, id); },
+    /** Game mode 'versus' | 'solo'; setMode() works on the READY screen, a rematch keeps the mode. */
+    setMode: function (mode) { return Game.setMode(mode); },
+    getMode: function () { return Game.getMode(); },
 
     /** { state: 'ready'|'playing'|'paused'|'quit'|'countdown'|'over', running, countdown, players:[...], lastResult } */
     getState: function () { return Game.getState(); },
@@ -36,8 +39,10 @@
      * Events:
      *   'gameStart'            — a new round began
      *   'beer'    (playerId, lifeAfter)
-     *   'roundEnd' (result)    — result = { loser, winner, draw, floors:{p1,p2,total},
+     *   'roundEnd' (result)    — result = { mode, loser, winner, draw, floors:{p1,p2,total}, level,
      *                            beers:{p1,p2}, life:{p1,p2}, penalty (0 on a draw), shotPool, penaltyUnit, config }
+     *                            Solo: mode 'solo', player 'p1', loser/winner null, draw false, only p1 /
+     *                            total in floors / beers / life, penalty = shotPool = that player's tally.
      */
     on: Game.on,
     off: Game.off,

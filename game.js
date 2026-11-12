@@ -173,7 +173,7 @@
 		// SHOT: character skin (visual only). 'classic' = default kids, 'custom' = portrait sprites from
 		// assets/characters/custom (see docs/CHARACTERS.md). Applied at page load.
 		characterSkin: { mode: 'classic', height: 48, p1: 'rae', p2: 'gina', flip: true, animated: true },
-		penalty: { floorsPerStep: 10, shotsPerStep: 0.5, maxShots: null, compute: null, unit: 'shot', unitPlural: 'shots' },
+		penalty: { floorsPerStep: 15, shotsPerStep: 0.5, maxShots: null, compute: null, unit: 'shot', unitPlural: 'shots' },
 		text: {
 			loses: '{player} LOSES!', draw: 'DRAW!',
 			floors: '1P {p1} + 2P {p2} = {total} FLOORS',
@@ -1205,7 +1205,7 @@
 			return "THE LOSER'S PENALTY GROWS WITH THE COMBINED FLOORS.";
 		}
 		var shots = formatShots(isFinite(p.shotsPerStep) ? p.shotsPerStep : 0.5);
-		var txt = 'EVERY ' + (p.floorsPerStep > 0 ? p.floorsPerStep : 10) + ' COMBINED FLOORS ADDS ' + shots + ' ' +
+		var txt = 'EVERY ' + (p.floorsPerStep > 0 ? p.floorsPerStep : 15) + ' COMBINED FLOORS ADDS ' + shots + ' ' +
 			(shots === '1' ? p.unit : p.unit).toUpperCase() + " TO THE LOSER'S PENALTY";
 		if (p.maxShots !== null && p.maxShots !== undefined && isFinite(p.maxShots)) {
 			txt += ' (MAX ' + formatShots(p.maxShots) + ')';
@@ -1395,7 +1395,7 @@
 		if (typeof p.compute === 'function') {
 			n = Number(p.compute(totalFloors)) || 0;
 		} else {
-			var stepFloors = p.floorsPerStep > 0 ? p.floorsPerStep : 10;
+			var stepFloors = p.floorsPerStep > 0 ? p.floorsPerStep : 15;
 			var stepShots = isFinite(p.shotsPerStep) ? p.shotsPerStep : 0.5;
 			n = Math.floor(Math.max(0, totalFloors) / stepFloors) * stepShots;
 		}

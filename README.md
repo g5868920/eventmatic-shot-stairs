@@ -44,14 +44,14 @@ Background music: "8 Bit Retro Game Music" by moodmode (Pixabay); see docs/AUDIO
 * Floors rise; walk off the edge to fall to the next one. Platforms are 80 px wide by default (`platform.width`, upstream 100), and each new platform is placed within falling reach of the one above. Spiked ceiling −5 life, spike floor −4, every safe landing +1 (max 12). Spring, conveyor and flipping floors behave as in the original.
 * **Pushing** (new): players are solid to each other. Walking into the other player pushes them along at walking speed, even off a platform edge, where they fall normally. Equal opposite pushes cancel. Walls stop the pushed player. No damage or knockback from contact.
 * **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
-* **HUD**: approved B heart LIFE blocks and names (2P left, 1P right; 12 segments), central SHOT POOL / SHOTS and a separate combined-floor indicator. The penalty remains: `floor((1P floors + 2P floors) / 10) × 0.5`, so 10 floors = 0.5, 20 = 1, 30 = 1.5. It starts at 0. Rate (`penalty.floorsPerStep`, `penalty.shotsPerStep`) and an optional cap (`penalty.maxShots`) are configurable.
+* **HUD**: approved B heart LIFE blocks and names (2P left, 1P right; 12 segments), central SHOT POOL / SHOTS and a separate combined-floor indicator. The penalty remains: `floor((1P floors + 2P floors) / 15) × 0.5`, so 15 floors = 0.5, 30 = 1, 45 = 1.5; only completed 15-floor steps count (29 floors = 0.5, no rounding up). It starts at 0. Rate (`penalty.floorsPerStep`, `penalty.shotsPerStep`) and an optional cap (`penalty.maxShots`) are configurable.
 * **Round end** (new): the first player to die loses. The panel shows the loser by name (`players.pN.name`, else the custom character, else 1P/2P), `1P a + 2P b = total floors` and, largest, the shots with "LOSER'S PENALTY". Both dead in the same step = draw: "DRAW - REMATCH", no shots for anybody (`result.penalty` is 0; the calculated pool stays in `result.shotPool` as a statistic and resets with the rematch). Click PLAY AGAIN or press Enter to rematch.
 
 Phase 1 B gameplay visuals and cosmetic feedback are integrated. See [the verification report](docs/PHASE1_REPORT.md) and [screenshots](docs/evidence/phase1/index.html). Phase 0 remains the visual source of truth; Phase 2 screens require separate approval.
 
 ## Configure
 
-Edit `config.js`, or append URL parameters (`?floorsPerStep=10&shotsPerStep=0.5&maxShots=5&platformWidth=80&beerChance=0.2&beerHeal=4&unit=shot`),
+Edit `config.js`, or append URL parameters (`?floorsPerStep=15&shotsPerStep=0.5&maxShots=5&platformWidth=80&beerChance=0.2&beerHeal=4&unit=shot`),
 or call `ShotStairs.configure({...})`. See `docs/INTEGRATION.md`.
 
 ## Repository layout

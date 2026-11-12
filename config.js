@@ -3,7 +3,7 @@
  *
  * Everything the event host may want to change lives here. Values can also be
  * overridden per session with URL query parameters, e.g.
- *   index.html?floorsPerStep=10&shotsPerStep=0.5&maxShots=5&platformWidth=80&beerChance=0.2&beerHeal=4
+ *   index.html?floorsPerStep=15&shotsPerStep=0.5&maxShots=5&platformWidth=80&beerChance=0.2&beerHeal=4
  * or at runtime through window.ShotStairs.configure({...}) (see docs/INTEGRATION.md).
  *
  * Nothing in here requires actual drinking: the "penalty" is just a number
@@ -86,13 +86,14 @@ window.SHOT_CONFIG = {
 
   penalty: {
     // shots = floor((1P floors + 2P floors) / floorsPerStep) * shotsPerStep
-    // Default: 10 floors = 0.5 shot, 20 = 1, 30 = 1.5, 40 = 2 ... Starts at 0.
-    floorsPerStep: 10,
+    // Default: 15 floors = 0.5 shot, 30 = 1, 45 = 1.5, 60 = 2 ... Starts at 0. Only completed steps count
+    // (29 floors = 0.5, 44 = 1): no rounding up.
+    floorsPerStep: 15,
     shotsPerStep: 0.5,
     // Optional cap on the shots (null = no cap).
     maxShots: null,
     // Optional custom formula; receives totalFloors and must return a number.
-    // compute: function (totalFloors) { return Math.floor(totalFloors / 10) * 0.5; },
+    // compute: function (totalFloors) { return Math.floor(totalFloors / 15) * 0.5; },
     compute: null,
     unit: 'shot',
     unitPlural: 'shots'

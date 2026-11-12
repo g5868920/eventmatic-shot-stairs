@@ -37,6 +37,16 @@
   function modeToggle(y,mode){return [['solo','1 PLAYER - SOLO',60],['versus','2 PLAYERS - VERSUS',200]].map(function(o){var on=mode===o[0];if(on)rect(o[2],y,136,18,T.gold);else{rect(o[2],y,136,18,T.wallHi);rect(o[2]+1,y+1,134,16,T.bg);}label(o[1],o[2]+68,y+6,1,on?T.bg:T.muted,128,8);return {id:o[0],label:o[1]+(on?' (selected)':''),x:o[2],y:y,w:136,h:18};});}
   // "PRESS ENTER TO REMATCH   ESC - TITLE": the title part is also a pointer target
   function rematchLine(t){var back=t.toTitle||'ESC - TITLE',full=t.rematch+'   '+back,w=measure(full).w,bw=measure(back).w;label(full,198,477,1,T.muted,294,13);var x=Math.round(198-w/2)+w-bw;return {id:'title',label:'Back to title',x:x-4,y:473,w:bw+8,h:15};}
+  // Title: 小朋友 / SHOT 樓梯. The Chinese is rasterised once from the Traditional Chinese system font on a
+  // 21 px grid (alpha-thresholded, so hard pixel edges) and drawn at 2x; English uses the bitmap font.
+  // Same cream / gold hierarchy and dark drop shadow as the approved SHOT / THE STAIRS lockup.
+  var titleGlyphs=new Map();
+  function titleGlyph(ch){if(titleGlyphs.has(ch))return titleGlyphs.get(ch);var px=21,cw=px+2,ch_=px+5,a=document.createElement('canvas');a.width=cw;a.height=ch_;var g=a.getContext('2d');g.font='600 '+px+'px "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif';g.textBaseline='alphabetic';g.fillText(ch,1,px);var p=g.getImageData(0,0,cw,ch_).data,pts=[];for(var y=0;y<ch_;y++)for(var x=0;x<cw;x++)if(p[(y*cw+x)*4+3]>=140)pts.push(x,y);var d={points:pts,adv:px+1,h:ch_};titleGlyphs.set(ch,d);return d;}
+  function titleCJK(str,x,y,color){var at=x,sc=2,h=0;c.fillStyle=color;for(var ch of str){var d=titleGlyph(ch);for(var n=0;n<d.points.length;n+=2)c.fillRect(at+d.points[n]*sc,y+d.points[n+1]*sc,sc,sc);at+=d.adv*sc;h=d.h*sc;}layout.push({text:str,display:str,x:x,y:y,w:at-x,h:h,scale:sc,truncated:false});return at-x;}
+  function titleArt(){var shot=measure('SHOT').w*8,cjk=2*22*2,gap=8,x=Math.round(198-(shot+gap+cjk)/2),top=176,top1=112;
+   titleCJK('小朋友',135,top1+4,'#120e23');titleCJK('小朋友',132,top1,T.ink);
+   label('SHOT',x+3,top+4,8,'#120e23',330,70,1,'left');label('SHOT',x,top,8,T.gold,330,70,1,'left');
+   var cx=x+shot+gap,cy=top+6;titleCJK('樓梯',cx+3,cy+4,'#120e23');titleCJK('樓梯',cx,cy,T.ink);}
   function star(x,y){rect(x,y-3,1,7,T.gold);rect(x-3,y,7,1,T.gold);rect(x-1,y-1,3,3,T.gold);}
   function fmt(s,v){return String(s||'').replace(/\{(\w+)\}/g,function(_,k){return v[k]===undefined?'':v[k];});}
   function keys(k){return [k.left,k.right].map(function(x){return String(x).replace('Key','').replace('ArrowLeft','←').replace('ArrowRight','→');}).join('  ');}
@@ -50,8 +60,8 @@
    var next=[d.state,view,d.count,d.locked,names.join('\n'),d.pick,d.mode,JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
    if(next!==key){key=next;builds++;layout=[];issues=[];c.clearRect(0,0,396,532);rect(19,61,358,471,T.bg);
     if(d.state==='ready'&&view==='title'){
-     box(34,83,328,410);label('EVENTMATIC ARCADE CLUB',198,104,1,T.muted);star(65,148);star(329,197);star(73,266);star(321,324);
-     label('SHOT',201,145,10,'#120e23');label('SHOT',198,141,10,T.gold);label('THE STAIRS',198,226,4,T.ink);ribbon(269,'GOOD FRIENDS. BAD INFLUENCE.');
+     box(34,83,328,410);label('EVENTMATIC ARCADE CLUB',198,104,1,T.muted);star(65,148);star(318,132);star(73,266);star(321,324);
+     titleArt();ribbon(269,'GOOD FRIENDS. BAD INFLUENCE.');
      var solo=d.mode==='solo';
      if(solo){d.portrait(c,d.heroes[0],198,369);c.drawImage(S.images.blueBrick,158,369);
       if(d.pick){label(names[0],198,389,1,T.p1,84,17);tri(147,389,-1,T.gold);tri(246,389,1,T.gold);label(keys(d.cfg.players.p1.keys).replace('  ',' / '),198,402,1,T.muted,84,10);}
@@ -66,7 +76,7 @@
      actions.push(button(420,'ENTER - START','start'));modeToggle(459,d.mode).forEach(function(a){actions.push(a);});label('\u2191 / \u2193  OR  1 / 2  -  MODE',198,481,1,T.muted,294,8);actions.push(secondary(500,'H - HOW TO PLAY','help',126));
      if(d.pick&&solo){actions.push(arrowAction(149,'p1-prev','Previous character'));actions.push(arrowAction(248,'p1-next','Next character'));}
      else if(d.pick){actions.push(arrowAction(90,'p2-prev','Previous character for 2P'));actions.push(arrowAction(190,'p2-next','Next character for 2P'));actions.push(arrowAction(208,'p1-prev','Previous character for 1P'));actions.push(arrowAction(308,'p1-next','Next character for 1P'));}
-     summary='SHOT THE STAIRS. '+(solo?'1 player solo: '+names[0]:'2 players versus: '+names[1]+' and '+names[0])+'. Up / Down or 1 / 2 changes mode. Enter to start. H for optional How to Play.'+(d.pick?(solo?' Change character: '+keys(d.cfg.players.p1.keys)+'.':' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.'):'');
+     summary='小朋友SHOT樓梯. '+(solo?'1 player solo: '+names[0]:'2 players versus: '+names[1]+' and '+names[0])+'. Up / Down or 1 / 2 changes mode. Enter to start. H for optional How to Play.'+(d.pick?(solo?' Change character: '+keys(d.cfg.players.p1.keys)+'.':' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.'):'');
     }else if(d.state==='ready'){
      var soloHelp=d.mode==='solo';box(27,70,342,445);label('HOW TO PLAY',198,88,3,T.ink);
      if(soloHelp){d.portrait(c,d.heroes[0],198,166);label(d.cfg.players.p1.label+' '+names[0],198,177,2,T.p1,200,18);label(keys(d.cfg.players.p1.keys),198,201,2,T.gold,145,17);}

@@ -1,0 +1,40 @@
+{
+  "name": "current-performance",
+  "target": "current",
+  "frames": 1080,
+  "seconds": 18.014099999904634,
+  "fps": 59.950659329461594,
+  "renderFrameMs": {
+    "median": 0.2999997138977051,
+    "p95": 0.40000009536743164,
+    "p99": 0.6000003814697266,
+    "max": 0.7999997138977051
+  },
+  "intervalOver25ms": 0,
+  "meanMsBy180Frames": [
+    0.28666664229498967,
+    0.28055556880103216,
+    0.2922222349378798,
+    0.2727777640024821,
+    0.28333330949147545,
+    0.273888897895813
+  ],
+  "visibility": "visible",
+  "fx": {
+    "active": 32,
+    "retainedAnchors": 32,
+    "capacity": 32,
+    "listeners": 0,
+    "textCache": 30,
+    "glyphCache": 0,
+    "emitted": 4320,
+    "resets": 121,
+    "pushBursts": 0,
+    "peakActive": 32,
+    "dropped": 3680,
+    "contactHeld": false,
+    "lastBeerDelta": 3,
+    "lastLandDelta": 0,
+    "lastDamageDelta": 4
+  }
+}

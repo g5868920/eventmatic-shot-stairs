@@ -1,0 +1,15 @@
+{
+  "protectedFiles": 36,
+  "protectedFunctions": 25,
+  "physicsLoop": "identical after removing cosmetic observation calls",
+  "characterDrawingAnimation": "byte-identical",
+  "controlsFocusTouch": "byte-identical",
+  "visualSubscriptionsTimersRng": "none",
+  "phase2Screens": "byte-identical",
+  "sourceHashes": {
+    "game.js": "23ecaf2438c071c59520b470ece09df1be80f9a900fc06d953a2fe19e04b72de",
+    "sprites.js": "23af55885e595152353234e10a278ef01874903a1109c7804e195e87e54ca6db",
+    "arcade-visuals.js": "facd68621270ed6d01195a9282fc150eaaa1bde90e9b919e48fe70447e211d0d",
+    "index.html": "4796bc6f7fdc75db3ab40214f69dea7016615af772c677fe9b0e04f283d3b712"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "baselineCommit": "8fc7181f97a2a8662d12f89f4d2d0b89fb733c88",
+  "samples": 3145,
+  "traceEqual": true,
+  "eventsEqual": true,
+  "rngEqual": true,
+  "baselineTraceSha256": "16bcb4dab600599408f79edadd1ca28233310caf3d0df0ec6f2f679b0772a221",
+  "integratedTraceSha256": "16bcb4dab600599408f79edadd1ca28233310caf3d0df0ec6f2f679b0772a221",
+  "baselineEventsSha256": "a490f462992cfb854aea1dd9a106aa5ef17ddb5240c9f4246c50af0553298eba",
+  "integratedEventsSha256": "a490f462992cfb854aea1dd9a106aa5ef17ddb5240c9f4246c50af0553298eba",
+  "finalRng": 4146717004
+}

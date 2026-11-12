@@ -1,0 +1,281 @@
+{
+  "name": "current-focused",
+  "checks": 15,
+  "passed": 15,
+  "failures": [],
+  "rows": [
+    {
+      "test": "beer: landing +1 and beer +3, life 8\u219212",
+      "pass": true,
+      "detail": {
+        "active": 2,
+        "retainedAnchors": 2,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 27,
+        "glyphCache": 0,
+        "emitted": 2,
+        "resets": 2,
+        "pushBursts": 0,
+        "peakActive": 2,
+        "dropped": 0,
+        "contactHeld": false,
+        "lastBeerDelta": 3,
+        "lastLandDelta": 1,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "beer clamp: landing +1 and beer +2, life 9\u219212",
+      "pass": true,
+      "detail": {
+        "active": 2,
+        "retainedAnchors": 2,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 28,
+        "glyphCache": 0,
+        "emitted": 4,
+        "resets": 3,
+        "pushBursts": 0,
+        "peakActive": 2,
+        "dropped": 0,
+        "contactHeld": false,
+        "lastBeerDelta": 2,
+        "lastLandDelta": 1,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "damage label observes actual HP delta",
+      "pass": true,
+      "detail": {
+        "active": 3,
+        "retainedAnchors": 3,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 29,
+        "glyphCache": 0,
+        "emitted": 5,
+        "resets": 3,
+        "pushBursts": 0,
+        "peakActive": 2,
+        "dropped": 0,
+        "contactHeld": false,
+        "lastBeerDelta": 2,
+        "lastLandDelta": 1,
+        "lastDamageDelta": 4
+      }
+    },
+    {
+      "test": "180 sustained contact samples emit once",
+      "pass": true,
+      "detail": {
+        "active": 1,
+        "retainedAnchors": 0,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 30,
+        "glyphCache": 0,
+        "emitted": 6,
+        "resets": 4,
+        "pushBursts": 1,
+        "peakActive": 2,
+        "dropped": 0,
+        "contactHeld": true,
+        "lastBeerDelta": 0,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "separation rearms contact feedback",
+      "pass": true,
+      "detail": {
+        "active": 2,
+        "retainedAnchors": 0,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 30,
+        "glyphCache": 0,
+        "emitted": 7,
+        "resets": 4,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 0,
+        "contactHeld": true,
+        "lastBeerDelta": 0,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "640 concurrent emissions stay bounded to 32 slots",
+      "pass": true,
+      "detail": {
+        "active": 32,
+        "retainedAnchors": 32,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 31,
+        "glyphCache": 0,
+        "emitted": 647,
+        "resets": 5,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 2,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 4
+      }
+    },
+    {
+      "test": "reset clears effects, contact latch and anchored references",
+      "pass": true,
+      "detail": {
+        "active": 0,
+        "retainedAnchors": 0,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 31,
+        "glyphCache": 0,
+        "emitted": 647,
+        "resets": 6,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 0,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "quit clears all cosmetic state",
+      "pass": true,
+      "detail": {
+        "active": 0,
+        "retainedAnchors": 0,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 31,
+        "glyphCache": 0,
+        "emitted": 648,
+        "resets": 7,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 0,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "pause freezes cosmetic lifetime",
+      "pass": true,
+      "detail": {
+        "active": 1,
+        "retainedAnchors": 1,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 31,
+        "glyphCache": 0,
+        "emitted": 649,
+        "resets": 8,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 3,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "countdown also freezes cosmetic lifetime",
+      "pass": true,
+      "detail": {
+        "active": 1,
+        "retainedAnchors": 1,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 31,
+        "glyphCache": 0,
+        "emitted": 649,
+        "resets": 8,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 3,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "resume preserves the unexpired cue",
+      "pass": true,
+      "detail": {
+        "active": 1,
+        "retainedAnchors": 1,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 31,
+        "glyphCache": 0,
+        "emitted": 649,
+        "resets": 8,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 3,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "CJK HUD names rasterize through the cache",
+      "pass": true,
+      "detail": {
+        "active": 0,
+        "retainedAnchors": 0,
+        "capacity": 32,
+        "listeners": 0,
+        "textCache": 35,
+        "glyphCache": 4,
+        "emitted": 649,
+        "resets": 9,
+        "pushBursts": 2,
+        "peakActive": 2,
+        "dropped": 608,
+        "contactHeld": false,
+        "lastBeerDelta": 0,
+        "lastLandDelta": 0,
+        "lastDamageDelta": 0
+      }
+    },
+    {
+      "test": "configured SHOT quantity and units reach HUD without changing calculation",
+      "pass": true,
+      "detail": [
+        "SHOT POOL 0 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+        "SHOT POOL 0.5 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+        "SHOT POOL 1 CUP. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+        "SHOT POOL 1.5 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+        "SHOT POOL 12345678901234567000 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors."
+      ]
+    },
+    {
+      "test": "custom penalty cap stays authoritative",
+      "pass": true,
+      "detail": "SHOT POOL 1.5 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors."
+    },
+    {
+      "test": "both conveyor directions have distinct B pixels",
+      "pass": true,
+      "detail": "left/right arrows retained"
+    }
+  ]
+}

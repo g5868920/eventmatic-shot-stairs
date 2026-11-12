@@ -192,6 +192,8 @@
         slice(ctx, img.spikes, 0, img.spikes.height, x, y, w || img.spikes.width, 0);
       }
     };
+    // SHOT Phase 1: decorate floor/mug/wall art only; character sheets and font stay intact.
+    if (global.ShotArcade) S.arcade = global.ShotArcade.create(S);
     return S;
   }
 

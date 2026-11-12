@@ -1,6 +1,6 @@
 # Eventmatic Pixel Arcade UI System
 
-Phase 0 · design exploration · 2026-11-12 · **B visual direction approved; production integration awaiting plan approval**
+Phase 0 · design exploration · 2026-11-12 · **B approved; Phase 1 L1/L2 authorized on 2026-11-13; Phase 2 approval pending**
 
 ## Approved direction
 
@@ -88,6 +88,8 @@ Use a two-part icon grammar: **silhouette identifies the object; color reinforce
 
 The preview reuses `assets/characters/custom/gina-48.png`, `rae-48.png`, and the first 32 × 32 frames of `assets/kid-p1.png` / `kid-p2.png`. It does not edit or regenerate those files. The production animation sheets and foot anchors remain untouched. Local portrait trials fit inside 48 × 48 px and exist only in memory. A later integration must preserve the existing renderer's anchor metadata and 26 × 26 collision box; the lab's centered static display is not an asset pipeline replacement.
 
+Production Phase 1 uses the same cached glyph approach. When players touch, production markers and HP cues fan toward free space around the pair, keeping the platform-local FLIP marker readable; the isolated storyboard retains its fixed poses.
+
 ## HUD components
 
 **Player block:** fixed left 2P and right 1P identity, configurable name, 12 discrete LIFE segments, current/max numeric label. A uses beveled bars, B uses twelve small hearts with baseline ticks, C uses energy cells. Empty segments have an explicit contrasting silhouette. Keep the count numeric; color alone must never convey health.
@@ -159,9 +161,9 @@ Production copy must continue to derive penalty rules, healing amounts, units, n
 - A 7 px bitmap label is not ideal for distant audiences. Keep critical result quantities large; verify on the actual venue projector before rollout. The 52 px HUD is an inherited constraint and cannot be fixed by decorative contrast alone.
 - Preserve CJK/Unicode names, measure rendered width, and abbreviate visually only. Verify bright and dim projector modes, grayscale platform recognition and custom characters with light/dark clothing before production approval.
 
-## Production integration plan — approval pending
+## Production integration status
 
-See [PIXEL_UI_INTEGRATION_PLAN.md](PIXEL_UI_INTEGRATION_PLAN.md) for the concise approval artifact. Phase 1 covers L1/L2; Phase 2 covers L3. Direction approval does not authorize production edits. This preview and this design system remain the visual source of truth.
+See [PIXEL_UI_INTEGRATION_PLAN.md](PIXEL_UI_INTEGRATION_PLAN.md) for the concise approval artifact. Phase 1 covers L1/L2; Phase 2 covers L3. The integration plan and Phase 1 were approved on 2026-11-13. See [PHASE1_REPORT.md](PHASE1_REPORT.md) for L1/L2 implementation and evidence. Phase 2 is not started and requires separate approval. This preview and this design system remain the visual source of truth.
 
 ## Reuse across Eventmatic party games
 

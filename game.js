@@ -193,6 +193,7 @@
 	 * var
 	 */
 	var floorArray, heroes; // SHOT: `hero` became `heroes` (array of two)
+	var arcade = null; // SHOT Phase 1: fixed-pool cosmetic renderer, no event listeners
 	var $wrap, $canvas, $ctx, $res, $S; // SHOT: $S = sprite sheets (sprites.js)
 	var lastTime;
 	var drawCountStartTime = 0, drawCount = 0, lastInterval = 0, lastDrawCount = 0;
@@ -293,7 +294,8 @@
 				hero.vy = SPRINGING_VELOCITY;
 				hero.onFloor = null;
 				this.leaving(hero, time);
-				fireEvent('spring', hero.id); // SHOT: the actual launch, for the audio layer (no gameplay effect)
+				fireEvent('spring', hero.id);
+				if (arcade) arcade.spring(this, time); // SHOT: the actual launch, for the audio layer (no gameplay effect)
 			}
 		},
 		leaving : function(hero, time) {
@@ -412,6 +414,7 @@
 			if (offset >= FAKE_FLOOR_TIME && !this.flipAnnounced) {
 				this.flipAnnounced = true; // SHOT: once per platform, for the audio layer (no gameplay effect)
 				fireEvent('flip', hero.id);
+				if (arcade) arcade.flip(this, time);
 			}
 			if (offset < FAKE_FLOOR_TIME) {
 				this.height = FLOOR_HEIGHT;
@@ -620,6 +623,7 @@
 		regain : function() {
 			if (this.life < MAX_LIFE) {
 				++this.life;
+				if (arcade) arcade.land(this, 1);
 				topBarChange = true;
 			}
 		},
@@ -629,11 +633,13 @@
 			topBarChange = true;
 		},
 		hurt : function(num, time) {
+			var visualLifeBefore = this.life;
 			this.hurtTime = time;
 			this.life = Math.max(0, this.life - num);
 			topBarChange = true;
 			if (num > 0) {
-				fireEvent('hurt', this.id, num, this.life); // SHOT: for the audio layer (no gameplay effect)
+				fireEvent('hurt', this.id, num, this.life);
+				if (arcade) arcade.damage(this, visualLifeBefore - this.life, time); // SHOT: for the audio layer (no gameplay effect)
 			}
 		}
 	});
@@ -653,7 +659,9 @@
 		if (floor.beer) {
 			floor.beer = false;
 			hero.beers += 1;
+			var visualLifeBeforeBeer = hero.life; // after existing landing regain()
 			hero.heal(CONFIG.beer.healAmount);
+			if (arcade) arcade.beer(hero, hero.life - visualLifeBeforeBeer);
 			fireEvent('beer', hero.id, hero.life);
 		}
 		updateScore(floor.seq);
@@ -914,16 +922,23 @@
 		context.beginPath();
 		context.rect(0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
 		context.clip();
+		if (arcade) {
+			arcade.field(context, heroes[0].floors + heroes[1].floors);
+			// Draw cosmetic cues behind all platforms, characters and spike tips.
+			arcade.effects(context, time, heroes);
+		} else {
 		context.fillStyle = COLORS.playfield;
 		context.fillRect(0, MARGIN_TOP, STAGE_WIDTH, STAGE_HEIGHT - MARGIN_TOP);
 		context.fillStyle = COLORS.playfieldEdge;
 		context.fillRect(0, MARGIN_TOP, 2, STAGE_HEIGHT - MARGIN_TOP);
 		context.fillRect(STAGE_WIDTH - 2, MARGIN_TOP, 2, STAGE_HEIGHT - MARGIN_TOP);
+		}
 		for (var i = 0, len = floorArray.length; i < len; ++i) {
 			floorArray[i].draw(context, time);
 			floorArray[i].drawBeer(context);
 		}
 		for (var h = 0; h < heroes.length; ++h) {
+			if (arcade) arcade.marker(context, heroes[h], h, heroes[1 - h]);
 			heroes[h].draw(context, time);
 		}
 		context.drawImage($S.images.ceiling, 0, MARGIN_TOP);
@@ -1001,10 +1016,19 @@
 	}
 
 	/**
-	 * SHOT: HUD — "2P LIFE" left, "1P LIFE" right, 12 yellow pips over a red baseline,
-	 * beer mug × penalty units in the centre (penalty = configurable conversion of 1P + 2P floors).
+	 * SHOT: HUD — approved B heart LIFE blocks and SHOT POOL / SHOTS,
+	 * computed penalty units in the centre (penalty = configurable conversion of 1P + 2P floors).
 	 */
 	function drawTopBar(context) {
+		if (!arcade) { drawLegacyTopBar(context); return; }
+		topBarChange = false;
+		var p1 = heroes[0], p2 = heroes[1];
+		var units = (p1 && p2) ? computePenalty(p1.floors + p2.floors) : 0;
+		var unit = units === 1 ? CONFIG.penalty.unit : CONFIG.penalty.unitPlural;
+		if (arcade && p1 && p2) arcade.hud(context, p1, p2, units, formatShots(units), unit || CONFIG.penalty.unit || 'shot', $canvas, gameState === 'playing');
+	}
+
+	function drawLegacyTopBar(context) {
 		topBarChange = false;
 		context.save();
 		context.fillStyle = COLORS.hud;
@@ -1360,6 +1384,7 @@
 	}
 
 	function loop(step, time) {
+		if (arcade) arcade.clock(time);
 		for (var h = 0; h < heroes.length; ++h) {
 			var hero = heroes[h];
 			if (hero.onFloor) {
@@ -1386,6 +1411,7 @@
 			updateHeroVerticalPosition(heroes[j], step, time, floorDistance);
 			checkHittingTop(heroes[j], time);
 		}
+		if (arcade) arcade.contact(heroes[0], heroes[1], time);
 		return judge();
 	}
 
@@ -1530,6 +1556,7 @@
 		var screenWidth = document.documentElement.clientWidth;
 		var screenHeight = document.documentElement.clientHeight;
 		var zoomRate = Math.min(screenWidth / VIEW_WIDTH, screenHeight / STAGE_HEIGHT); // SHOT: canvas includes the walls
+		if (zoomRate >= 1) zoomRate = Math.floor(zoomRate); // SHOT: integer pixels; portrait aspect retained
 		var ratio = window.devicePixelRatio || 1;
 		$canvas.style.width = (VIEW_WIDTH * zoomRate) + 'px';
 		$canvas.style.height = (STAGE_HEIGHT * zoomRate) + 'px';
@@ -1565,7 +1592,9 @@
 	}
 
 	function init(sprites) {
-		$S = sprites; // SHOT: PNG sprite sheets from sprites.js
+		$S = sprites;
+		arcade = $S.arcade || null; // no subscriptions; one renderer for this canvas
+		// SHOT: PNG sprite sheets from sprites.js
 		$res = { hero: $S.images.kidP1, hero2: $S.images.kidP2 };
 		$canvas = document.createElement('canvas');
 		$canvas.style.display = 'block';
@@ -1743,6 +1772,7 @@
 
 	// SHOT: extracted from start() so Game.reset() can rebuild the round in place
 	function createWorld(silent) {
+		if (arcade) arcade.reset();
 		if (!silent) {
 			fireEvent('gameStart');
 		}
@@ -1764,6 +1794,7 @@
 			new Hero(floorX + startW - HERO_WIDTH - 2, startY, { id: 'p1', label: CONFIG.players.p1.label, keys: CONFIG.players.p1.keys, sprite: $res.hero, skin: customSkinFor('p1'), color: '#39d47c' }),
 			new Hero(floorX + 2, startY, { id: 'p2', label: CONFIG.players.p2.label, keys: CONFIG.players.p2.keys, sprite: $res.hero2, skin: customSkinFor('p2'), color: '#ff5fb0' })
 		];
+		if (arcade) arcade.identities(playerName('p1'), playerName('p2'), CONFIG.players.p1.label, CONFIG.players.p2.label);
 		floorVelocity = FLOOR_VELOCITY_BASE;
 		score = 0;
 		level = 0;
@@ -1860,6 +1891,7 @@
 	Game.formatShots = formatShots;
 	// SHOT: live world objects for automated tests / debugging only (not part of the integration API)
 	Game._debugFrame = function(time) { frame(time); }; // drive one frame with a synthetic clock
+	Game._debugVisuals = function() { return arcade; }; // rendering diagnostics only
 	Game._debugTypes = { Floor: Floor, SPRING: SPRING, ROLLING_LEFT: ROLLING_LEFT, ROLLING_RIGHT: ROLLING_RIGHT, FAKE_FLOOR: FAKE_FLOOR, ARROW_FLOOR: ARROW_FLOOR }; // tests only
 	Game._debugWorld = function() {
 		return { floors: floorArray, heroes: heroes, marginTop: MARGIN_TOP, stageWidth: STAGE_WIDTH, viewWidth: VIEW_WIDTH, wallWidth: WALL_WIDTH, maxLife: MAX_LIFE, stageHeight: STAGE_HEIGHT, floorWidth: FLOOR_WIDTH, heroWidth: HERO_WIDTH };

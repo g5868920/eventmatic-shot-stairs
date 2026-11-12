@@ -1,6 +1,8 @@
 # SHOT the Stairs — production integration plan
 
-**Status: B approved visually; this plan awaits approval. No production implementation authorized yet.**
+**Status (2026-11-13): Phase 1 approved and implemented; Phase 2 awaits a separate approval after Phase 1 review.**
+
+Phase 1 evidence: [PHASE1_REPORT.md](PHASE1_REPORT.md). The reviewed scope below is retained.
 
 Visual source of truth: `design-preview/` and [PIXEL_UI_DESIGN.md](PIXEL_UI_DESIGN.md). Preserve B's approved palette, pixel art, HUD hierarchy and L3 layouts. A/C are archived; no additional themes.
 
@@ -16,7 +18,7 @@ Visual source of truth: `design-preview/` and [PIXEL_UI_DESIGN.md](PIXEL_UI_DESI
 
 **Deliverable:** one scoped L1/L2 change with behavior evidence and B screenshots, reviewed before Phase 2.
 
-## Phase 2 — L3 UI Screens
+## Phase 2 — L3 UI Screens (not started)
 
 1. Apply the approved B layouts to existing ready/instructions, pause, quit confirmation, 3–2–1 countdown, result and rematch states. Preserve the state machine and Enter/Space/Escape/M controls, pointer actions, held-key resets and focus/visibility handling. Select one ready-state presentation; add no mandatory step.
 2. Populate names, controls, healing/damage rules and penalty copy from the effective production configuration. Preserve custom assets. Fit Chinese/long names while keeping the loss/draw outcome explicit. Keep the result SHOT quantity and unit dominant.
@@ -31,4 +33,4 @@ Visual source of truth: `design-preview/` and [PIXEL_UI_DESIGN.md](PIXEL_UI_DESI
 
 Physics, pushing, platform behavior, penalty calculation, audio, controls and custom character files remain authoritative and unchanged. Implementation may add rendering adapters/observers only. Any required behavior change is outside this plan and needs a separate decision.
 
-Approval of B covers visual direction. Production work begins only after this integration plan is approved. Phase 0 corrections are confined to the preview and its documentation.
+The user approved this integration plan and authorized Phase 1 on 2026-11-13. Phase 1 stops at L1/L2; Phase 2 remains gated on review and approval of the Phase 1 results. The isolated Phase 0 preview and design system remain the visual source of truth.

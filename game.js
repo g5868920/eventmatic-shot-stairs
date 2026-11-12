@@ -953,7 +953,7 @@
 		if (screens && gameState === 'playing') {
 			screens.hide();
 		} else if (screens) {
-			buttonRect = screens.draw(context, { state: gameState, cfg: CONFIG, heroes: heroes, names: [playerName('p1'), playerName('p2')], total: totalFloorsNow(), pool: gameState === 'paused' ? computePenalty(totalFloorsNow()) : 0, result: lastResult, locked: isCooldownTime, count: Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)), maxLife: MAX_LIFE, format: formatShots, portrait: drawPortrait });
+			buttonRect = screens.draw(context, { state: gameState, cfg: CONFIG, heroes: heroes, names: [playerName('p1'), playerName('p2')], total: totalFloorsNow(), pool: gameState === 'paused' ? computePenalty(totalFloorsNow()) : 0, result: lastResult, locked: isCooldownTime, count: Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)), maxLife: MAX_LIFE, format: formatShots, portrait: drawPortrait, pick: gameState === 'ready' && canPickCharacters() });
 		} else if (gameState !== 'playing') {
 			// SHOT: dim the frozen playfield (not the HUD) behind every overlay panel; lighter during the
 			// countdown so players can find themselves before play resumes
@@ -1270,9 +1270,9 @@
 		if (p.name) {
 			return String(p.name);
 		}
-		var cs = CONFIG.characterSkin || {};
-		if (customSkinMeta() && cs[id]) {
-			return String(cs[id]);
+		var meta = customSkinMeta();
+		if (meta && meta[id]) {
+			return String(meta[id].name);
 		}
 		return p.label || String(id).toUpperCase();
 	}
@@ -1622,6 +1622,7 @@
 		screens = global.ShotScreens ? global.ShotScreens.create($S, $canvas, $wrap, function(action) {
 			if ((action === 'help' || action === 'back') && gameState === 'ready') { screens.view(action === 'help' ? 'howto' : 'title'); drawAll($ctx, lastTime); }
 			else if (action === 'start' && gameState === 'ready') start();
+			else if (/^p[12]-(prev|next)$/.test(action) && gameState === 'ready') cycleCharacter(action.slice(0, 2), action.slice(3) === 'next' ? 1 : -1);
 			else if (action === 'rematch' && gameState === 'over' && !isCooldownTime) start();
 			else if (action === 'resume') resumeGame();
 			else if (action === 'quit' && gameState === 'paused') setOverlayState('quit');
@@ -1646,6 +1647,7 @@
 			var hit = heroForKey(e);
 			if (hit) {
 				if (gameState === 'playing' && !e.repeat) hit.hero.press(hit.side);
+				else if (gameState === 'ready' && !e.repeat) cycleCharacter(hit.hero.id, hit.side === 'left' ? -1 : 1);
 				e.preventDefault();
 				e.stopPropagation();
 				return;
@@ -1761,37 +1763,87 @@
 		setTimeout(function() { drawAll($ctx, 0); }, 60); // after the first resize
 	}
 
-	// SHOT: metadata of the selected custom skins (null for the classic kids or if anything is missing)
+	// SHOT: character library (assets/characters/custom/characters.js; sprite sizes / foot anchors in the
+	// generated skins.js, animation sheets in anims.js). Any character can be assigned to either player.
+	function characterList() {
+		var all = global.SHOT_CUSTOM_SKINS || {}, h = String((CONFIG.characterSkin || {}).height || 48);
+		var list = (global.SHOT_CHARACTERS || []).filter(function(c) { return c && all[c.id] && all[c.id][h]; });
+		Object.keys(all).forEach(function(id) { // sprites without a registry entry still work, named by id
+			if (all[id][h] && !list.some(function(c) { return c.id === id; })) list.push({ id: id, name: id });
+		});
+		return list;
+	}
+
+	function characterMeta(charId) {
+		var cs = CONFIG.characterSkin || {}, all = global.SHOT_CUSTOM_SKINS, anims = global.SHOT_CUSTOM_ANIMS;
+		var sprite = all && all[charId] && all[charId][String(cs.height || 48)];
+		if (!sprite) {
+			return null;
+		}
+		var entry = characterList().filter(function(c) { return c.id === charId; })[0] || {};
+		var anim = (cs.animated !== false && entry.animated !== false && anims && anims[charId]) || null; // per character
+		return { id: charId, name: entry.name || charId, sprite: sprite, anim: anim, flip: cs.flip !== false && entry.flip !== false };
+	}
+
+	// SHOT: metadata of the two selected characters (null for the classic kids or if either is unknown)
 	function customSkinMeta() {
 		var cs = CONFIG.characterSkin || {};
-		var all = global.SHOT_CUSTOM_SKINS;
-		if (cs.mode !== 'custom' || !all) {
+		if (cs.mode !== 'custom') {
 			return null;
 		}
-		var h = String(cs.height || 48);
-		var m1 = all[cs.p1] && all[cs.p1][h], m2 = all[cs.p2] && all[cs.p2][h];
-		if (!m1 || !m2) {
-			return null;
-		}
-		var anims = global.SHOT_CUSTOM_ANIMS, a1 = anims && anims[cs.p1], a2 = anims && anims[cs.p2];
-		var anim = (cs.animated !== false && a1 && a2) ? { p1: a1, p2: a2 } : null;
-		return { p1: m1, p2: m2, flip: cs.flip !== false, anim: anim };
+		var m1 = characterMeta(cs.p1), m2 = characterMeta(cs.p2);
+		return (m1 && m2) ? { p1: m1, p2: m2 } : null;
 	}
 
 	function customSkinFor(id) {
 		var meta = customSkinMeta();
-		var img = $S && $S.images[id === 'p1' ? 'customP1' : 'customP2'];
-		if (!meta || !img || !img.naturalWidth) {
+		var m = meta && meta[id], img = m && $S && $S.images['char_' + m.id];
+		if (!m || !img || !img.naturalWidth) {
 			return null;
 		}
-		var m = meta[id];
-		var skin = { img: img, w: m.w, h: m.h, anchorX: m.anchorX, flip: meta.flip, anim: null };
-		var animImg = $S.images[id === 'p1' ? 'customAnimP1' : 'customAnimP2'];
-		if (meta.anim && animImg && animImg.naturalWidth) {
-			var a = meta.anim[id];
+		var skin = { img: img, w: m.sprite.w, h: m.sprite.h, anchorX: m.sprite.anchorX, flip: m.flip, anim: null, character: m.id };
+		var animImg = $S.images['charAnim_' + m.id];
+		if (m.anim && animImg && animImg.naturalWidth) {
+			var a = m.anim;
 			skin.anim = { img: animImg, fw: a.frameW, fh: a.frameH, anchorX: a.anchorX, bottom: a.anchorBottom, frames: a.frames };
 		}
 		return skin;
+	}
+
+	// SHOT: optional character choice (title screen, ShotStairs.setCharacter). Cosmetic only: hitbox, controls,
+	// colours and HUD side stay with the player; the choice is kept across rematches until changed.
+	function setCharacter(slot, charId) {
+		var cs = CONFIG.characterSkin || {};
+		if ((slot !== 'p1' && slot !== 'p2') || cs.mode !== 'custom' || !characterMeta(charId)) {
+			return false;
+		}
+		cs[slot] = charId;
+		for (var h = 0; heroes && h < heroes.length; ++h) {
+			heroes[h].skin = customSkinFor(heroes[h].id);
+		}
+		if (arcade && heroes) arcade.identities(playerName('p1'), playerName('p2'), CONFIG.players.p1.label, CONFIG.players.p2.label);
+		topBarChange = true;
+		fireEvent('characterChange', slot, charId);
+		if ($ctx && gameState !== 'playing') drawAll($ctx, lastTime);
+		return true;
+	}
+
+	function canPickCharacters() {
+		return (CONFIG.characterSkin || {}).mode === 'custom' && !!customSkinMeta() && characterList().length > 2;
+	}
+
+	// step through the library, skipping the other player's character so both stay recognisable
+	function cycleCharacter(slot, dir) {
+		if (!canPickCharacters()) {
+			return false;
+		}
+		var cs = CONFIG.characterSkin, list = characterList(), other = cs[slot === 'p1' ? 'p2' : 'p1'];
+		var i = list.map(function(c) { return c.id; }).indexOf(cs[slot]);
+		for (var n = 0; n < list.length; ++n) {
+			i = (i + dir + list.length) % list.length;
+			if (list[i].id !== other) break;
+		}
+		return setCharacter(slot, list[i].id);
 	}
 
 	// SHOT: extracted from start() so Game.reset() can rebuild the round in place
@@ -1855,14 +1907,12 @@
 		var overrides = ext({}, CONFIG.sprites || {});
 		if (CONFIG.players.p1.sheet) overrides.kidP1 = CONFIG.players.p1.sheet;
 		if (CONFIG.players.p2.sheet) overrides.kidP2 = CONFIG.players.p2.sheet;
-		var meta = customSkinMeta();
-		if (meta) {
-			overrides.customP1 = meta.p1.file;
-			overrides.customP2 = meta.p2.file;
-			if (meta.anim) {
-				overrides.customAnimP1 = meta.anim.p1.file;
-				overrides.customAnimP2 = meta.anim.p2.file;
-			}
+		if ((CONFIG.characterSkin || {}).mode === 'custom') {
+			characterList().forEach(function(c) { // all friends, so the selector can switch without loading
+				var m = characterMeta(c.id);
+				overrides['char_' + c.id] = m.sprite.file;
+				if (m.anim) overrides['charAnim_' + c.id] = m.anim.file;
+			});
 		}
 		global.ShotSprites.load(overrides, init);
 	}
@@ -1893,6 +1943,10 @@
 			start();
 		}
 	};
+	Game.characters = function() { // the library: [{ id, name, animated }] usable for either player
+		return characterList().map(function(c) { var m = characterMeta(c.id); return { id: c.id, name: m.name, animated: !!m.anim }; });
+	};
+	Game.setCharacter = function(slot, charId) { return setCharacter(slot, charId); }; // 'p1' | 'p2'
 	Game.pause = function() { return pauseGame(); };
 	Game.resume = function() { return resumeGame(); };         // with the 3-2-1 countdown
 	Game.quitRound = function() {                               // abandon without confirmation (API)

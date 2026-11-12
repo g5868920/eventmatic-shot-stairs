@@ -39,5 +39,105 @@ window.SHOT_CUSTOM_SKINS = {
       "h": 47,
       "anchorX": 11.5
     }
+  },
+  "ariel": {
+    "32": {
+      "file": "assets/characters/custom/ariel-32.png",
+      "w": 18,
+      "h": 31,
+      "anchorX": 9.0
+    },
+    "40": {
+      "file": "assets/characters/custom/ariel-40.png",
+      "w": 22,
+      "h": 39,
+      "anchorX": 10.5
+    },
+    "48": {
+      "file": "assets/characters/custom/ariel-48.png",
+      "w": 27,
+      "h": 47,
+      "anchorX": 13.0
+    }
+  },
+  "cindy": {
+    "32": {
+      "file": "assets/characters/custom/cindy-32.png",
+      "w": 16,
+      "h": 32,
+      "anchorX": 7.5
+    },
+    "40": {
+      "file": "assets/characters/custom/cindy-40.png",
+      "w": 19,
+      "h": 40,
+      "anchorX": 9.0
+    },
+    "48": {
+      "file": "assets/characters/custom/cindy-48.png",
+      "w": 23,
+      "h": 48,
+      "anchorX": 11.0
+    }
+  },
+  "ken": {
+    "32": {
+      "file": "assets/characters/custom/ken-32.png",
+      "w": 13,
+      "h": 32,
+      "anchorX": 5.0
+    },
+    "40": {
+      "file": "assets/characters/custom/ken-40.png",
+      "w": 16,
+      "h": 40,
+      "anchorX": 7.0
+    },
+    "48": {
+      "file": "assets/characters/custom/ken-48.png",
+      "w": 19,
+      "h": 48,
+      "anchorX": 8.0
+    }
+  },
+  "linda": {
+    "32": {
+      "file": "assets/characters/custom/linda-32.png",
+      "w": 15,
+      "h": 31,
+      "anchorX": 7.5
+    },
+    "40": {
+      "file": "assets/characters/custom/linda-40.png",
+      "w": 19,
+      "h": 39,
+      "anchorX": 9.5
+    },
+    "48": {
+      "file": "assets/characters/custom/linda-48.png",
+      "w": 23,
+      "h": 46,
+      "anchorX": 11.5
+    }
+  },
+  "sandy": {
+    "32": {
+      "file": "assets/characters/custom/sandy-32.png",
+      "w": 16,
+      "h": 31,
+      "anchorX": 6.5
+    },
+    "40": {
+      "file": "assets/characters/custom/sandy-40.png",
+      "w": 20,
+      "h": 39,
+      "anchorX": 8.0
+    },
+    "48": {
+      "file": "assets/characters/custom/sandy-48.png",
+      "w": 24,
+      "h": 47,
+      "anchorX": 9.5
+    }
   }
 };

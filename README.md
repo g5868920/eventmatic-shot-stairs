@@ -34,7 +34,7 @@ Controls belong to the player, not to a side of the screen, so they keep working
 The game opens on a pixel-art How to Play screen; losing window focus or hiding the tab pauses a running round.
 A quit round has no winner, no loser and no penalty.
 
-Character look: `characterSkin.mode` in `config.js` switches between the classic kids and the custom Gina / Rae portrait prototype (`?skin=classic` or `?skin=custom&skinHeight=40` for a quick look). See docs/CHARACTERS.md.
+Characters: seven friends (Gina, Rae, Ariel, Cindy, Ken, Linda, Sandy) in `assets/characters/custom/characters.js`; any of them can play 1P or 2P. On the title screen 2P picks with Z / C and 1P with ← / → (or click the small arrows); Enter starts as usual and the choice stays for rematches. Defaults: 1P Rae, 2P Gina (`characterSkin` in `config.js`; `?skin=classic` for the original kids). Gina and Rae are animated; the other five use their static sprite. See docs/CHARACTERS.md.
 Background music: "8 Bit Retro Game Music" by moodmode (Pixabay); see docs/AUDIO.md for credits, license and Content ID notes.
 
 ## Rules (unchanged from the original except where noted)

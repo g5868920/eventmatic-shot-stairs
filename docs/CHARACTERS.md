@@ -126,3 +126,19 @@ Gina's hands stay at her cheeks in the head pixels during every state (they read
 
 Previews: `anim-sheets.png` (all frames), `ingame-walk-cycle.png` (six walk frames captured from
 the running game), `static-vs-animated.png` (same scene, plus a fall and a landing).
+
+## Character library (2026-11-13)
+
+Seven friends can be assigned to either player: **Gina, Rae, Ariel, Cindy, Ken, Linda, Sandy**. Player identity (1P / 2P, controls ← → / Z C, colours, HUD side, 26 px hitbox) never depends on the character.
+
+**Registry:** `assets/characters/custom/characters.js` (`window.SHOT_CHARACTERS`). Each entry: `id`, `name` (display name), `source` (full-resolution portrait). Optional: `animated: false`, `flip: false`, and any custom fields (ignored by the game). Rendering metadata is generated: `skins.js` (32 / 40 / 48 px sprite size and foot anchor per id) and `anims.js` (animation sheets, Gina and Rae only). To add a friend: put `<id>-q-version.png` in `source/`, add an entry, run `python3 tools/build_custom_skins.py`.
+
+**Pipeline:** unchanged from Gina / Rae (trim alpha > 16, premultiplied area average, alpha snapped at 50 %, foot anchor = centre of the shoes). The shared scale stays pinned to the approved Gina / Rae set, so their sprites are byte-identical; a newcomer taller than the target is capped. 48 px results: Ariel 27×47, Cindy 23×48, Ken 19×48, Linda 23×46, Sandy 24×47 (Gina 24×48, Rae 24×47).
+
+**Sources:** the five portraits arrived as WebP chat attachments (1023–1024 × 1536–1537, with alpha). They were decoded once to PNG without editing (`source/<id>-q-version.png`); replace them with your original PNG files if you have them and rerun the build. Attachment order mapped to names as listed: hat + red scarf → Ariel, brown newsboy cap → Cindy, black cap + red tee → Ken, red hair → Linda, light-brown hair + blue dress → Sandy.
+
+**Animation limitation:** only Gina and Rae have hand-rigged sheets (idle / walk / fall / land / hurt). Ariel, Cindy, Ken, Linda and Sandy have no animation frames; they use the existing static-skin path: mirrored by walking direction, 1 px walking bob, damage blink. No placeholder animation was generated. Animation is now decided per character, so Rae stays animated next to a static friend. Mirroring flips lettering on Ariel's hat and Ken's cap (not legible at 48 px).
+
+**Selection:** optional, on the existing title screen (no extra step). 2P cycles with Z / C, 1P with ← / → (movement keys do nothing else before a round), or the small arrows by each name (semantic buttons). The other player's current character is skipped. Enter starts as before; Space still does not. The choice is kept across rematches and quits until changed; it is not stored across page reloads. API: `ShotStairs.characters()`, `ShotStairs.setCharacter('p1' | 'p2', id)`; event `characterChange`. `players.pN.name` still overrides the character's name.
+
+**Verification:** `tests/character-tests.js` (11 checks): library and metadata, all 7 characters in both slots with identical walk / push traces to the default pair and a 26 px hitbox, five pairings with result names and rematch persistence, keyboard / pointer selection, name override, no errors. Full harness 135/135; deterministic trace identical to `8fc7181` (default pair). Captures in `docs/evidence/characters/`; gallery fixture `tests/characters-gallery.html`.

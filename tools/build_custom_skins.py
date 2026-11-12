@@ -2,26 +2,31 @@
 """
 Builds game-ready custom character sprites (prototype) from full-size portraits.
 
-Input : assets/characters/custom/source/<name>-q-version.png   (1024x1536 RGBA, never modified)
+Input : assets/characters/custom/source/<name>-q-version.png   (about 1024x1536 RGBA, never modified)
+        for every id in assets/characters/custom/characters.js
 Output: assets/characters/custom/<name>-<H>.png                 (H = 32, 40, 48 game px tall)
         assets/characters/custom/skins.js                       (sizes + foot anchors for the renderer)
 
 Steps per portrait:
   1. trim transparent padding (alpha > 16)
-  2. one common scale for all portraits (based on the tallest trimmed figure) so their relative
-     size is preserved, then premultiplied-alpha area averaging (no dark/white fringes)
+  2. one common scale for all portraits (based on the tallest trimmed Gina / Rae figure) so their
+     relative size is preserved (a taller newcomer is capped at the target height), then premultiplied-alpha area averaging (no dark/white fringes)
   3. alpha snapped to fully opaque / transparent at 50 % so edges stay crisp under
      nearest-neighbour rendering; colours un-premultiplied
   4. foot anchor = centre of the opaque columns in the bottom 12 % of the sprite (the shoes),
      so the figure, not its hair, is centred over the hitbox
 Pure Python (no imaging library needed). Run: python3 tools/build_custom_skins.py
 """
-import json, os, struct, sys, zlib
+import json, os, re, struct, sys, zlib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR = os.path.join(ROOT, 'assets', 'characters', 'custom')
 SRC = os.path.join(DIR, 'source')
-NAMES = ['gina', 'rae']
+# every character in the library (assets/characters/custom/characters.js), in registry order
+NAMES = re.findall(r"\bid:\s*'([a-z0-9_-]+)'", open(os.path.join(DIR, 'characters.js')).read())
+# The shared scale stays pinned to the approved Gina / Rae set (tallest of them = H px), so adding friends
+# never changes existing sprites; a newcomer taller than that is capped at H.
+REFERENCE = ['gina', 'rae']
 HEIGHTS = [32, 40, 48]
 
 
@@ -131,12 +136,12 @@ def main():
         b = bbox(w, h, rows)
         srcs[name] = (rows, b)
         print(f'{name}: source {w}x{h}, trimmed box {b} ({b[2]-b[0]}x{b[3]-b[1]})')
-    tallest = max(b[3] - b[1] for _, b in srcs.values())
+    tallest = max(srcs[n][1][3] - srcs[n][1][1] for n in REFERENCE if n in srcs)
     meta = {}
     for H in HEIGHTS:
-        scale = H / tallest
         for name in NAMES:
             rows, b = srcs[name]
+            scale = min(H / tallest, H / (b[3] - b[1]))
             ow, oh, px = downscale(rows, b, scale)
             fname = f'{name}-{H}.png'
             write_png(os.path.join(DIR, fname), ow, oh, px)

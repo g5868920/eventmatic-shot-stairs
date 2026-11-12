@@ -9,7 +9,7 @@
   var root=document.createElement('div');root.className='shot-screen-actions';root.setAttribute('aria-label','Game screen actions');
   var style=document.createElement('style');style.textContent='.shot-screen-actions{position:absolute;pointer-events:none}.shot-screen-actions button{position:absolute;pointer-events:auto;margin:0;padding:0;background:transparent;border:0;border-radius:0;color:transparent;font-size:0;cursor:pointer}.shot-screen-actions button:focus-visible{outline:2px solid #fff3da;outline-offset:2px;box-shadow:0 0 0 4px #211b38}.shot-screen-actions button[hidden]{display:none}';
   wrap.style.position='relative';wrap.appendChild(style);wrap.appendChild(root);canvas.tabIndex=0;
-  var buttons=[];for(var i=0;i<2;i++){var b=document.createElement('button');b.type='button';b.hidden=true;root.appendChild(b);buttons.push(b);}
+  var buttons=[];for(var i=0;i<6;i++){var b=document.createElement('button');b.type='button';b.hidden=true;root.appendChild(b);buttons.push(b);}
   function click(e){var b=e.target;if(!b.dataset.action||b.disabled||b.hidden)return;action(b.dataset.action);}
   // Global Enter/Space/Escape continue through the original engine handlers, even with a focused button.
   root.addEventListener('click',click);
@@ -31,6 +31,8 @@
   function ribbon(y,s){rect(68,y,260,22,T.gold);rect(64,y+4,4,14,T.gold);rect(328,y+4,4,14,T.gold);label(s,198,y+7,1,T.bg,248,14);}
   function button(y,s,id){box(65,y,266,32,T.gold,T.gold);label(s,198,y+11,2,T.bg,246,17);return {id:id,label:String(s),x:65,y:y,w:266,h:32};}
   function secondary(y,s,id,w,scale){label(s,198,y+6,scale||1,T.muted,w||294,18);return {id:id,label:String(s),x:Math.floor(198-(w||294)/2),y:y,w:w||294,h:24};}
+  function tri(x,y,dir,color){for(var i=0;i<4;i++)rect(dir<0?x+i:x+3-i,y+3-i,1,1+2*i,color);}
+  function arrowAction(x,id,label){return {id:id,label:label,x:x-7,y:378,w:18,h:22};}
   function star(x,y){rect(x,y-3,1,7,T.gold);rect(x-3,y,7,1,T.gold);rect(x-1,y-1,3,3,T.gold);}
   function fmt(s,v){return String(s||'').replace(/\{(\w+)\}/g,function(_,k){return v[k]===undefined?'':v[k];});}
   function keys(k){return [k.left,k.right].map(function(x){return String(x).replace('Key','').replace('ArrowLeft','←').replace('ArrowRight','→');}).join('  ');}
@@ -41,14 +43,19 @@
    if(d.state==='playing'){if(lastState!=='playing'){sync([]);key='';}lastState=d.state;return null;}
    if(d.state==='ready'&&lastState!=='ready')view='title';
    var names=d.names,t=d.cfg.text,p=d.cfg.penalty,result=d.result,actions=[];
-   var next=[d.state,view,d.count,d.locked,names.join('\n'),JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
+   var next=[d.state,view,d.count,d.locked,names.join('\n'),d.pick,JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
    if(next!==key){key=next;builds++;layout=[];issues=[];c.clearRect(0,0,396,532);rect(19,61,358,471,T.bg);
     if(d.state==='ready'&&view==='title'){
      box(34,83,328,410);label('EVENTMATIC ARCADE CLUB',198,104,1,T.muted);star(65,148);star(329,197);star(73,266);star(321,324);
      label('SHOT',201,145,10,'#120e23');label('SHOT',198,141,10,T.gold);label('THE STAIRS',198,226,4,T.ink);ribbon(269,'GOOD FRIENDS. BAD INFLUENCE.');
      d.portrait(c,d.heroes[1],139,369);d.portrait(c,d.heroes[0],257,369);c.drawImage(S.images.blueBrick,99,369);c.drawImage(S.images.stone,217,369);
-     label(names[1],139,389,1,T.p2,110,17);label(names[0],257,389,1,T.p1,110,17);actions.push(button(426,'ENTER - START','start'));label('2 PLAYERS / ONE KEYBOARD',198,474,1,T.muted);actions.push(secondary(500,'H - HOW TO PLAY','help',126));
-     summary='SHOT THE STAIRS. '+names[1]+' and '+names[0]+'. Enter to start. H for optional How to Play.';
+     if(d.pick){ // optional character choice: 2P Z/C, 1P arrows (no extra screen; Enter still starts)
+      label(names[1],139,389,1,T.p2,84,17);label(names[0],257,389,1,T.p1,84,17);tri(88,389,-1,T.gold);tri(188,389,1,T.gold);tri(206,389,-1,T.gold);tri(306,389,1,T.gold);
+      label(keys(d.cfg.players.p2.keys).replace('  ',' / '),139,402,1,T.muted,84,10);label(keys(d.cfg.players.p1.keys).replace('  ',' / '),257,402,1,T.muted,84,10);
+     }else{label(names[1],139,389,1,T.p2,110,17);label(names[0],257,389,1,T.p1,110,17);}
+     actions.push(button(426,'ENTER - START','start'));label('2 PLAYERS / ONE KEYBOARD',198,474,1,T.muted);actions.push(secondary(500,'H - HOW TO PLAY','help',126));
+     if(d.pick){actions.push(arrowAction(90,'p2-prev','Previous character for 2P'));actions.push(arrowAction(190,'p2-next','Next character for 2P'));actions.push(arrowAction(208,'p1-prev','Previous character for 1P'));actions.push(arrowAction(308,'p1-next','Next character for 1P'));}
+     summary='SHOT THE STAIRS. '+names[1]+' and '+names[0]+'. Enter to start. H for optional How to Play.'+(d.pick?' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.':'');
     }else if(d.state==='ready'){
      box(27,70,342,445);label('HOW TO PLAY',198,88,3,T.ink);d.portrait(c,d.heroes[1],112,166);d.portrait(c,d.heroes[0],284,166);
      label(d.cfg.players.p2.label+' '+names[1],112,177,2,T.p2,145,18);label(d.cfg.players.p1.label+' '+names[0],284,177,2,T.p1,145,18);label(keys(d.cfg.players.p2.keys),112,201,2,T.gold,145,17);label(keys(d.cfg.players.p1.keys),284,201,2,T.gold,145,17);label('MOVE LEFT / RIGHT',198,226,1,T.muted);rect(46,246,304,1,T.wallHi);

@@ -4,6 +4,7 @@
  for(let n=0;n<100&&!w.Game?._debugScreens();n++)await new Promise(r=>setTimeout(r,50));await new Promise(r=>setTimeout(r,80));w.requestAnimationFrame=()=>0;w.performance.now=()=>1000;const G=w.Game;let raw=1000;
  const key=code=>{w.dispatchEvent(new w.KeyboardEvent('keydown',{code,bubbles:true}));w.dispatchEvent(new w.KeyboardEvent('keyup',{code,bubbles:true}));};const click=id=>w.document.querySelector('[data-action="'+id+'"]').click();
  const name=q.get('names');if(name==='chinese')G.configure({players:{p1:{name:'小蕊'},p2:{name:'吉娜'}}});if(name==='long')G.configure({players:{p1:{name:'小蕊宇宙無敵超級歡樂派對玩家'},p2:{name:'GINA THE EXTRAORDINARILY MISCHIEVOUS PARTY FRIEND'}}});
+ for(const slot of ['p1','p2'])if(q.has(slot))G.setCharacter(slot,q.get(slot)); // optional character choice
  const screen=q.get('screen')||'title';
  if(name){G.reset();G._debugFrame(raw);G.quitRound();}
  if(screen==='howto')click('help');

@@ -25,6 +25,9 @@
     pause: function () { return Game.pause(); },
     resume: function () { return Game.resume(); },
     quitRound: function () { return Game.quitRound(); },
+    /** Character library: characters() -> [{ id, name, animated }]; setCharacter('p1' | 'p2', id) (cosmetic only). */
+    characters: function () { return Game.characters(); },
+    setCharacter: function (slot, id) { return Game.setCharacter(slot, id); },
 
     /** { state: 'ready'|'playing'|'paused'|'quit'|'countdown'|'over', running, countdown, players:[...], lastResult } */
     getState: function () { return Game.getState(); },

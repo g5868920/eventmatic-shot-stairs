@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><link rel="icon" href="data:,">
+<title>SHOT character gallery</title>
+<style>html,body{margin:0;background:#1c0f22}canvas{display:block;margin:16px auto;image-rendering:pixelated}</style>
+<!-- Seven-friend preview at actual gameplay size, using the production library, generated sprites, foot
+     anchors and the engine's placement rule (Hero.drawSkin). ?zoom=3 (default) scales the native canvas. -->
+<canvas id="gallery"></canvas>
+<script src="../config.js"></script>
+<script src="../assets/characters/custom/characters.js"></script>
+<script src="../assets/characters/custom/skins.js"></script>
+<script src="../assets/characters/custom/anims.js"></script>
+<script src="../arcade-visuals.js"></script>
+<script src="../sprites.js"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), Z = Number(q.get('zoom') || 3), H = '48';
+  var lib = window.SHOT_CHARACTERS, skins = window.SHOT_CUSTOM_SKINS, anims = window.SHOT_CUSTOM_ANIMS;
+  var extra = {}; lib.forEach(function (c) { extra['char_' + c.id] = skins[c.id][H].file; if (anims[c.id]) extra['charAnim_' + c.id] = anims[c.id].file; });
+  // sprites.js resolves relative to the page; the gallery lives in tests/
+  Object.keys(extra).forEach(function (k) { extra[k] = '../' + extra[k]; });
+  ShotSprites.load(extra, function (S) {
+    var T = S.arcade.tokens, COL = 56, W = COL * lib.length, HT = 196, cv = document.getElementById('gallery');
+    cv.width = W * Z; cv.height = HT * Z; cv.style.width = W * Z + 'px';
+    var ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.scale(Z, Z);
+    ctx.fillStyle = T.bg; ctx.fillRect(0, 0, W, HT);
+    S.font.draw(ctx, 'SHOT THE STAIRS - 7 FRIENDS - ACTUAL 48 PX GAME SPRITES', W / 2, 6, { scale: 1, color: T.muted, align: 'center' });
+    lib.forEach(function (c, k) {
+      var cx = COL * k + COL / 2, m = skins[c.id][H], a = anims[c.id];
+      [[74, 1], [146, -1]].forEach(function (row) {
+        var floorY = row[0], facing = row[1], x0 = cx - 13; // 26 px hitbox, as in the engine
+        ctx.drawImage(S.images.blueBrick, 0, 0, 50, 12, cx - 25, floorY, 50, 12);
+        ctx.save();
+        if (facing < 0) { ctx.scale(-1, 1); ctx.translate(-x0 - 26, floorY); } else ctx.translate(x0, floorY);
+        if (a) ctx.drawImage(S.images['charAnim_' + c.id], 0, 0, a.frameW, a.frameH, Math.round(13 - a.anchorX), -a.anchorBottom, a.frameW, a.frameH);
+        else ctx.drawImage(S.images['char_' + c.id], Math.round(13 - m.anchorX), -m.h, m.w, m.h);
+        ctx.restore();
+        ctx.fillStyle = T.green; ctx.fillRect(x0, floorY + 13, 26, 1); // collision width marker
+      });
+      S.font.draw(ctx, c.name.toUpperCase(), cx, 90, { scale: 1, color: k % 2 ? T.p1 : T.p2, align: 'center' });
+      S.font.draw(ctx, a ? 'ANIMATED' : 'STATIC', cx, 162, { scale: 1, color: a ? T.gold : T.muted, align: 'center' });
+      S.font.draw(ctx, m.w + 'X' + m.h, cx, 172, { scale: 1, color: T.muted, align: 'center' });
+    });
+    S.font.draw(ctx, 'TOP: FACING RIGHT   BOTTOM: FACING LEFT   GREEN: 26 PX HITBOX', W / 2, 184, { scale: 1, color: T.muted, align: 'center' });
+    document.body.dataset.ready = 'true';
+  });
+})();
+</script>
+</html>

@@ -30,13 +30,40 @@
       textCache.set(key,a);return a;
     }
     function center(c,label,x,y){c.drawImage(label,Math.round(x-label.width/2),Math.round(y));}
+    var flipSheet;
     function installArt(){
       var a,c,x,y;
       a=canvas(80,12);c=a.getContext('2d');rect(c,0,0,80,12,T.blue);rect(c,0,0,80,2,T.blueHi);rect(c,0,6,80,1,'#28558c');rect(c,0,10,80,2,'#244971');for(x=0;x<80;x+=20){rect(c,x,2,1,4,'#28558c');rect(c,x+10,7,1,4,'#28558c');rect(c,x+2,3,9,1,T.blueHi);}S.images.blueBrick=a;
       a=canvas(80,12);c=a.getContext('2d');rect(c,0,0,80,12,T.brown);rect(c,0,0,80,2,T.brownHi);for(x=0;x<80;x+=16){rect(c,x,2,1,9,'#694c38');rect(c,x+4,5,7,1,T.brownHi);}rect(c,3,6,2,2,T.ink);rect(c,75,6,2,2,T.ink);S.images.stone=a;
       a=canvas(80,12);c=a.getContext('2d');rect(c,0,0,80,12,T.steel);rect(c,0,0,80,2,T.ink);rect(c,0,9,80,3,'#536078');rect(c,0,11,80,1,T.danger);S.images.steel=a;
       a=canvas(10,15);c=a.getContext('2d');for(y=0;y<15;y++)rect(c,4-Math.floor(y/3),y,1+Math.floor(y/3)*2,1,y<5?T.ink:T.steel);S.images.spikes=a;
-      for(var dir=-1;dir<=1;dir+=2){a=canvas(80,48);c=a.getContext('2d');for(var f=0;f<4;f++){var yy=f*12;rect(c,0,yy,80,12,T.steel);rect(c,0,yy,80,2,T.ink);rect(c,0,yy+9,80,3,'#536078');for(x=3;x<77;x+=10){rect(c,x,yy+3,6,5,'#57657d');rect(c,x+1+(f%3),yy+3,2,2,T.ink);}S.font.draw(c,dir>0?'→':'←',18,yy+2,{color:T.bg});S.font.draw(c,dir>0?'→':'←',48,yy+2,{color:T.bg});}S.images[dir>0?'conveyorRight':'conveyorLeft']=a;}
+      for(var dir=-1;dir<=1;dir+=2){
+        a=canvas(80,48);c=a.getContext('2d');
+        for(var f=0;f<4;f++){
+          var yy=f*12;rect(c,0,yy,80,12,T.steel);rect(c,0,yy,80,2,T.ink);rect(c,0,yy+9,80,3,'#536078');
+          for(x=3;x<77;x+=10){rect(c,x,yy+3,6,5,'#57657d');rect(c,x+1+(f%3),yy+3,2,2,T.ink);}
+          c.save();c.beginPath();c.rect(3,yy+2,74,7);c.clip();
+          // Left frames advance; right frames run backwards. A 24 px repeat makes the loop seamless.
+          for(var ax=-24-f*6;ax<80;ax+=24){
+            rect(c,ax-1,yy+2,15,7,T.bg);rect(c,ax+(dir>0?0:3),yy+4,10,3,T.gold);
+            for(var row=0;row<7;row++){var head=4-Math.abs(row-3);rect(c,ax+(dir>0?9:4-head),yy+2+row,head,1,T.gold);}
+          }
+          c.restore();
+        }
+        S.images[dir>0?'conveyorRight':'conveyorLeft']=a;
+      }
+      // Cached rotation poses: top face, edge, underside, then a final thin edge before removal.
+      flipSheet=canvas(80,84);var flipCtx=flipSheet.getContext('2d');flipCtx.imageSmoothingEnabled=false;
+      var flipHeights=[12,8,2,6,10,6,2];
+      for(var pose=0;pose<flipHeights.length;pose++){
+        var fh=flipHeights[pose],fy=pose*12+Math.floor((12-fh)/2);
+        if(pose<3)flipCtx.drawImage(S.images.stone,0,0,80,12,0,fy,80,fh);
+        else{
+          rect(flipCtx,0,fy,80,fh,'#694c38');rect(flipCtx,0,fy+fh-1,80,1,'#493828');
+          for(x=16;x<80;x+=24)rect(flipCtx,x,fy,3,fh,T.brown);
+          rect(flipCtx,7,fy+Math.max(0,Math.floor(fh/2)-1),2,2,T.brownHi);rect(flipCtx,71,fy+Math.max(0,Math.floor(fh/2)-1),2,2,T.brownHi);
+        }
+      }
       a=canvas(80,12*18);c=a.getContext('2d');for(var h=7;h<=18;h++){var offset=(h-7)*18,top=offset+18-h;rect(c,0,offset+15,80,3,'#41744f');for(x=10;x<80;x+=22){rect(c,x,top+3,3,Math.max(1,h-6),T.green);rect(c,x-3,top+Math.floor(h/2),9,2,T.green);}rect(c,0,top,80,4,T.green);rect(c,2,top,76,1,'#e0ffc3');S.font.draw(c,'↑',37,top,{color:'#28533c'});}S.images.spring=a;
       a=canvas(18,480);c=a.getContext('2d');for(y=0;y<480;y+=16){rect(c,0,y,18,15,T.wall);rect(c,0,y,18,1,T.wallHi);rect(c,y%32?4:12,y,1,15,T.wallHi);}S.images.wall=a;
       a=canvas(360,S.images.ceiling.height);c=a.getContext('2d');for(x=0;x<360;x+=12)for(y=0;y<a.height;y++)rect(c,x+Math.floor(y/3),y,Math.max(0,10-Math.floor(y/3)*2),1,y<3?T.wallHi:T.steel);S.images.ceiling=a;
@@ -92,6 +119,11 @@ if(canvasNode){canvasNode.setAttribute('role','img');canvasNode.setAttribute('ar
     }if(active>peak)peak=active;}
     function contact(a,b,time){var touching=Math.abs(a.y-b.y)<26&&Math.abs(Math.abs(a.x-b.x)-26)<0.05;if(touching&&!pushHeld){var e=add(5,null,'BUMP',T.ink,time,260);e.x=(a.x+b.x+26)/2;e.y=(a.y+b.y)/2;pushBursts++;}pushHeld=touching;}
     return {
+      flipping:function(c,x,y,w,remaining){
+        if(remaining<=0)return;
+        var pose=Math.min(6,Math.floor((1-Math.min(1,remaining))*7));
+        S.slice(c,flipSheet,pose*12,12,x,y-12,w,1);
+      },
       tokens:T,reset:reset,identities:identities,clock:function(t){clock=t;},field:drawField,hud:hudDraw,marker:marker,effects:effects,contact:contact,
       land:function(h,delta){lastLandDelta=delta;if(delta>0)add(1,h,'+'+delta+' LAND',T.green,clock,500);},
       beer:function(h,delta,time){lastBeerDelta=delta;if(delta>0)add(2,h,'+'+delta+' BEER',T.green,time,650);},

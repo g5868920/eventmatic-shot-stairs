@@ -391,6 +391,10 @@
 			// SHOT: skin only. Upstream drew a grey bar; solid part keeps its skin, the part that has
 			// "turned" is drawn faded so the player can see it is no longer solid.
 			var sheet = skinSheet('fake');
+			if (arcade && sheet === $S.images.stone) {
+				arcade.flipping(context, this.x, this.y, this.width, this.height / FLOOR_HEIGHT);
+				return;
+			}
 			if (this.height >= FLOOR_HEIGHT) {
 				$S.drawFloor(context, sheet, this.x, this.y, this.width);
 			} else {

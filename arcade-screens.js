@@ -46,12 +46,12 @@
   var titleGlyphs=new Map();
   function titleGlyph(ch,px){px=px||21;var key=ch+'|'+px;if(titleGlyphs.has(key))return titleGlyphs.get(key);var cw=px+2,ch_=px+5,a=document.createElement('canvas');a.width=cw;a.height=ch_;var g=a.getContext('2d');g.font='600 '+px+'px "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif';g.textBaseline='alphabetic';g.fillText(ch,1,px);var p=g.getImageData(0,0,cw,ch_).data,pts=[];for(var y=0;y<ch_;y++)for(var x=0;x<cw;x++)if(p[(y*cw+x)*4+3]>=140)pts.push(x,y);var d={points:pts,adv:px+1,h:ch_};titleGlyphs.set(key,d);return d;}
   function titleCJK(str,x,y,color,px){var at=x,sc=2,h=0;c.fillStyle=color;for(var ch of str){var d=titleGlyph(ch,px);for(var n=0;n<d.points.length;n+=2)c.fillRect(at+d.points[n]*sc,y+d.points[n+1]*sc,sc,sc);at+=d.adv*sc;h=d.h*sc;}layout.push({text:str,display:str,x:x,y:y,w:at-x,h:h,scale:sc,truncated:false});return at-x;}
-  function titleArt(y){var shot=measure('SHOT').w*6,cjk=2*20*2,gap=7,x=Math.round(198-(shot+gap+cjk)/2),top=y+38;
-   titleCJK('小朋友',154,y+3,'#120e23',14);titleCJK('小朋友',152,y,T.ink,14);
+  function titleArt(y){var shot=measure('SHOT').w*6,gap=6,cjk=2*20*2,x=Math.round(198-(shot+gap+cjk)/2),top=y+34;
+   titleCJK('小朋友',x+3,y+3,'#120e23',14);titleCJK('小朋友',x,y,T.ink,14);
    label('SHOT',x+3,top+4,6,'#120e23',330,70,1,'left');label('SHOT',x,top,6,T.gold,330,70,1,'left');
    var cx=x+shot+gap,cy=top;titleCJK('樓梯',cx+3,cy+4,'#120e23',19);titleCJK('樓梯',cx,cy,T.ink,19);}
   // one player slot (no frame): 2x idle sprite on its platform, name between arrows, one "2P  Z / C" line
-  function card(cx,hero,name,color,id,keyText,brick,pick,acts){var feet=282;
+  function card(cx,hero,name,color,id,keyText,brick,pick,acts,feet){
    c.save();c.translate(Math.round(cx),feet);c.scale(2,2);d_.portrait(c,hero,0,0);c.restore();c.drawImage(brick,0,0,80,12,Math.round(cx-40),feet,80,12);
    label(name,cx,feet+20,2,color,96,16);label(id+'  '+keyText,cx,feet+40,1,T.muted,120,8);
    if(pick){tri(cx-60,feet+23,-1,T.gold);tri(cx+56,feet+23,1,T.gold);var slot=id==='2P'?'p2':'p1';acts.push({id:slot+'-prev',label:'Previous character for '+id,x:cx-67,y:feet+13,w:18,h:24});acts.push({id:slot+'-next',label:'Next character for '+id,x:cx+49,y:feet+13,w:18,h:24});}}
@@ -68,14 +68,15 @@
    var next=[d.state,view,d.count,d.locked,names.join('\n'),d.pick,d.mode,JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
    if(next!==key){key=next;builds++;layout=[];issues=[];c.clearRect(0,0,396,532);rect(19,61,358,471,T.bg);
     if(d.state==='ready'&&view==='title'){
-     rect(0,0,396,61,T.bg);box(34,26,328,446);label('EVENTMATIC ARCADE CLUB',198,42,1,T.wallHi);star(68,66);star(328,60);
-     titleArt(58);label('GOOD FRIENDS. BAD INFLUENCE.',198,148,1,T.muted);
-     var solo=d.mode==='solo',picks=[];d_=d;
-     if(solo)card(198,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks);
-     else{card(118,d.heroes[1],names[1],T.p2,'2P',keys(d.cfg.players.p2.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks);
-      card(278,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.stone,d.pick,picks);
-      label('VS',200,234,2,'#120e23');label('VS',198,232,2,T.accent);} // retro VS accent, versus only
-     actions.push(startButton(354,'ENTER - START','start',212));modeToggle(400,d.mode).forEach(function(a){actions.push(a);});label('\u2191 / \u2193  OR  1 / 2  -  MODE',198,422,1,T.wallHi,294,8);actions.push(secondary(440,'H - HOW TO PLAY','help',126));
+     var B=68;rect(0,0,396,61,T.bg);box(34,B,328,396);label('EVENTMATIC ARCADE CLUB',198,B+16,1,T.wallHi);star(64,B+44);star(332,B+40);
+     titleArt(B+32);label('GOOD FRIENDS. BAD INFLUENCE.',198,B+120,1,T.muted);
+     modeToggle(B+138,d.mode).forEach(function(a){actions.push(a);});   // 1 / 2 or up / down also switch
+     var solo=d.mode==='solo',picks=[],feet=B+262;d_=d;
+     if(solo)card(198,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks,feet);
+     else{card(128,d.heroes[1],names[1],T.p2,'2P',keys(d.cfg.players.p2.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks,feet);
+      card(268,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.stone,d.pick,picks,feet);
+      label('VS',200,feet-52,2,'#120e23');label('VS',198,feet-54,2,T.accent);} // retro VS accent, versus only
+     actions.unshift(startButton(B+328,'ENTER - START','start',212));actions.push(secondary(B+366,'H - HOW TO PLAY','help',126));
      picks.forEach(function(a){actions.push(a);});
      summary='小朋友SHOT樓梯. '+(solo?'1 player solo: '+names[0]:'2 players versus: '+names[1]+' and '+names[0])+'. Up / Down or 1 / 2 changes mode. Enter to start. H for optional How to Play.'+(d.pick?(solo?' Change character: '+keys(d.cfg.players.p1.keys)+'.':' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.'):'');
     }else if(d.state==='ready'){

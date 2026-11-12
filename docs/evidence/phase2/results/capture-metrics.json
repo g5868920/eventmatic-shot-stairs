@@ -1,0 +1,2340 @@
+[
+  {
+    "file": "title-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 1,
+        "textCache": 10,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "SHOT THE STAIRS. gina and rae. Enter to start. H for optional How to Play.",
+        "layout": [
+          {
+            "text": "EVENTMATIC ARCADE CLUB",
+            "display": "EVENTMATIC ARCADE CLUB",
+            "x": 133,
+            "y": 104,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "SHOT",
+            "display": "SHOT",
+            "x": 86,
+            "y": 145,
+            "w": 230,
+            "h": 70,
+            "scale": 10,
+            "truncated": false
+          },
+          {
+            "text": "SHOT",
+            "display": "SHOT",
+            "x": 83,
+            "y": 141,
+            "w": 230,
+            "h": 70,
+            "scale": 10,
+            "truncated": false
+          },
+          {
+            "text": "THE STAIRS",
+            "display": "THE STAIRS",
+            "x": 80,
+            "y": 226,
+            "w": 236,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "GOOD FRIENDS. BAD INFLUENCE.",
+            "display": "GOOD FRIENDS. BAD INFLUENCE.",
+            "x": 115,
+            "y": 276,
+            "w": 167,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "gina",
+            "display": "gina",
+            "x": 128,
+            "y": 389,
+            "w": 23,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "rae",
+            "display": "rae",
+            "x": 249,
+            "y": 389,
+            "w": 17,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ENTER - START",
+            "display": "ENTER - START",
+            "x": 121,
+            "y": 437,
+            "w": 154,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "2 PLAYERS / ONE KEYBOARD",
+            "display": "2 PLAYERS / ONE KEYBOARD",
+            "x": 127,
+            "y": 474,
+            "w": 143,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "H - HOW TO PLAY",
+            "display": "H - HOW TO PLAY",
+            "x": 154,
+            "y": 506,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "ready",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "howto-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 2,
+        "textCache": 25,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "howto",
+        "summary": "How to Play. gina: Z  C. rae: ←  →. WALK OFF EDGES TO DESCEND. PUSH EACH OTHER. CONTACT DOES NOT HURT. BEER +3 HP. SAFE LANDING +1 HP. SPIKES -4. CEILING -5. MAX LIFE 12. FIRST TO DIE OR FALL OFF-SCREEN LOSES. EVERY 10 FLOORS = 0.5 shot. Enter to start. B returns to title.",
+        "layout": [
+          {
+            "text": "HOW TO PLAY",
+            "display": "HOW TO PLAY",
+            "x": 101,
+            "y": 88,
+            "w": 195,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "2P gina",
+            "display": "2P gina",
+            "x": 71,
+            "y": 177,
+            "w": 82,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "1P rae",
+            "display": "1P rae",
+            "x": 249,
+            "y": 177,
+            "w": 70,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "Z  C",
+            "display": "Z  C",
+            "x": 89,
+            "y": 201,
+            "w": 46,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "←  →",
+            "display": "←  →",
+            "x": 261,
+            "y": 201,
+            "w": 46,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "MOVE LEFT / RIGHT",
+            "display": "MOVE LEFT / RIGHT",
+            "x": 148,
+            "y": 226,
+            "w": 101,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "WALK OFF EDGES TO DESCEND.",
+            "display": "WALK OFF EDGES TO DESCEND.",
+            "x": 55,
+            "y": 261,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "PUSH EACH OTHER. CONTACT DOES NOT HURT.",
+            "display": "PUSH EACH OTHER. CONTACT DOES NOT HURT.",
+            "x": 55,
+            "y": 281,
+            "w": 233,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "BEER +3 HP. SAFE LANDING +1 HP.",
+            "display": "BEER +3 HP. SAFE LANDING +1 HP.",
+            "x": 55,
+            "y": 301,
+            "w": 185,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "SPIKES -4. CEILING -5. MAX LIFE 12.",
+            "display": "SPIKES -4. CEILING -5. MAX LIFE 12.",
+            "x": 55,
+            "y": 321,
+            "w": 209,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FIRST TO DIE OR FALL OFF-SCREEN LOSES.",
+            "display": "FIRST TO DIE OR FALL OFF-SCREEN LOSES.",
+            "x": 55,
+            "y": 341,
+            "w": 227,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "EVERY 10 COMBINED FLOORS",
+            "display": "EVERY 10 COMBINED FLOORS",
+            "x": 127,
+            "y": 377,
+            "w": 143,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "+0.5 shot TO LOSER",
+            "display": "+0.5 shot TO LOSER",
+            "x": 91,
+            "y": 393,
+            "w": 214,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "SPACE PAUSE / RESUME     M MUTE",
+            "display": "SPACE PAUSE / RESUME     M MUTE",
+            "x": 106,
+            "y": 431,
+            "w": 185,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ENTER - START",
+            "display": "ENTER - START",
+            "x": 121,
+            "y": 471,
+            "w": 154,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "B - BACK TO TITLE",
+            "display": "B - BACK TO TITLE",
+            "x": 148,
+            "y": 500,
+            "w": 101,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "ready",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "pause-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 2,
+        "textCache": 16,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "GAME PAUSED. TOTAL FLOORS: 34. SHOT POOL: 1.5. SPACE - RESUME. ESC - QUIT ROUND",
+        "layout": [
+          {
+            "text": "TAKE A BREATHER",
+            "display": "TAKE A BREATHER",
+            "x": 154,
+            "y": 180,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "GAME PAUSED",
+            "display": "GAME PAUSED",
+            "x": 101,
+            "y": 206,
+            "w": 195,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "TOTAL FLOORS: 34",
+            "display": "TOTAL FLOORS: 34",
+            "x": 103,
+            "y": 265,
+            "w": 190,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "SHOT POOL: 1.5",
+            "display": "SHOT POOL: 1.5",
+            "x": 115,
+            "y": 294,
+            "w": 166,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "SPACE - RESUME",
+            "display": "SPACE - RESUME",
+            "x": 115,
+            "y": 344,
+            "w": 166,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "ESC - QUIT ROUND",
+            "display": "ESC - QUIT ROUND",
+            "x": 151,
+            "y": 391,
+            "w": 95,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "paused",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 7,
+            "floors": 18,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 16,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "quit-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 3,
+        "textCache": 20,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "QUIT THIS ROUND?. NO WINNER, NO PENALTY. ENTER - QUIT. ESC - BACK",
+        "layout": [
+          {
+            "text": "QUIT THIS ROUND?",
+            "display": "QUIT THIS ROUND?",
+            "x": 103,
+            "y": 211,
+            "w": 190,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "NO WINNER, NO PENALTY",
+            "display": "NO WINNER, NO PENALTY",
+            "x": 136,
+            "y": 248,
+            "w": 125,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ENTER - QUIT",
+            "display": "ENTER - QUIT",
+            "x": 127,
+            "y": 290,
+            "w": 142,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "ESC - BACK",
+            "display": "ESC - BACK",
+            "x": 139,
+            "y": 348,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "quit",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 7,
+            "floors": 18,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 16,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "countdown-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 4,
+        "textCache": 20,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "GET READY 3",
+        "layout": [
+          {
+            "text": "GET READY",
+            "display": "GET READY",
+            "x": 145,
+            "y": 211,
+            "w": 106,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "3",
+            "display": "3",
+            "x": 168,
+            "y": 249,
+            "w": 60,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "BACK TO THE MISCHIEF",
+            "display": "BACK TO THE MISCHIEF",
+            "x": 139,
+            "y": 354,
+            "w": 119,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "countdown",
+        "running": false,
+        "countdown": 3,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 7,
+            "floors": 18,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 16,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "result-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 2,
+        "textCache": 20,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "Round over. rae LOSES!. LOSER'S PENALTY: 1.5 shots. 1P 17 + 2P 17 = 34 FLOORS. Rematch available after the existing cooldown.",
+        "layout": [
+          {
+            "text": "ROUND OVER",
+            "display": "ROUND OVER",
+            "x": 139,
+            "y": 104,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "rae LOSES!",
+            "display": "rae LOSES!",
+            "x": 110,
+            "y": 139,
+            "w": 177,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "LOSER'S PENALTY",
+            "display": "LOSER'S PENALTY",
+            "x": 154,
+            "y": 188,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 99,
+            "y": 224,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 96,
+            "y": 220,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "shots",
+            "display": "shots",
+            "x": 140,
+            "y": 321,
+            "w": 116,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "1P 17 + 2P 17 = 34 FLOORS",
+            "display": "1P 17 + 2P 17 = 34 FLOORS",
+            "x": 124,
+            "y": 384,
+            "w": 149,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "display": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "x": 121,
+            "y": 406,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ROUND COMPLETE",
+            "display": "ROUND COMPLETE",
+            "x": 157,
+            "y": 448,
+            "w": 83,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "PRESS ENTER TO REMATCH",
+            "display": "PRESS ENTER TO REMATCH",
+            "x": 133,
+            "y": 477,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "over",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 17,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": {
+          "loser": "p1",
+          "loserLabel": "1P",
+          "loserColor": "#39d47c",
+          "winner": "p2",
+          "draw": false,
+          "floors": {
+            "p1": 17,
+            "p2": 17,
+            "total": 34
+          },
+          "beers": {
+            "p1": 0,
+            "p2": 0
+          },
+          "life": {
+            "p1": 0,
+            "p2": 9
+          },
+          "penalty": 1.5,
+          "penaltyUnit": "shot",
+          "config": {
+            "floorsPerStep": 10,
+            "shotsPerStep": 0.5,
+            "maxShots": null,
+            "platformWidth": 80,
+            "beerHeal": 3,
+            "beerChance": 0.12
+          }
+        }
+      }
+    }
+  },
+  {
+    "file": "rematch-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 3,
+        "textCache": 21,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "Round over. rae LOSES!. LOSER'S PENALTY: 1.5 shots. 1P 17 + 2P 17 = 34 FLOORS. play again",
+        "layout": [
+          {
+            "text": "ROUND OVER",
+            "display": "ROUND OVER",
+            "x": 139,
+            "y": 104,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "rae LOSES!",
+            "display": "rae LOSES!",
+            "x": 110,
+            "y": 139,
+            "w": 177,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "LOSER'S PENALTY",
+            "display": "LOSER'S PENALTY",
+            "x": 154,
+            "y": 188,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 99,
+            "y": 224,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 96,
+            "y": 220,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "shots",
+            "display": "shots",
+            "x": 140,
+            "y": 321,
+            "w": 116,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "1P 17 + 2P 17 = 34 FLOORS",
+            "display": "1P 17 + 2P 17 = 34 FLOORS",
+            "x": 124,
+            "y": 384,
+            "w": 149,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "display": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "x": 121,
+            "y": 406,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "play again",
+            "display": "play again",
+            "x": 139,
+            "y": 447,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "PRESS ENTER TO REMATCH",
+            "display": "PRESS ENTER TO REMATCH",
+            "x": 133,
+            "y": 477,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "over",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 17,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": {
+          "loser": "p1",
+          "loserLabel": "1P",
+          "loserColor": "#39d47c",
+          "winner": "p2",
+          "draw": false,
+          "floors": {
+            "p1": 17,
+            "p2": 17,
+            "total": 34
+          },
+          "beers": {
+            "p1": 0,
+            "p2": 0
+          },
+          "life": {
+            "p1": 0,
+            "p2": 9
+          },
+          "penalty": 1.5,
+          "penaltyUnit": "shot",
+          "config": {
+            "floorsPerStep": 10,
+            "shotsPerStep": 0.5,
+            "maxShots": null,
+            "platformWidth": 80,
+            "beerHeal": 3,
+            "beerChance": 0.12
+          }
+        }
+      }
+    }
+  },
+  {
+    "file": "draw-1x.jpg",
+    "metrics": {
+      "viewport": [
+        396,
+        640
+      ],
+      "canvas": [
+        396,
+        532
+      ],
+      "screens": {
+        "builds": 3,
+        "textCache": 21,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "Round over. DRAW!. PENALTY: 1.5 shots. 1P 17 + 2P 17 = 34 FLOORS. play again",
+        "layout": [
+          {
+            "text": "ROUND OVER",
+            "display": "ROUND OVER",
+            "x": 139,
+            "y": 104,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "DRAW!",
+            "display": "DRAW!",
+            "x": 155,
+            "y": 139,
+            "w": 87,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "PENALTY",
+            "display": "PENALTY",
+            "x": 178,
+            "y": 188,
+            "w": 41,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 99,
+            "y": 224,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 96,
+            "y": 220,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "shots",
+            "display": "shots",
+            "x": 140,
+            "y": 321,
+            "w": 116,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "1P 17 + 2P 17 = 34 FLOORS",
+            "display": "1P 17 + 2P 17 = 34 FLOORS",
+            "x": 124,
+            "y": 384,
+            "w": 149,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "display": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "x": 121,
+            "y": 406,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "play again",
+            "display": "play again",
+            "x": 139,
+            "y": 447,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "PRESS ENTER TO REMATCH",
+            "display": "PRESS ENTER TO REMATCH",
+            "x": 133,
+            "y": 477,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "over",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          }
+        ],
+        "lastResult": {
+          "loser": null,
+          "loserLabel": null,
+          "loserColor": null,
+          "winner": null,
+          "draw": true,
+          "floors": {
+            "p1": 17,
+            "p2": 17,
+            "total": 34
+          },
+          "beers": {
+            "p1": 0,
+            "p2": 0
+          },
+          "life": {
+            "p1": 0,
+            "p2": 0
+          },
+          "penalty": 1.5,
+          "penaltyUnit": "shot",
+          "config": {
+            "floorsPerStep": 10,
+            "shotsPerStep": 0.5,
+            "maxShots": null,
+            "platformWidth": 80,
+            "beerHeal": 3,
+            "beerChance": 0.12
+          }
+        }
+      }
+    }
+  },
+  {
+    "file": "title-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 1,
+        "textCache": 10,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "SHOT THE STAIRS. gina and rae. Enter to start. H for optional How to Play.",
+        "layout": [
+          {
+            "text": "EVENTMATIC ARCADE CLUB",
+            "display": "EVENTMATIC ARCADE CLUB",
+            "x": 133,
+            "y": 104,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "SHOT",
+            "display": "SHOT",
+            "x": 86,
+            "y": 145,
+            "w": 230,
+            "h": 70,
+            "scale": 10,
+            "truncated": false
+          },
+          {
+            "text": "SHOT",
+            "display": "SHOT",
+            "x": 83,
+            "y": 141,
+            "w": 230,
+            "h": 70,
+            "scale": 10,
+            "truncated": false
+          },
+          {
+            "text": "THE STAIRS",
+            "display": "THE STAIRS",
+            "x": 80,
+            "y": 226,
+            "w": 236,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "GOOD FRIENDS. BAD INFLUENCE.",
+            "display": "GOOD FRIENDS. BAD INFLUENCE.",
+            "x": 115,
+            "y": 276,
+            "w": 167,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "gina",
+            "display": "gina",
+            "x": 128,
+            "y": 389,
+            "w": 23,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "rae",
+            "display": "rae",
+            "x": 249,
+            "y": 389,
+            "w": 17,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ENTER - START",
+            "display": "ENTER - START",
+            "x": 121,
+            "y": 437,
+            "w": 154,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "2 PLAYERS / ONE KEYBOARD",
+            "display": "2 PLAYERS / ONE KEYBOARD",
+            "x": 127,
+            "y": 474,
+            "w": 143,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "H - HOW TO PLAY",
+            "display": "H - HOW TO PLAY",
+            "x": 154,
+            "y": 506,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "ready",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "howto-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 2,
+        "textCache": 25,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "howto",
+        "summary": "How to Play. gina: Z  C. rae: ←  →. WALK OFF EDGES TO DESCEND. PUSH EACH OTHER. CONTACT DOES NOT HURT. BEER +3 HP. SAFE LANDING +1 HP. SPIKES -4. CEILING -5. MAX LIFE 12. FIRST TO DIE OR FALL OFF-SCREEN LOSES. EVERY 10 FLOORS = 0.5 shot. Enter to start. B returns to title.",
+        "layout": [
+          {
+            "text": "HOW TO PLAY",
+            "display": "HOW TO PLAY",
+            "x": 101,
+            "y": 88,
+            "w": 195,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "2P gina",
+            "display": "2P gina",
+            "x": 71,
+            "y": 177,
+            "w": 82,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "1P rae",
+            "display": "1P rae",
+            "x": 249,
+            "y": 177,
+            "w": 70,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "Z  C",
+            "display": "Z  C",
+            "x": 89,
+            "y": 201,
+            "w": 46,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "←  →",
+            "display": "←  →",
+            "x": 261,
+            "y": 201,
+            "w": 46,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "MOVE LEFT / RIGHT",
+            "display": "MOVE LEFT / RIGHT",
+            "x": 148,
+            "y": 226,
+            "w": 101,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "WALK OFF EDGES TO DESCEND.",
+            "display": "WALK OFF EDGES TO DESCEND.",
+            "x": 55,
+            "y": 261,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "PUSH EACH OTHER. CONTACT DOES NOT HURT.",
+            "display": "PUSH EACH OTHER. CONTACT DOES NOT HURT.",
+            "x": 55,
+            "y": 281,
+            "w": 233,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "BEER +3 HP. SAFE LANDING +1 HP.",
+            "display": "BEER +3 HP. SAFE LANDING +1 HP.",
+            "x": 55,
+            "y": 301,
+            "w": 185,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "SPIKES -4. CEILING -5. MAX LIFE 12.",
+            "display": "SPIKES -4. CEILING -5. MAX LIFE 12.",
+            "x": 55,
+            "y": 321,
+            "w": 209,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FIRST TO DIE OR FALL OFF-SCREEN LOSES.",
+            "display": "FIRST TO DIE OR FALL OFF-SCREEN LOSES.",
+            "x": 55,
+            "y": 341,
+            "w": 227,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "EVERY 10 COMBINED FLOORS",
+            "display": "EVERY 10 COMBINED FLOORS",
+            "x": 127,
+            "y": 377,
+            "w": 143,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "+0.5 shot TO LOSER",
+            "display": "+0.5 shot TO LOSER",
+            "x": 91,
+            "y": 393,
+            "w": 214,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "SPACE PAUSE / RESUME     M MUTE",
+            "display": "SPACE PAUSE / RESUME     M MUTE",
+            "x": 106,
+            "y": 431,
+            "w": 185,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ENTER - START",
+            "display": "ENTER - START",
+            "x": 121,
+            "y": 471,
+            "w": 154,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "B - BACK TO TITLE",
+            "display": "B - BACK TO TITLE",
+            "x": 148,
+            "y": 500,
+            "w": 101,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "ready",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 12,
+            "floors": 0,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "pause-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 2,
+        "textCache": 16,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "GAME PAUSED. TOTAL FLOORS: 34. SHOT POOL: 1.5. SPACE - RESUME. ESC - QUIT ROUND",
+        "layout": [
+          {
+            "text": "TAKE A BREATHER",
+            "display": "TAKE A BREATHER",
+            "x": 154,
+            "y": 180,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "GAME PAUSED",
+            "display": "GAME PAUSED",
+            "x": 101,
+            "y": 206,
+            "w": 195,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "TOTAL FLOORS: 34",
+            "display": "TOTAL FLOORS: 34",
+            "x": 103,
+            "y": 265,
+            "w": 190,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "SHOT POOL: 1.5",
+            "display": "SHOT POOL: 1.5",
+            "x": 115,
+            "y": 294,
+            "w": 166,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "SPACE - RESUME",
+            "display": "SPACE - RESUME",
+            "x": 115,
+            "y": 344,
+            "w": 166,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "ESC - QUIT ROUND",
+            "display": "ESC - QUIT ROUND",
+            "x": 151,
+            "y": 391,
+            "w": 95,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "paused",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 7,
+            "floors": 18,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 16,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "quit-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 3,
+        "textCache": 20,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "QUIT THIS ROUND?. NO WINNER, NO PENALTY. ENTER - QUIT. ESC - BACK",
+        "layout": [
+          {
+            "text": "QUIT THIS ROUND?",
+            "display": "QUIT THIS ROUND?",
+            "x": 103,
+            "y": 211,
+            "w": 190,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "NO WINNER, NO PENALTY",
+            "display": "NO WINNER, NO PENALTY",
+            "x": 136,
+            "y": 248,
+            "w": 125,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ENTER - QUIT",
+            "display": "ENTER - QUIT",
+            "x": 127,
+            "y": 290,
+            "w": 142,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "ESC - BACK",
+            "display": "ESC - BACK",
+            "x": 139,
+            "y": 348,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "quit",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 7,
+            "floors": 18,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 16,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "countdown-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 4,
+        "textCache": 20,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "GET READY 3",
+        "layout": [
+          {
+            "text": "GET READY",
+            "display": "GET READY",
+            "x": 145,
+            "y": 211,
+            "w": 106,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "3",
+            "display": "3",
+            "x": 168,
+            "y": 249,
+            "w": 60,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "BACK TO THE MISCHIEF",
+            "display": "BACK TO THE MISCHIEF",
+            "x": 139,
+            "y": 354,
+            "w": 119,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "countdown",
+        "running": false,
+        "countdown": 3,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 7,
+            "floors": 18,
+            "beers": 0,
+            "alive": true
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 16,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": null
+      }
+    }
+  },
+  {
+    "file": "result-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 2,
+        "textCache": 20,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "Round over. rae LOSES!. LOSER'S PENALTY: 1.5 shots. 1P 17 + 2P 17 = 34 FLOORS. Rematch available after the existing cooldown.",
+        "layout": [
+          {
+            "text": "ROUND OVER",
+            "display": "ROUND OVER",
+            "x": 139,
+            "y": 104,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "rae LOSES!",
+            "display": "rae LOSES!",
+            "x": 110,
+            "y": 139,
+            "w": 177,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "LOSER'S PENALTY",
+            "display": "LOSER'S PENALTY",
+            "x": 154,
+            "y": 188,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 99,
+            "y": 224,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 96,
+            "y": 220,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "shots",
+            "display": "shots",
+            "x": 140,
+            "y": 321,
+            "w": 116,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "1P 17 + 2P 17 = 34 FLOORS",
+            "display": "1P 17 + 2P 17 = 34 FLOORS",
+            "x": 124,
+            "y": 384,
+            "w": 149,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "display": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "x": 121,
+            "y": 406,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "ROUND COMPLETE",
+            "display": "ROUND COMPLETE",
+            "x": 157,
+            "y": 448,
+            "w": 83,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "PRESS ENTER TO REMATCH",
+            "display": "PRESS ENTER TO REMATCH",
+            "x": 133,
+            "y": 477,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "over",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 17,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": {
+          "loser": "p1",
+          "loserLabel": "1P",
+          "loserColor": "#39d47c",
+          "winner": "p2",
+          "draw": false,
+          "floors": {
+            "p1": 17,
+            "p2": 17,
+            "total": 34
+          },
+          "beers": {
+            "p1": 0,
+            "p2": 0
+          },
+          "life": {
+            "p1": 0,
+            "p2": 9
+          },
+          "penalty": 1.5,
+          "penaltyUnit": "shot",
+          "config": {
+            "floorsPerStep": 10,
+            "shotsPerStep": 0.5,
+            "maxShots": null,
+            "platformWidth": 80,
+            "beerHeal": 3,
+            "beerChance": 0.12
+          }
+        }
+      }
+    }
+  },
+  {
+    "file": "rematch-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 3,
+        "textCache": 21,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "Round over. rae LOSES!. LOSER'S PENALTY: 1.5 shots. 1P 17 + 2P 17 = 34 FLOORS. play again",
+        "layout": [
+          {
+            "text": "ROUND OVER",
+            "display": "ROUND OVER",
+            "x": 139,
+            "y": 104,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "rae LOSES!",
+            "display": "rae LOSES!",
+            "x": 110,
+            "y": 139,
+            "w": 177,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "LOSER'S PENALTY",
+            "display": "LOSER'S PENALTY",
+            "x": 154,
+            "y": 188,
+            "w": 89,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 99,
+            "y": 224,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 96,
+            "y": 220,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "shots",
+            "display": "shots",
+            "x": 140,
+            "y": 321,
+            "w": 116,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "1P 17 + 2P 17 = 34 FLOORS",
+            "display": "1P 17 + 2P 17 = 34 FLOORS",
+            "x": 124,
+            "y": 384,
+            "w": 149,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "display": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "x": 121,
+            "y": 406,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "play again",
+            "display": "play again",
+            "x": 139,
+            "y": 447,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "PRESS ENTER TO REMATCH",
+            "display": "PRESS ENTER TO REMATCH",
+            "x": 133,
+            "y": 477,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "over",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 9,
+            "floors": 17,
+            "beers": 0,
+            "alive": true
+          }
+        ],
+        "lastResult": {
+          "loser": "p1",
+          "loserLabel": "1P",
+          "loserColor": "#39d47c",
+          "winner": "p2",
+          "draw": false,
+          "floors": {
+            "p1": 17,
+            "p2": 17,
+            "total": 34
+          },
+          "beers": {
+            "p1": 0,
+            "p2": 0
+          },
+          "life": {
+            "p1": 0,
+            "p2": 9
+          },
+          "penalty": 1.5,
+          "penaltyUnit": "shot",
+          "config": {
+            "floorsPerStep": 10,
+            "shotsPerStep": 0.5,
+            "maxShots": null,
+            "platformWidth": 80,
+            "beerHeal": 3,
+            "beerChance": 0.12
+          }
+        }
+      }
+    }
+  },
+  {
+    "file": "draw-2x.jpg",
+    "metrics": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "canvas": [
+        792,
+        1064
+      ],
+      "screens": {
+        "builds": 3,
+        "textCache": 21,
+        "glyphCache": 0,
+        "listeners": 2,
+        "buttons": 2,
+        "view": "title",
+        "summary": "Round over. DRAW!. PENALTY: 1.5 shots. 1P 17 + 2P 17 = 34 FLOORS. play again",
+        "layout": [
+          {
+            "text": "ROUND OVER",
+            "display": "ROUND OVER",
+            "x": 139,
+            "y": 104,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "DRAW!",
+            "display": "DRAW!",
+            "x": 155,
+            "y": 139,
+            "w": 87,
+            "h": 21,
+            "scale": 3,
+            "truncated": false
+          },
+          {
+            "text": "PENALTY",
+            "display": "PENALTY",
+            "x": 178,
+            "y": 188,
+            "w": 41,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 99,
+            "y": 224,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "1.5",
+            "display": "1.5",
+            "x": 96,
+            "y": 220,
+            "w": 204,
+            "h": 84,
+            "scale": 12,
+            "truncated": false
+          },
+          {
+            "text": "shots",
+            "display": "shots",
+            "x": 140,
+            "y": 321,
+            "w": 116,
+            "h": 28,
+            "scale": 4,
+            "truncated": false
+          },
+          {
+            "text": "1P 17 + 2P 17 = 34 FLOORS",
+            "display": "1P 17 + 2P 17 = 34 FLOORS",
+            "x": 124,
+            "y": 384,
+            "w": 149,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "display": "FLOOR(34 / 10) × 0.5 = 1.5",
+            "x": 121,
+            "y": 406,
+            "w": 155,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          },
+          {
+            "text": "play again",
+            "display": "play again",
+            "x": 139,
+            "y": 447,
+            "w": 118,
+            "h": 14,
+            "scale": 2,
+            "truncated": false
+          },
+          {
+            "text": "PRESS ENTER TO REMATCH",
+            "display": "PRESS ENTER TO REMATCH",
+            "x": 133,
+            "y": 477,
+            "w": 131,
+            "h": 7,
+            "scale": 1,
+            "truncated": false
+          }
+        ],
+        "issues": []
+      },
+      "state": {
+        "state": "over",
+        "running": false,
+        "countdown": null,
+        "players": [
+          {
+            "id": "p1",
+            "label": "1P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          },
+          {
+            "id": "p2",
+            "label": "2P",
+            "life": 0,
+            "floors": 17,
+            "beers": 0,
+            "alive": false
+          }
+        ],
+        "lastResult": {
+          "loser": null,
+          "loserLabel": null,
+          "loserColor": null,
+          "winner": null,
+          "draw": true,
+          "floors": {
+            "p1": 17,
+            "p2": 17,
+            "total": 34
+          },
+          "beers": {
+            "p1": 0,
+            "p2": 0
+          },
+          "life": {
+            "p1": 0,
+            "p2": 0
+          },
+          "penalty": 1.5,
+          "penaltyUnit": "shot",
+          "config": {
+            "floorsPerStep": 10,
+            "shotsPerStep": 0.5,
+            "maxShots": null,
+            "platformWidth": 80,
+            "beerHeal": 3,
+            "beerChance": 0.12
+          }
+        }
+      }
+    }
+  }
+]

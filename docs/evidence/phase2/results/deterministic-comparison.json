@@ -1,0 +1,24 @@
+{
+  "name": "current-deterministic",
+  "samples": 3145,
+  "identical": true,
+  "firstMismatch": -1,
+  "eventsEqual": true,
+  "rngEqual": true,
+  "before": null,
+  "after": null,
+  "traces": {
+    "baseline": {
+      "samples": 3145,
+      "events": 55,
+      "rng": 4146717004,
+      "canonicalSha256": "aec3f4920e83c1258429b126b0bed183b2efa83f517feb73dfbbc9bc50cad4d1"
+    },
+    "current": {
+      "samples": 3145,
+      "events": 55,
+      "rng": 4146717004,
+      "canonicalSha256": "aec3f4920e83c1258429b126b0bed183b2efa83f517feb73dfbbc9bc50cad4d1"
+    }
+  }
+}

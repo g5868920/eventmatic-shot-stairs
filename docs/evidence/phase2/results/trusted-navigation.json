@@ -1,0 +1,26 @@
+[
+  {
+    "step": "Focused start + Space stays ready",
+    "label": "SHOT THE STAIRS. gina and rae. Enter to start. Optional How to Play."
+  },
+  {
+    "step": "Enter starts; Space pauses",
+    "label": "GAME PAUSED. TOTAL FLOORS: 0. SHOT POOL: 0. SPACE - RESUME. ESC - QUIT ROUND"
+  },
+  {
+    "step": "Pointer quit; Escape cancels",
+    "label": "GAME PAUSED. TOTAL FLOORS: 0. SHOT POOL: 0. SPACE - RESUME. ESC - QUIT ROUND"
+  },
+  {
+    "step": "Space resumes through countdown",
+    "label": "GET READY 3"
+  },
+  {
+    "step": "Real countdown returns to gameplay",
+    "label": "SHOT POOL 0 SHOTS. 1P rae LIFE 12/12. 2P gina LIFE 12/12. 0 combined floors."
+  },
+  {
+    "step": "Global Enter confirms quit even with Back focused; no penalty",
+    "label": "SHOT THE STAIRS. gina and rae. Enter to start. Optional How to Play."
+  }
+]

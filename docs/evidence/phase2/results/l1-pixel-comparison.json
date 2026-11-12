@@ -1,0 +1,24 @@
+{
+  "name": "current-l1Compare",
+  "identical": true,
+  "differentPixels": 0,
+  "points": [],
+  "captures": [
+    {
+      "target": "baseline",
+      "hash": "8df5bd552836d297732dd057e88033ddec13829fd9c4cd67336a77f26bf308c0",
+      "size": [
+        396,
+        532
+      ]
+    },
+    {
+      "target": "current",
+      "hash": "8df5bd552836d297732dd057e88033ddec13829fd9c4cd67336a77f26bf308c0",
+      "size": [
+        396,
+        532
+      ]
+    }
+  ]
+}

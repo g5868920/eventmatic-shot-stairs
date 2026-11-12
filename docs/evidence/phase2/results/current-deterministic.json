@@ -1,0 +1,10 @@
+{
+  "name": "current-deterministic",
+  "samples": 3145,
+  "identical": true,
+  "firstMismatch": -1,
+  "eventsEqual": true,
+  "rngEqual": true,
+  "before": null,
+  "after": null
+}

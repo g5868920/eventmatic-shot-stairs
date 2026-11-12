@@ -1,0 +1,14 @@
+{
+  "name": "current-l3Performance",
+  "frames": 181,
+  "fps": 59.95535324694884,
+  "p95FrameMs": 0.40000009536743164,
+  "maxFrameMs": 0.8999996185302734,
+  "panelBuildsDuringCountdown": 3,
+  "listeners": 2,
+  "caches": {
+    "texts": 21,
+    "glyphs": 0
+  },
+  "finalState": "playing"
+}

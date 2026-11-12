@@ -1,0 +1,71 @@
+{
+  "baselineRegression": {
+    "checks": 90,
+    "passed": 90
+  },
+  "currentRegression": {
+    "checks": 124,
+    "passed": 124
+  },
+  "baselineTrace": {
+    "samples": 3145
+  },
+  "currentTrace": {
+    "identical": true,
+    "samples": 3145
+  },
+  "l1": {
+    "identical": true
+  },
+  "cleanup": {
+    "clean": true,
+    "rounds": 100
+  },
+  "suites": [
+    {
+      "suite": "rules-tests",
+      "checks": 18,
+      "passed": 18
+    },
+    {
+      "suite": "push-tests",
+      "checks": 20,
+      "passed": 20
+    },
+    {
+      "suite": "audio-tests",
+      "checks": 8,
+      "passed": 8
+    },
+    {
+      "suite": "music-tests",
+      "checks": 7,
+      "passed": 7
+    },
+    {
+      "suite": "sfx-extra-tests",
+      "checks": 6,
+      "passed": 6
+    },
+    {
+      "suite": "pause-tests",
+      "checks": 11,
+      "passed": 11
+    },
+    {
+      "suite": "headless-play",
+      "checks": 5,
+      "passed": 5
+    },
+    {
+      "suite": "phase1-visual-tests",
+      "checks": 15,
+      "passed": 15
+    },
+    {
+      "suite": "phase2-ui-tests",
+      "checks": 34,
+      "passed": 34
+    }
+  ]
+}

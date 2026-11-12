@@ -1,0 +1,776 @@
+{
+  "name": "baseline-regression",
+  "checks": 90,
+  "passed": 90,
+  "failures": [],
+  "report": [
+    {
+      "suite": "rules-tests",
+      "rows": [
+        {
+          "test": "start order: 2P left, 1P right, both on the start floor",
+          "pass": true,
+          "detail": "2P x 142, 1P x 192, start floor width 80"
+        },
+        {
+          "test": "1P is blue cap / green shirt, 2P is red cap / pink shirt",
+          "pass": true,
+          "detail": "1P cap rgb 47,111,240, shirt 57,212,124 | 2P cap rgb 232,64,44, shirt 255,95,176"
+        },
+        {
+          "test": "control ArrowRight -> 1P right",
+          "pass": true,
+          "detail": "1P moved 12, 2P moved 0"
+        },
+        {
+          "test": "control ArrowLeft -> 1P left",
+          "pass": true,
+          "detail": "1P moved -12, 2P moved 0"
+        },
+        {
+          "test": "control C -> 2P right",
+          "pass": true,
+          "detail": "1P moved 0, 2P moved 12"
+        },
+        {
+          "test": "control Z -> 2P left",
+          "pass": true,
+          "detail": "1P moved 0, 2P moved -12"
+        },
+        {
+          "test": "X no longer moves anyone",
+          "pass": true,
+          "detail": "moves: 0 / 0"
+        },
+        {
+          "test": "simultaneous input",
+          "pass": true,
+          "detail": "1P -20, 2P 20 in 100 ms"
+        },
+        {
+          "test": "controls follow the player after crossing sides",
+          "pass": true,
+          "detail": "1P (now left) moved 12 on ArrowRight; 2P (now right) moved -12 on Z"
+        },
+        {
+          "test": "shots = floor(total / 10) * 0.5",
+          "pass": true,
+          "detail": "0F->0, 9F->0, 10F->0.5, 19F->0.5, 20F->1, 30F->1.5, 40F->2, 55F->2.5, 100F->5"
+        },
+        {
+          "test": "fractional display",
+          "pass": true,
+          "detail": "X 0 | X 0.5 | X 1 | X 1.5 | X 2"
+        },
+        {
+          "test": "max and rate configurable",
+          "pass": true,
+          "detail": "maxShots 1.5 -> 1,1.5,1.5; 1 shot per 5 floors -> 0,1,2"
+        },
+        {
+          "test": "counter starts at 0",
+          "pass": true,
+          "detail": "floors 0 + 0 -> X 0"
+        },
+        {
+          "test": "beer heals but does not change the shots",
+          "pass": true,
+          "detail": "life 5 -> 9, shots 0.5 -> 0.5, mug consumed: true"
+        },
+        {
+          "test": "round-end penalty = floor(total/10) * 0.5",
+          "pass": true,
+          "detail": "10+9=19 -> 0.5, 23+16=39 -> 1.5, 36+23=59 -> 2.5"
+        },
+        {
+          "test": "platform width 80 px, all inside the 360 px play area",
+          "pass": true,
+          "detail": "239 floors, widths {\"80\":239}, x range 2..359"
+        },
+        {
+          "test": "every platform reachable from the one above",
+          "pass": true,
+          "detail": "0 of 238 consecutive pairs out of falling reach (56.6 px sideways per 60 px fall)"
+        },
+        {
+          "test": "platform width configurable",
+          "pass": true,
+          "detail": "with platform.width = 100 the floors are 100,100,100,100,100,100,100,100,100"
+        }
+      ]
+    },
+    {
+      "suite": "push-tests",
+      "rows": [
+        {
+          "test": "p1 pushes stationary p2 right",
+          "pass": true,
+          "detail": "target moved 76 px in 400 ms (walk speed 80), max overlap 0, target still on a floor: true"
+        },
+        {
+          "test": "p2 pushes stationary p1 right",
+          "pass": true,
+          "detail": "target moved 76 px in 400 ms (walk speed 80), max overlap 0, target still on a floor: true"
+        },
+        {
+          "test": "p1 pushes stationary p2 left",
+          "pass": true,
+          "detail": "target moved 76 px in 400 ms (walk speed 80), max overlap 0, target still on a floor: true"
+        },
+        {
+          "test": "p2 pushes stationary p1 left",
+          "pass": true,
+          "detail": "target moved 76 px in 400 ms (walk speed 80), max overlap 0, target still on a floor: true"
+        },
+        {
+          "test": "head-on push: equal force, no jitter",
+          "pass": true,
+          "detail": "x range over last 300 ms: 1P 0, 2P 0; overlap seen: false; contact at x 117 / 143"
+        },
+        {
+          "test": "head-on push: deterministic",
+          "pass": true,
+          "detail": "two identical runs produce identical positions: true"
+        },
+        {
+          "test": "same direction, touching",
+          "pass": true,
+          "detail": "gap stays 26..26 (box width 26), 1P travelled 60"
+        },
+        {
+          "test": "belt carries a player into a standing one",
+          "pass": true,
+          "detail": "standing 1P eased right by 14.5 px over 400 ms, max overlap 0, largest per-frame move 2 px"
+        },
+        {
+          "test": "pushed off the edge, falls",
+          "pass": true,
+          "detail": "2P left the floor after 280 ms of pushing, then dropped 26.4 px (gravity, no landing back on the old floor)"
+        },
+        {
+          "test": "pushed against the right wall",
+          "pass": true,
+          "detail": "2P x 334 (wall limit 334), 1P x 308; any wall/overlap violation: false"
+        },
+        {
+          "test": "pushed against the left wall",
+          "pass": true,
+          "detail": "2P x 0, 1P x 26; any violation: false"
+        },
+        {
+          "test": "different heights (60 px apart): no push",
+          "pass": true,
+          "detail": "2P moved 0 px while 1P walked over it"
+        },
+        {
+          "test": "stacked exactly one box height apart: no push",
+          "pass": true,
+          "detail": "vertical distance 26; 2P moved 0 while 1P stood and then walked 16 px above it"
+        },
+        {
+          "test": "falling onto the other: eased apart, no teleport",
+          "pass": true,
+          "detail": "largest per-frame sideways move 2 px; overlapping at end: false"
+        },
+        {
+          "test": "push on Floor",
+          "pass": true,
+          "detail": "2P moved 28 px with the push, 0 px without (belt only)"
+        },
+        {
+          "test": "push on FAKE_FLOOR",
+          "pass": true,
+          "detail": "2P moved 28 px with the push, 0 px without (belt only)"
+        },
+        {
+          "test": "push on ROLLING_LEFT",
+          "pass": true,
+          "detail": "2P moved 12 px with the push, -16 px without (belt only)"
+        },
+        {
+          "test": "push on ROLLING_RIGHT",
+          "pass": true,
+          "detail": "2P moved 44 px with the push, 16 px without (belt only)"
+        },
+        {
+          "test": "push on SPRING",
+          "pass": true,
+          "detail": "2P moved 28 px with the push, 0 px without (belt only)"
+        },
+        {
+          "test": "independent control after collision",
+          "pass": true,
+          "detail": "1P moved -40, 2P moved 40 in 200 ms (walk speed = 40 px)"
+        }
+      ]
+    },
+    {
+      "suite": "audio-tests",
+      "rows": [
+        {
+          "test": "spike damage plays hurt once, no repeats while standing",
+          "pass": true,
+          "detail": "engine damage events [[\"p1\",4,8]] -> sounds [\"p1:hurt\"] over 800 ms on the spikes"
+        },
+        {
+          "test": "both players hurt at once: two independent sounds",
+          "pass": true,
+          "detail": "[\"p1:hurt\",\"p2:hurt\"]"
+        },
+        {
+          "test": "ceiling spikes: one sound per damage event",
+          "pass": true,
+          "detail": "1 non-fatal ceiling hits -> [\"p1:hurt\"]"
+        },
+        {
+          "test": "health reaches zero: death sound once, no hurt",
+          "pass": true,
+          "detail": "sounds [\"p1:death\"], loser p1"
+        },
+        {
+          "test": "fall below the playfield: fall sound once",
+          "pass": true,
+          "detail": "sounds [\"p2:fall\"] after 500 ms, loser p2"
+        },
+        {
+          "test": "both fall at once: two fall sounds",
+          "pass": true,
+          "detail": "[\"p1:fall\",\"p2:fall\"], draw true"
+        },
+        {
+          "test": "repeat within 180 ms is skipped, other player unaffected",
+          "pass": true,
+          "detail": "first true, immediate repeat false, other player true"
+        },
+        {
+          "test": "signal: audible, silent when muted, scaled by volume",
+          "pass": true,
+          "detail": "context running; RMS volume 0.6: 0.304, muted: 0.0000, volume 0.2: 0.066"
+        }
+      ]
+    },
+    {
+      "suite": "music-tests",
+      "rows": [
+        {
+          "test": "music loaded and playing during a round",
+          "pass": true,
+          "detail": "loop {\"start\":0.009,\"end\":68.177} s of 70.17, loop flag true, RMS 0.078"
+        },
+        {
+          "test": "no duplicate playback on repeated round starts",
+          "pass": true,
+          "detail": "starts before 1, after three resets 1"
+        },
+        {
+          "test": "music and effects volumes are independent",
+          "pass": true,
+          "detail": "default [music, sfx] 0.25,0.60; music 0.1 -> 0.10,0.60; sfx 0.3 -> 0.10,0.30"
+        },
+        {
+          "test": "round end fades the music out",
+          "pass": true,
+          "detail": "RMS right after the end 0.079, after 1 s 0.0000"
+        },
+        {
+          "test": "rematch restarts the music",
+          "pass": true,
+          "detail": "starts 1 -> 2, RMS 0.078"
+        },
+        {
+          "test": "mute covers the music",
+          "pass": true,
+          "detail": "muted gain 0, unmuted 0.25"
+        },
+        {
+          "test": "waits for the audio unlock, then starts once",
+          "pass": true,
+          "detail": "playing while locked false, after unlock true (context running)"
+        }
+      ]
+    },
+    {
+      "suite": "sfx-extra-tests",
+      "rows": [
+        {
+          "test": "spring: once per launch, both players",
+          "pass": true,
+          "detail": "during compression 0 sounds; at launch [\"p1:spring\",\"p2:spring\"]; 4 launches in 1.1 s -> 4 boings"
+        },
+        {
+          "test": "beer: once per mug for each player, not from regen",
+          "pass": true,
+          "detail": "mugs -> [\"p1:beer\",\"p2:beer\"] (life 5 -> 9,9); plain landing regen 6 -> 7 with 0 beer sounds"
+        },
+        {
+          "test": "flip: once per platform, shared platform heard once",
+          "pass": true,
+          "detail": "before 300 ms 0 sounds; after [\"p1:flip\"] with both players on it"
+        },
+        {
+          "test": "flip: separate platforms, both players",
+          "pass": true,
+          "detail": "[\"p1:flip\",\"p2:flip\"]"
+        },
+        {
+          "test": "stable floor: no flip / spring / beer sounds",
+          "pass": true,
+          "detail": "[] in 1.2 s on blue brick"
+        },
+        {
+          "test": "new sounds audible, silent when muted",
+          "pass": true,
+          "detail": "RMS spring 0.086, beer 0.131, flip 0.045, muted 0.0000 (0.3 / 0.24 / 0.13 s)"
+        }
+      ]
+    },
+    {
+      "suite": "pause-tests",
+      "rows": [
+        {
+          "test": "READY: Space ignored, Enter starts",
+          "pass": true,
+          "detail": "ready -> Space -> ready -> Enter -> playing, music playing true"
+        },
+        {
+          "test": "Space pauses: world frozen, no events, music paused",
+          "pass": true,
+          "detail": "state paused; world unchanged over 5 s: true; events while paused []; music paused at 0.166 s (was 0.166)"
+        },
+        {
+          "test": "Space resumes after a 3-2-1 countdown",
+          "pass": true,
+          "detail": "countdown digits [3,2,1], frozen during countdown true, after 2.9 s countdown, after 3.06 s playing"
+        },
+        {
+          "test": "no stale movement after resume (ArrowLeft still held)",
+          "pass": true,
+          "detail": "1P direction 0, moved 0.00 px in 200 ms (only conveyor/landing drift allowed)"
+        },
+        {
+          "test": "timers froze: flipping floor kept its remaining time",
+          "pass": true,
+          "detail": "stood 200 ms before a 5 s pause + 3 s countdown; floor height now 6.4 (turning only after resume, not instantly collapsed)"
+        },
+        {
+          "test": "music resumes from its paused position",
+          "pass": true,
+          "detail": "paused at 0.166 s, now 0.183 s"
+        },
+        {
+          "test": "Gina (2P) on Z/C, Rae (1P) on arrows",
+          "pass": true,
+          "detail": "2P moved 20.0 with C, 1P moved -20.0 with Left"
+        },
+        {
+          "test": "window blur pauses the round",
+          "pass": true,
+          "detail": "state after blur: paused"
+        },
+        {
+          "test": "Esc -> confirm -> Enter quits with no winner or penalty",
+          "pass": true,
+          "detail": "Esc quit, Esc paused, Esc quit, Enter ready; events [\"roundAbandoned\"]; lastResult null; music false"
+        },
+        {
+          "test": "GAME OVER: Space ignored, Enter rematches",
+          "pass": true,
+          "detail": "over -> Space -> over -> Enter -> playing"
+        },
+        {
+          "test": "Space and arrows do not scroll the page",
+          "pass": true,
+          "detail": "Space prevented true, ArrowDown prevented true"
+        }
+      ]
+    },
+    {
+      "suite": "headless-play",
+      "rows": [
+        {
+          "test": "bot round 0",
+          "pass": true,
+          "detail": {
+            "round": 0,
+            "freshStart": true,
+            "seconds": 7.58,
+            "loser": "p1",
+            "draw": false,
+            "floors": {
+              "p1": 6,
+              "p2": 9,
+              "total": 15
+            },
+            "beers": {
+              "p1": 0,
+              "p2": 0
+            },
+            "penalty": 0.5
+          }
+        },
+        {
+          "test": "bot round 1",
+          "pass": true,
+          "detail": {
+            "round": 1,
+            "freshStart": true,
+            "seconds": 19.38,
+            "loser": "p1",
+            "draw": false,
+            "floors": {
+              "p1": 26,
+              "p2": 30,
+              "total": 56
+            },
+            "beers": {
+              "p1": 2,
+              "p2": 3
+            },
+            "penalty": 2.5
+          }
+        },
+        {
+          "test": "bot round 2",
+          "pass": true,
+          "detail": {
+            "round": 2,
+            "freshStart": true,
+            "seconds": 5.92,
+            "loser": "p1",
+            "draw": false,
+            "floors": {
+              "p1": 8,
+              "p2": 6,
+              "total": 14
+            },
+            "beers": {
+              "p1": 0,
+              "p2": 0
+            },
+            "penalty": 0.5
+          }
+        },
+        {
+          "test": "bot round 3",
+          "pass": true,
+          "detail": {
+            "round": 3,
+            "freshStart": true,
+            "seconds": 11.16,
+            "loser": "p1",
+            "draw": false,
+            "floors": {
+              "p1": 12,
+              "p2": 14,
+              "total": 26
+            },
+            "beers": {
+              "p1": 0,
+              "p2": 0
+            },
+            "penalty": 1
+          }
+        },
+        {
+          "test": "bot round 4",
+          "pass": true,
+          "detail": {
+            "round": 4,
+            "freshStart": true,
+            "seconds": 9.98,
+            "loser": "p1",
+            "draw": false,
+            "floors": {
+              "p1": 10,
+              "p2": 14,
+              "total": 24
+            },
+            "beers": {
+              "p1": 0,
+              "p2": 1
+            },
+            "penalty": 1
+          }
+        }
+      ]
+    },
+    {
+      "suite": "phase1-visual-tests",
+      "rows": [
+        {
+          "test": "beer: landing +1 and beer +3, life 8\u219212",
+          "pass": true,
+          "detail": {
+            "active": 2,
+            "retainedAnchors": 2,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 27,
+            "glyphCache": 0,
+            "emitted": 2,
+            "resets": 2,
+            "pushBursts": 0,
+            "peakActive": 2,
+            "dropped": 0,
+            "contactHeld": false,
+            "lastBeerDelta": 3,
+            "lastLandDelta": 1,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "beer clamp: landing +1 and beer +2, life 9\u219212",
+          "pass": true,
+          "detail": {
+            "active": 2,
+            "retainedAnchors": 2,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 28,
+            "glyphCache": 0,
+            "emitted": 4,
+            "resets": 3,
+            "pushBursts": 0,
+            "peakActive": 2,
+            "dropped": 0,
+            "contactHeld": false,
+            "lastBeerDelta": 2,
+            "lastLandDelta": 1,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "damage label observes actual HP delta",
+          "pass": true,
+          "detail": {
+            "active": 3,
+            "retainedAnchors": 3,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 29,
+            "glyphCache": 0,
+            "emitted": 5,
+            "resets": 3,
+            "pushBursts": 0,
+            "peakActive": 2,
+            "dropped": 0,
+            "contactHeld": false,
+            "lastBeerDelta": 2,
+            "lastLandDelta": 1,
+            "lastDamageDelta": 4
+          }
+        },
+        {
+          "test": "180 sustained contact samples emit once",
+          "pass": true,
+          "detail": {
+            "active": 1,
+            "retainedAnchors": 0,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 30,
+            "glyphCache": 0,
+            "emitted": 6,
+            "resets": 4,
+            "pushBursts": 1,
+            "peakActive": 2,
+            "dropped": 0,
+            "contactHeld": true,
+            "lastBeerDelta": 0,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "separation rearms contact feedback",
+          "pass": true,
+          "detail": {
+            "active": 2,
+            "retainedAnchors": 0,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 30,
+            "glyphCache": 0,
+            "emitted": 7,
+            "resets": 4,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 0,
+            "contactHeld": true,
+            "lastBeerDelta": 0,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "640 concurrent emissions stay bounded to 32 slots",
+          "pass": true,
+          "detail": {
+            "active": 32,
+            "retainedAnchors": 32,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 31,
+            "glyphCache": 0,
+            "emitted": 647,
+            "resets": 5,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 2,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 4
+          }
+        },
+        {
+          "test": "reset clears effects, contact latch and anchored references",
+          "pass": true,
+          "detail": {
+            "active": 0,
+            "retainedAnchors": 0,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 31,
+            "glyphCache": 0,
+            "emitted": 647,
+            "resets": 6,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 0,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "quit clears all cosmetic state",
+          "pass": true,
+          "detail": {
+            "active": 0,
+            "retainedAnchors": 0,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 31,
+            "glyphCache": 0,
+            "emitted": 648,
+            "resets": 7,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 0,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "pause freezes cosmetic lifetime",
+          "pass": true,
+          "detail": {
+            "active": 1,
+            "retainedAnchors": 1,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 31,
+            "glyphCache": 0,
+            "emitted": 649,
+            "resets": 8,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 3,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "countdown also freezes cosmetic lifetime",
+          "pass": true,
+          "detail": {
+            "active": 1,
+            "retainedAnchors": 1,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 31,
+            "glyphCache": 0,
+            "emitted": 649,
+            "resets": 8,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 3,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "resume preserves the unexpired cue",
+          "pass": true,
+          "detail": {
+            "active": 1,
+            "retainedAnchors": 1,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 31,
+            "glyphCache": 0,
+            "emitted": 649,
+            "resets": 8,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 3,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "CJK HUD names rasterize through the cache",
+          "pass": true,
+          "detail": {
+            "active": 0,
+            "retainedAnchors": 0,
+            "capacity": 32,
+            "listeners": 0,
+            "textCache": 35,
+            "glyphCache": 4,
+            "emitted": 649,
+            "resets": 9,
+            "pushBursts": 2,
+            "peakActive": 2,
+            "dropped": 608,
+            "contactHeld": false,
+            "lastBeerDelta": 0,
+            "lastLandDelta": 0,
+            "lastDamageDelta": 0
+          }
+        },
+        {
+          "test": "configured SHOT quantity and units reach HUD without changing calculation",
+          "pass": true,
+          "detail": [
+            "SHOT POOL 0 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+            "SHOT POOL 0.5 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+            "SHOT POOL 1 CUP. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+            "SHOT POOL 1.5 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors.",
+            "SHOT POOL 12345678901234567000 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors."
+          ]
+        },
+        {
+          "test": "custom penalty cap stays authoritative",
+          "pass": true,
+          "detail": "SHOT POOL 1.5 CUPS. 1P \u5c0f\u854a LIFE 12/12. 2P \u5409\u5a1c LIFE 12/12. 0 combined floors."
+        },
+        {
+          "test": "both conveyor directions have distinct B pixels",
+          "pass": true,
+          "detail": "left/right arrows retained"
+        }
+      ]
+    }
+  ]
+}

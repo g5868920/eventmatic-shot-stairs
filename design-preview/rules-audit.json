@@ -1,8 +1,8 @@
 {
-  "base_commit": "8fc7181d9316a3ea8deca1143ea47dcc3ac5ba92",
+  "base_commit": "a35ec89cd0e2cea1b223d2f8b0e59f370839d086",
   "sources": {
     "config.js": "3b991f2716175d85bd3859ab2b5534d782084f60ca9e691d03aa41405d7a941f",
-    "game.js": "23ecaf2438c071c59520b470ece09df1be80f9a900fc06d953a2fe19e04b72de"
+    "game.js": "b94bdd1e240e70ffc2eb93befff2346db936cb43f17a12ab68a3fee5f3d25fb3"
   },
   "defaults": {
     "beer": 3.0,

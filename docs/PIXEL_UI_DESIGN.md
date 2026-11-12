@@ -163,7 +163,7 @@ Production copy must continue to derive penalty rules, healing amounts, units, n
 
 ## Production integration status
 
-See [PIXEL_UI_INTEGRATION_PLAN.md](PIXEL_UI_INTEGRATION_PLAN.md) for the concise approval artifact. Phase 1 covers L1/L2; Phase 2 covers L3. The integration plan and Phase 1 were approved on 2026-11-13. See [PHASE1_REPORT.md](PHASE1_REPORT.md) for L1/L2 implementation and evidence. Phase 2 is not started and requires separate approval. This preview and this design system remain the visual source of truth.
+See [PIXEL_UI_INTEGRATION_PLAN.md](PIXEL_UI_INTEGRATION_PLAN.md) for the concise approval artifact. Phase 1 covers L1/L2; Phase 2 covers L3. The integration plan and Phase 1 were approved on 2026-11-13. See [PHASE1_REPORT.md](PHASE1_REPORT.md) for L1/L2 implementation and evidence. Phase 2 was separately approved and implemented on 2026-11-13; see [PHASE2_REPORT.md](PHASE2_REPORT.md) for L3 evidence. This preview and this design system remain the visual source of truth.
 
 ## Reuse across Eventmatic party games
 

@@ -193,6 +193,7 @@
 	 * var
 	 */
 	var floorArray, heroes; // SHOT: `hero` became `heroes` (array of two)
+	var screens = null; // Phase 2: cached L3 renderer and two delegated semantic listeners
 	var arcade = null; // SHOT Phase 1: fixed-pool cosmetic renderer, no event listeners
 	var $wrap, $canvas, $ctx, $res, $S; // SHOT: $S = sprite sheets (sprites.js)
 	var lastTime;
@@ -949,7 +950,11 @@
 		context.drawImage($S.images.wall, WALL_WIDTH + STAGE_WIDTH, MARGIN_TOP);
 
 		buttonRect = null;
-		if (gameState !== 'playing') {
+		if (screens && gameState === 'playing') {
+			screens.hide();
+		} else if (screens) {
+			buttonRect = screens.draw(context, { state: gameState, cfg: CONFIG, heroes: heroes, names: [playerName('p1'), playerName('p2')], total: totalFloorsNow(), pool: gameState === 'paused' ? computePenalty(totalFloorsNow()) : 0, result: lastResult, locked: isCooldownTime, count: Math.max(1, 3 - Math.floor(Math.max(0, lastRaw - countdownStart) / 1000)), maxLife: MAX_LIFE, format: formatShots, portrait: drawPortrait });
+		} else if (gameState !== 'playing') {
 			// SHOT: dim the frozen playfield (not the HUD) behind every overlay panel; lighter during the
 			// countdown so players can find themselves before play resumes
 			context.fillStyle = gameState === 'countdown' ? COLORS.overlayLight : COLORS.overlay;
@@ -981,6 +986,7 @@
 		}
 
 		drawTopBar(context);
+		if (screens) screens.finish(gameState);
 
 		if (window.DEBUG) {
 			context.save();
@@ -1566,7 +1572,7 @@
 		$ctx.setTransform(zoomRate * ratio, 0, 0, zoomRate * ratio, 0, 0);
 		$ctx.imageSmoothingEnabled = false; // SHOT: keep pixel art crisp on large projector scales
 		topBarChange = true;
-		if (lastTime) {
+		if (lastTime || screens) {
 			drawAll($ctx, lastTime);
 		}
 		console.info('resize rate=' + zoomRate + ", ratio=" + ratio + ", width=" + $canvas.width + ", height=" + $canvas.height);
@@ -1600,10 +1606,20 @@
 		$canvas.style.display = 'block';
 		$canvas.style.margin = '0 auto';
 		$canvas.style.imageRendering = 'pixelated'; // SHOT
+		if (screens) screens.destroy();
 		clearNode($wrap);
 		$wrap.appendChild($canvas);
 
 		$ctx = $canvas.getContext('2d');
+		screens = global.ShotScreens ? global.ShotScreens.create($S, $canvas, $wrap, function(action) {
+			if ((action === 'help' || action === 'back') && gameState === 'ready') { screens.view(action === 'help' ? 'howto' : 'title'); drawAll($ctx, lastTime); }
+			else if (action === 'start' && gameState === 'ready') start();
+			else if (action === 'rematch' && gameState === 'over' && !isCooldownTime) start();
+			else if (action === 'resume') resumeGame();
+			else if (action === 'quit' && gameState === 'paused') setOverlayState('quit');
+			else if (action === 'cancel' && gameState === 'quit') setOverlayState('paused');
+			else if (action === 'confirm') abandonRound();
+		}) : null;
 		
 		setTimeout(function() {
 			resizeCanvas($wrap, $canvas, $ctx);
@@ -1891,6 +1907,7 @@
 	Game.formatShots = formatShots;
 	// SHOT: live world objects for automated tests / debugging only (not part of the integration API)
 	Game._debugFrame = function(time) { frame(time); }; // drive one frame with a synthetic clock
+	Game._debugScreens = function() { return screens ? screens.stats() : null; }; // read-only rendering diagnostics
 	Game._debugVisuals = function() { return arcade; }; // rendering diagnostics only
 	Game._debugTypes = { Floor: Floor, SPRING: SPRING, ROLLING_LEFT: ROLLING_LEFT, ROLLING_RIGHT: ROLLING_RIGHT, FAKE_FLOOR: FAKE_FLOOR, ARROW_FLOOR: ARROW_FLOOR }; // tests only
 	Game._debugWorld = function() {

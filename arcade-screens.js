@@ -30,12 +30,14 @@
    var at=y;for(var r of rows){var a=image(r,color||T.ink,sz),left=align==='left'?x:Math.round(x-a.width/2);c.drawImage(a,left,at);layout.push({text:original,display:r,x:left,y:at,w:a.width,h:a.height,scale:sz,truncated:truncated});if(a.width>maxW||at+a.height>y+maxH)issues.push(original);at+=a.height+3;}return at-y;
   }
   function ribbon(y,s){rect(68,y,260,22,T.gold);rect(64,y+4,4,14,T.gold);rect(328,y+4,4,14,T.gold);label(s,198,y+7,1,T.bg,248,14);}
+  function startButton(y,s,id,w){var x=Math.round(198-w/2);box(x,y,w,30,T.gold,T.gold);label(s,198,y+10,2,T.bg,w-20,17);return {id:id,label:String(s),x:x,y:y,w:w,h:30};}
   function button(y,s,id){box(65,y,266,32,T.gold,T.gold);label(s,198,y+11,2,T.bg,246,17);return {id:id,label:String(s),x:65,y:y,w:266,h:32};}
   function secondary(y,s,id,w,scale){label(s,198,y+6,scale||1,T.muted,w||294,18);return {id:id,label:String(s),x:Math.floor(198-(w||294)/2),y:y,w:w||294,h:24};}
   function tri(x,y,dir,color){for(var i=0;i<4;i++)rect(dir<0?x+i:x+3-i,y+3-i,1,1+2*i,color);}
   function arrowAction(x,id,label){return {id:id,label:label,x:x-7,y:378,w:18,h:22};}
   // 1 PLAYER - SOLO / 2 PLAYERS - VERSUS on the READY title (selected option filled gold)
-  function modeToggle(y,mode){return [['solo','1 PLAYER - SOLO',60],['versus','2 PLAYERS - VERSUS',200]].map(function(o){var on=mode===o[0];if(on)rect(o[2],y,136,18,T.gold);else{rect(o[2],y,136,18,T.wallHi);rect(o[2]+1,y+1,134,16,T.bg);}label(o[1],o[2]+68,y+6,1,on?T.bg:T.muted,128,8);return {id:o[0],label:o[1]+(on?' (selected)':''),x:o[2],y:y,w:136,h:18};});}
+  // Solo / Versus as a quiet text switch under START (selected = gold + underline)
+  function modeToggle(y,mode){rect(197,y+6,2,2,T.wallHi);return [['solo','1 PLAYER - SOLO',134],['versus','2 PLAYERS - VERSUS',264]].map(function(o){var on=mode===o[0],tw=measure(o[1]).w;label(o[1],o[2],y+4,1,on?T.gold:T.muted,124,8);if(on)rect(Math.round(o[2]-tw/2),y+13,tw,1,T.gold);return {id:o[0],label:o[1]+(on?' (selected)':''),x:o[2]-62,y:y,w:124,h:18};});}
   // "PRESS ENTER TO REMATCH   ESC - TITLE": the title part is also a pointer target
   function rematchLine(t){var back=t.toTitle||'ESC - TITLE',full=t.rematch+'   '+back,w=measure(full).w,bw=measure(back).w;label(full,198,477,1,T.muted,294,13);var x=Math.round(198-w/2)+w-bw;return {id:'title',label:'Back to title',x:x-4,y:473,w:bw+8,h:15};}
   // Title: 小朋友 / SHOT 樓梯. The Chinese is rasterised once from the Traditional Chinese system font on a
@@ -44,15 +46,15 @@
   var titleGlyphs=new Map();
   function titleGlyph(ch,px){px=px||21;var key=ch+'|'+px;if(titleGlyphs.has(key))return titleGlyphs.get(key);var cw=px+2,ch_=px+5,a=document.createElement('canvas');a.width=cw;a.height=ch_;var g=a.getContext('2d');g.font='600 '+px+'px "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif';g.textBaseline='alphabetic';g.fillText(ch,1,px);var p=g.getImageData(0,0,cw,ch_).data,pts=[];for(var y=0;y<ch_;y++)for(var x=0;x<cw;x++)if(p[(y*cw+x)*4+3]>=140)pts.push(x,y);var d={points:pts,adv:px+1,h:ch_};titleGlyphs.set(key,d);return d;}
   function titleCJK(str,x,y,color,px){var at=x,sc=2,h=0;c.fillStyle=color;for(var ch of str){var d=titleGlyph(ch,px);for(var n=0;n<d.points.length;n+=2)c.fillRect(at+d.points[n]*sc,y+d.points[n+1]*sc,sc,sc);at+=d.adv*sc;h=d.h*sc;}layout.push({text:str,display:str,x:x,y:y,w:at-x,h:h,scale:sc,truncated:false});return at-x;}
-  function titleArt(){var shot=measure('SHOT').w*7,cjk=2*22*2,gap=8,x=Math.round(198-(shot+gap+cjk)/2),top=146;
-   titleCJK('小朋友',152,108,'#120e23',15);titleCJK('小朋友',150,105,T.ink,15);
-   label('SHOT',x+3,top+4,7,'#120e23',330,70,1,'left');label('SHOT',x,top,7,T.gold,330,70,1,'left');
-   var cx=x+shot+gap,cy=top+1;titleCJK('樓梯',cx+3,cy+4,'#120e23');titleCJK('樓梯',cx,cy,T.ink);}
-  // one player card: framed stage, 2x idle sprite on a platform, name between arrows, key hint
-  function card(x,w,hero,name,color,id,keyText,brick,pick,acts){var cx=x+w/2;rect(x,226,w,166,T.wallHi);rect(x+1,227,w-2,164,T.bg);rect(x+1,227,w-2,2,color);
-   label(id,x+6,233,1,color,20,8,1,'left');c.save();c.translate(Math.round(cx),334);c.scale(2,2);d_.portrait(c,hero,0,0);c.restore();c.drawImage(brick,0,0,80,12,Math.round(cx-40),334,80,12);
-   label(name,cx,356,2,color,w-36,16);label(keyText,cx,377,1,T.muted,w-8,8);
-   if(pick){tri(x+7,360,-1,T.gold);tri(x+w-11,360,1,T.gold);acts.push({id:(id==='2P'?'p2':'p1')+'-prev',label:'Previous character for '+id,x:x+1,y:350,w:18,h:24});acts.push({id:(id==='2P'?'p2':'p1')+'-next',label:'Next character for '+id,x:x+w-19,y:350,w:18,h:24});}}
+  function titleArt(y){var shot=measure('SHOT').w*6,cjk=2*20*2,gap=7,x=Math.round(198-(shot+gap+cjk)/2),top=y+38;
+   titleCJK('小朋友',154,y+3,'#120e23',14);titleCJK('小朋友',152,y,T.ink,14);
+   label('SHOT',x+3,top+4,6,'#120e23',330,70,1,'left');label('SHOT',x,top,6,T.gold,330,70,1,'left');
+   var cx=x+shot+gap,cy=top;titleCJK('樓梯',cx+3,cy+4,'#120e23',19);titleCJK('樓梯',cx,cy,T.ink,19);}
+  // one player slot (no frame): 2x idle sprite on its platform, name between arrows, one "2P  Z / C" line
+  function card(cx,hero,name,color,id,keyText,brick,pick,acts){var feet=282;
+   c.save();c.translate(Math.round(cx),feet);c.scale(2,2);d_.portrait(c,hero,0,0);c.restore();c.drawImage(brick,0,0,80,12,Math.round(cx-40),feet,80,12);
+   label(name,cx,feet+20,2,color,96,16);label(id+'  '+keyText,cx,feet+40,1,T.muted,120,8);
+   if(pick){tri(cx-60,feet+23,-1,T.gold);tri(cx+56,feet+23,1,T.gold);var slot=id==='2P'?'p2':'p1';acts.push({id:slot+'-prev',label:'Previous character for '+id,x:cx-67,y:feet+13,w:18,h:24});acts.push({id:slot+'-next',label:'Next character for '+id,x:cx+49,y:feet+13,w:18,h:24});}}
   function star(x,y){rect(x,y-3,1,7,T.gold);rect(x-3,y,7,1,T.gold);rect(x-1,y-1,3,3,T.gold);}
   function fmt(s,v){return String(s||'').replace(/\{(\w+)\}/g,function(_,k){return v[k]===undefined?'':v[k];});}
   function keys(k){return [k.left,k.right].map(function(x){return String(x).replace('Key','').replace('ArrowLeft','←').replace('ArrowRight','→');}).join('  ');}
@@ -66,14 +68,14 @@
    var next=[d.state,view,d.count,d.locked,names.join('\n'),d.pick,d.mode,JSON.stringify(t),JSON.stringify(p),typeof p.compute,JSON.stringify(d.cfg.characterSkin),d.cfg.beer.healAmount,keys(d.cfg.players.p1.keys),keys(d.cfg.players.p2.keys),d.total,d.pool,result?JSON.stringify(result):''].join('|');
    if(next!==key){key=next;builds++;layout=[];issues=[];c.clearRect(0,0,396,532);rect(19,61,358,471,T.bg);
     if(d.state==='ready'&&view==='title'){
-     box(34,83,328,410);label('EVENTMATIC ARCADE CLUB',198,94,1,T.wallHi);star(66,124);star(330,118);
-     titleArt();label('GOOD FRIENDS. BAD INFLUENCE.',198,208,1,T.muted);
+     rect(0,0,396,61,T.bg);box(34,26,328,446);label('EVENTMATIC ARCADE CLUB',198,42,1,T.wallHi);star(68,66);star(328,60);
+     titleArt(58);label('GOOD FRIENDS. BAD INFLUENCE.',198,148,1,T.muted);
      var solo=d.mode==='solo',picks=[];d_=d;
-     if(solo)card(128,140,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks);
-     else{card(46,138,d.heroes[1],names[1],T.p2,'2P',keys(d.cfg.players.p2.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks);
-      card(212,138,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.stone,d.pick,picks);
-      label('VS',200,296,2,'#120e23');label('VS',198,294,2,T.accent);} // retro VS accent, versus only
-     actions.push(button(402,'ENTER - START','start'));modeToggle(445,d.mode).forEach(function(a){actions.push(a);});label('\u2191 / \u2193  OR  1 / 2  -  MODE',198,469,1,T.wallHi,294,8);actions.push(secondary(500,'H - HOW TO PLAY','help',126));
+     if(solo)card(198,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks);
+     else{card(118,d.heroes[1],names[1],T.p2,'2P',keys(d.cfg.players.p2.keys).replace('  ',' / '),S.images.blueBrick,d.pick,picks);
+      card(278,d.heroes[0],names[0],T.p1,'1P',keys(d.cfg.players.p1.keys).replace('  ',' / '),S.images.stone,d.pick,picks);
+      label('VS',200,234,2,'#120e23');label('VS',198,232,2,T.accent);} // retro VS accent, versus only
+     actions.push(startButton(354,'ENTER - START','start',212));modeToggle(400,d.mode).forEach(function(a){actions.push(a);});label('\u2191 / \u2193  OR  1 / 2  -  MODE',198,422,1,T.wallHi,294,8);actions.push(secondary(440,'H - HOW TO PLAY','help',126));
      picks.forEach(function(a){actions.push(a);});
      summary='小朋友SHOT樓梯. '+(solo?'1 player solo: '+names[0]:'2 players versus: '+names[1]+' and '+names[0])+'. Up / Down or 1 / 2 changes mode. Enter to start. H for optional How to Play.'+(d.pick?(solo?' Change character: '+keys(d.cfg.players.p1.keys)+'.':' Change characters: 2P '+keys(d.cfg.players.p2.keys)+', 1P '+keys(d.cfg.players.p1.keys)+'.'):'');
     }else if(d.state==='ready'){

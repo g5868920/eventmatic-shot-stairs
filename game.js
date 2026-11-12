@@ -956,6 +956,10 @@
 		context.drawImage($S.images.wall, WALL_WIDTH + STAGE_WIDTH, MARGIN_TOP);
 
 		buttonRect = null;
+		if (screens && gameState === 'ready') { // the HUD band takes the screen background (title layer draws over it)
+			context.fillStyle = (arcade && arcade.tokens && arcade.tokens.bg) || COLORS.hud;
+			context.fillRect(0, 0, VIEW_WIDTH, MARGIN_TOP);
+		}
 		if (screens && gameState === 'playing') {
 			screens.hide();
 		} else if (screens) {
@@ -991,7 +995,11 @@
 			context.restore();
 		}
 
-		drawTopBar(context);
+		if (!(screens && gameState === 'ready')) {
+			drawTopBar(context); // SHOT: no gameplay HUD on the READY / title screens
+		} else {
+			topBarChange = true;
+		}
 		if (screens) screens.finish(gameState);
 
 		if (window.DEBUG) {

@@ -30,7 +30,7 @@
       textCache.set(key,a);return a;
     }
     function center(c,label,x,y){c.drawImage(label,Math.round(x-label.width/2),Math.round(y));}
-    var flipSheet;
+    var flipSheet,conveyorTiles={};
     function installArt(){
       var a,c,x,y;
       a=canvas(80,12);c=a.getContext('2d');rect(c,0,0,80,12,T.blue);rect(c,0,0,80,2,T.blueHi);rect(c,0,6,80,1,'#28558c');rect(c,0,10,80,2,'#244971');for(x=0;x<80;x+=20){rect(c,x,2,1,4,'#28558c');rect(c,x+10,7,1,4,'#28558c');rect(c,x+2,3,9,1,T.blueHi);}S.images.blueBrick=a;
@@ -42,15 +42,12 @@
         for(var f=0;f<4;f++){
           var yy=f*12;rect(c,0,yy,80,12,T.steel);rect(c,0,yy,80,2,T.ink);rect(c,0,yy+9,80,3,'#536078');
           for(x=3;x<77;x+=10){rect(c,x,yy+3,6,5,'#57657d');rect(c,x+1+(f%3),yy+3,2,2,T.ink);}
-          c.save();c.beginPath();c.rect(3,yy+2,74,7);c.clip();
-          // Left frames advance; right frames run backwards. A 24 px repeat makes the loop seamless.
-          for(var ax=-24-f*6;ax<80;ax+=24){
-            rect(c,ax-1,yy+2,15,7,T.bg);rect(c,ax+(dir>0?0:3),yy+4,10,3,T.gold);
-            for(var row=0;row<7;row++){var head=4-Math.abs(row-3);rect(c,ax+(dir>0?9:4-head),yy+2+row,head,1,T.gold);}
-          }
-          c.restore();
         }
         S.images[dir>0?'conveyorRight':'conveyorLeft']=a;
+        var tile=canvas(40,7),tc=tile.getContext('2d');
+        rect(tc,14,0,12,7,T.bg);rect(tc,15+(dir>0?0:2),2,8,2,T.steel);
+        for(var row=0;row<6;row++){var head=3-Math.floor(Math.abs(row-2.5));rect(tc,15+(dir>0?7:3-head),row,head,1,T.steel);}
+        conveyorTiles[dir]=tile;
       }
       // Cached rotation poses: top face, edge, underside, then a final thin edge before removal.
       flipSheet=canvas(80,84);var flipCtx=flipSheet.getContext('2d');flipCtx.imageSmoothingEnabled=false;
@@ -119,6 +116,14 @@ if(canvasNode){canvasNode.setAttribute('role','img');canvasNode.setAttribute('ar
     }if(active>peak)peak=active;}
     function contact(a,b,time){var touching=Math.abs(a.y-b.y)<26&&Math.abs(Math.abs(a.x-b.x)-26)<0.05;if(touching&&!pushHeld){var e=add(5,null,'BUMP',T.ink,time,260);e.x=(a.x+b.x+26)/2;e.y=(a.y+b.y)/2;pushBursts++;}pushHeld=touching;}
     return {
+      conveyorArrows:function(c,dir,x,y,w){
+        x=Math.round(x);y=Math.round(y);w=Math.round(w);
+        // Two 10 x 6 px arrows per native belt; 28.8 px/s is 40% of the previous 60 FPS motion.
+        var phase=Math.floor(clock*0.0288)%40,offset=dir>0?phase:-phase;
+        c.save();c.beginPath();c.rect(x+3,y-10,w-6,7);c.clip();
+        for(var at=x-40+offset;at<x+w;at+=40)c.drawImage(conveyorTiles[dir>0?1:-1],at,y-10);
+        c.restore();
+      },
       flipping:function(c,x,y,w,remaining){
         if(remaining<=0)return;
         var pose=Math.min(6,Math.floor((1-Math.min(1,remaining))*7));

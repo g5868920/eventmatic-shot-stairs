@@ -172,6 +172,7 @@
       drawConveyor: function (ctx, dir, f, x, y, w) {
         var sheet = dir > 0 ? img.conveyorRight : img.conveyorLeft;
         slice(ctx, sheet, (f & 3) * 12, 12, x, y - 12, w || sheet.width, 12);
+        if (S.arcade) S.arcade.conveyorArrows(ctx, dir, x, y, w || sheet.width);
       },
       /** draw the spring at its current height (bottom edge at y), width w */
       drawSpring: function (ctx, x, y, height, w) {

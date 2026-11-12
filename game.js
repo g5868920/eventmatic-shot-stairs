@@ -1383,7 +1383,8 @@
 			floors: { p1: p1.floors, p2: p2.floors, total: total },
 			beers: { p1: p1.beers, p2: p2.beers },
 			life: { p1: p1.life, p2: p2.life },
-			penalty: computePenalty(total),
+			penalty: loser ? computePenalty(total) : 0, // SHOT: a draw assigns no penalty to anybody
+			shotPool: computePenalty(total), // the round's calculated pool (assigned to the loser; unassigned on a draw)
 			penaltyUnit: CONFIG.penalty.unit,
 			config: { floorsPerStep: CONFIG.penalty.floorsPerStep, shotsPerStep: CONFIG.penalty.shotsPerStep, maxShots: CONFIG.penalty.maxShots, platformWidth: FLOOR_WIDTH, beerHeal: CONFIG.beer.healAmount, beerChance: CONFIG.beer.spawnChance }
 		};
@@ -1562,14 +1563,21 @@
 		var screenWidth = document.documentElement.clientWidth;
 		var screenHeight = document.documentElement.clientHeight;
 		var zoomRate = Math.min(screenWidth / VIEW_WIDTH, screenHeight / STAGE_HEIGHT); // SHOT: canvas includes the walls
-		if (zoomRate >= 1) zoomRate = Math.floor(zoomRate); // SHOT: integer pixels; portrait aspect retained
 		var ratio = window.devicePixelRatio || 1;
-		$canvas.style.width = (VIEW_WIDTH * zoomRate) + 'px';
-		$canvas.style.height = (STAGE_HEIGHT * zoomRate) + 'px';
-		$canvas.width = VIEW_WIDTH * zoomRate * ratio;
-		$canvas.height = STAGE_HEIGHT * zoomRate * ratio;
-		
-		$ctx.setTransform(zoomRate * ratio, 0, 0, zoomRate * ratio, 0, 0);
+		var renderRate = zoomRate * ratio;
+		if (zoomRate >= 1) {
+			// SHOT: one uniform scale (portrait aspect retained, never stretched). A whole-pixel multiple when it
+			// nearly fills the screen (2x of 2.03 at 1080p); otherwise fill the height (1.35x at 720p): draw at a
+			// whole multiple and let the browser upscale it nearest-neighbour (image-rendering: pixelated).
+			var whole = Math.floor(zoomRate);
+			if ((CONFIG.display || {}).fit === 'integer' || whole / zoomRate >= 0.9) zoomRate = whole;
+			renderRate = Math.max(1, Math.floor(zoomRate * ratio + 1e-6));
+		}
+		$canvas.style.width = Math.round(VIEW_WIDTH * zoomRate) + 'px';
+		$canvas.style.height = Math.round(STAGE_HEIGHT * zoomRate) + 'px';
+		$canvas.width = Math.round(VIEW_WIDTH * renderRate);
+		$canvas.height = Math.round(STAGE_HEIGHT * renderRate);
+		$ctx.setTransform(renderRate, 0, 0, renderRate, 0, 0);
 		$ctx.imageSmoothingEnabled = false; // SHOT: keep pixel art crisp on large projector scales
 		topBarChange = true;
 		if (lastTime || screens) {

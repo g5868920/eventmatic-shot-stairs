@@ -17,6 +17,11 @@
 	dd{display: list-item; font-size: 12pt; margin-left: 1.5em;}
 	footer{font-size: 10pt; color: #666; text-align: center; margin: 1em;}
 	html, body{background: #1c0f22;}
+	/* SHOT: landscape screens / projectors: game centred in the viewport, attribution in the side pillarbox */
+	@media (min-aspect-ratio: 4/3) {
+		#content{display: flex; align-items: center; justify-content: center; height: 100vh;}
+		footer{position: fixed; left: 0; bottom: 0; margin: 0 0 .8em 1em; text-align: left; max-width: calc(50vw - 37.3vh - 2em);}
+	}
 </style>
 </head>
 <body>

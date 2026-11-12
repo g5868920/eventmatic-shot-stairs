@@ -46,6 +46,11 @@ window.SHOT_CONFIG = {
     }
   },
 
+  // Screen fit (rendering only). 'fill': whole-pixel scale when it nearly fills the screen (2x at 1080p),
+  // otherwise fill the height with a nearest-neighbour upscale (about 1.35x at 720p). 'integer': whole
+  // multiples only. The 396 x 532 game is never stretched or cropped.
+  display: { fit: 'fill' },
+
   platform: {
     // Width of every generated platform in px (playable area is 360 px). Applied from the next round.
     width: 80,
@@ -97,7 +102,11 @@ window.SHOT_CONFIG = {
     floors: '1P {p1} + 2P {p2} = {total} FLOORS',
     shots: '{n} {unit}',
     penaltyLabel: "LOSER'S PENALTY",
-    penaltyLabelDraw: 'PENALTY',
+    penaltyLabelDraw: 'DRAW - REMATCH',
+    drawShots: 'NO SHOTS',             // a draw assigns no penalty; the pool is shown as unassigned
+    drawNote: 'NOBODY DRINKS',
+    drawPool: 'SHOT POOL {n} {unit} - NOT ASSIGNED',
+    drawReset: 'POOL RESETS ON REMATCH',
     playAgain: 'play again',
     resume: 'continue',
     rematch: 'PRESS ENTER TO REMATCH',
@@ -139,6 +148,7 @@ window.SHOT_CONFIG = {
         c.audio.files[k] = mode === '0' ? null : (mode === 'local' ? 'assets/audio/local/' + (k === 'hurt' ? 'hurt' : 'fall-dead') + '.mp3' : c.audio.files[k]);
       });
     }
+    if (q.has('fit')) { c.display.fit = q.get('fit'); }
     if (q.has('unit')) { c.penalty.unit = q.get('unit'); c.penalty.unitPlural = q.get('unitPlural') || q.get('unit') + 's'; }
   } catch (e) { /* ignore malformed URLs */ }
 })();

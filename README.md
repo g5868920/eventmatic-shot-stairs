@@ -14,7 +14,9 @@ python3 tools/serve.py 8765
 ```
 
 then open http://127.0.0.1:8765/ (or open `index.html` directly). The canvas scales to the
-window, so a full-screen browser on a projector works as is.
+window with one uniform scale and is centred, so a full-screen browser on a projector works as is:
+2× whole pixels at 1920 × 1080, filled to the full height (about 1.35×, nearest-neighbour) at 1280 × 720.
+`?fit=integer` (or `display.fit` in `config.js`) keeps whole-pixel multiples only.
 
 | Player | Left | Right |
 |---|---|---|
@@ -41,7 +43,7 @@ Background music: "8 Bit Retro Game Music" by moodmode (Pixabay); see docs/AUDIO
 * **Pushing** (new): players are solid to each other. Walking into the other player pushes them along at walking speed, even off a platform edge, where they fall normally. Equal opposite pushes cancel. Walls stop the pushed player. No damage or knockback from contact.
 * **Beer mug** (new): a mug spawns on a random floor (`beer.spawnChance`) and heals `beer.healAmount`. It never changes the penalty.
 * **HUD**: approved B heart LIFE blocks and names (2P left, 1P right; 12 segments), central SHOT POOL / SHOTS and a separate combined-floor indicator. The penalty remains: `floor((1P floors + 2P floors) / 10) × 0.5`, so 10 floors = 0.5, 20 = 1, 30 = 1.5. It starts at 0. Rate (`penalty.floorsPerStep`, `penalty.shotsPerStep`) and an optional cap (`penalty.maxShots`) are configurable.
-* **Round end** (new): the first player to die loses. The panel shows the loser by name (`players.pN.name`, else the custom character, else 1P/2P), `1P a + 2P b = total floors` and, largest, the shots with "LOSER'S PENALTY". Both dead in the same step = draw. Click PLAY AGAIN or press Enter to rematch.
+* **Round end** (new): the first player to die loses. The panel shows the loser by name (`players.pN.name`, else the custom character, else 1P/2P), `1P a + 2P b = total floors` and, largest, the shots with "LOSER'S PENALTY". Both dead in the same step = draw: "DRAW - REMATCH", no shots for anybody (`result.penalty` is 0; the calculated pool stays in `result.shotPool` as a statistic and resets with the rematch). Click PLAY AGAIN or press Enter to rematch.
 
 Phase 1 B gameplay visuals and cosmetic feedback are integrated. See [the verification report](docs/PHASE1_REPORT.md) and [screenshots](docs/evidence/phase1/index.html). Phase 0 remains the visual source of truth; Phase 2 screens require separate approval.
 

@@ -64,13 +64,19 @@
     }else if(d.state==='over'&&result){
      box(30,83,336,408);label('ROUND OVER',198,104,2,T.muted);var loser=result.loser?names[result.loser==='p1'?0:1]:'';var outcome=result.loser?fmt(t.loses,{player:loser}):t.draw;
      if(measure(outcome).w*3<=304&&measure(outcome).h===7)label(outcome,198,139,3,T.ink,304,28);
-     else if(result.loser&&t.loses==='{player} LOSES!'){label(loser,198,126,2,T.ink,304,28,2);label('LOSES!',198,156,2,T.ink,304,16);}
+     else if(result.loser&&t.loses==='{player} LOSES!'){var nameH=label(loser,198,121,2,T.ink,304,32,2);label('LOSES!',198,121+nameH+2,2,T.ink,304,16);}
      else label(outcome,198,125,3,T.ink,304,48,2);
-     ribbon(181,result.loser?t.penaltyLabel:t.penaltyLabelDraw);var exact=d.format(result.penalty),value=exact.length>10?Number(result.penalty).toExponential(2):exact;label(value,201,224,12,'#100e1c',304,88);label(value,198,220,12,T.gold,304,88);
+     if(!result.loser){var pool=result.shotPool!==undefined?result.shotPool:result.penalty,poolText=d.format(pool),poolUnit=pool===1?p.unit:p.unitPlural,floorsD=result.floors;
+      ribbon(181,t.penaltyLabelDraw||'DRAW - REMATCH');label(t.drawShots||'NO SHOTS',201,229,7,'#100e1c',304,50);label(t.drawShots||'NO SHOTS',198,225,7,T.gold,304,50);label(t.drawNote||'NOBODY DRINKS',198,288,3,T.ink,304,24);label(fmt(t.drawPool,{n:poolText,unit:poolUnit||p.unit}),198,330,1,T.muted,294,24,2);
+      rect(51,365,294,1,T.wallHi);var detailD=fmt(t.floors,{p1:floorsD.p1,p2:floorsD.p2,total:floorsD.total,n1:names[0],n2:names[1]});var usedD=label(detailD,198,384,1,T.ink,294,36,3);if(usedD<=18)label(t.drawReset||'',198,406,1,T.muted,294,19,2);
+      var exact='0',unit=p.unitPlural||p.unit,detail=detailD+'. '+fmt(t.drawPool,{n:poolText,unit:poolUnit||p.unit});
+     }else{
+     ribbon(181,t.penaltyLabel);var exact=d.format(result.penalty),value=exact.length>10?Number(result.penalty).toExponential(2):exact;label(value,201,224,12,'#100e1c',304,88);label(value,198,220,12,T.gold,304,88);
      var unit=result.penalty===1?p.unit:p.unitPlural;label(unit||p.unit,198,321,4,T.gold,304,34);if(value!==exact)label(exact,198,351,1,T.muted,304,10);
      rect(51,365,294,1,T.wallHi);var floors=result.floors;var detail=fmt(t.floors,{p1:floors.p1,p2:floors.p2,total:floors.total,n1:names[0],n2:names[1]});var used=label(detail,198,384,1,T.ink,294,36,3);if(used<=18)label(typeof p.compute==='function'?formula(d):(p.maxShots!==null&&p.maxShots!==undefined?'MIN('+d.format(p.maxShots)+', ':'')+'FLOOR('+floors.total+' / '+(p.floorsPerStep>0?p.floorsPerStep:10)+') × '+d.format(p.shotsPerStep)+(p.maxShots!==null&&p.maxShots!==undefined?')':'')+' = '+exact,198,406,1,T.muted,294,19,2);
+     }
      if(!d.locked)actions.push(button(436,t.playAgain,'rematch'));else label('ROUND COMPLETE',198,448,1,T.muted);label(t.rematch,198,477,1,T.muted,294,13);
-     summary='Round over. '+outcome+'. '+(result.loser?t.penaltyLabel:t.penaltyLabelDraw)+': '+exact+' '+unit+'. '+detail+'. '+(!d.locked?t.playAgain:'Rematch available after the existing cooldown.');
+     summary='Round over. '+outcome+'. '+(result.loser?t.penaltyLabel+': '+exact+' '+unit:(t.penaltyLabelDraw||'DRAW - REMATCH')+'. '+(t.drawShots||'NO SHOTS')+'. '+(t.drawNote||''))+'. '+detail+'. '+(!d.locked?t.playAgain:'Rematch available after the existing cooldown.');
     }
     sync(actions);
    }else{ // Resize may leave content unchanged while CSS hit areas need a new scale.

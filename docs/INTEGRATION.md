@@ -8,7 +8,9 @@ ShotStairs.configure({ penalty: { floorsPerStep: 10, shotsPerStep: 0.5, maxShots
 ShotStairs.on('roundEnd', function (result) {
   // result.loser: 'p1' | 'p2' | null (draw)
   // result.floors: { p1, p2, total }
-  // result.penalty: shots, a multiple of shotsPerStep (default 0.5), result.penaltyUnit: string
+  // result.penalty: shots for the loser, a multiple of shotsPerStep (default 0.5); 0 on a draw (nobody drinks)
+  // result.shotPool: the round's calculated pool (same as penalty when there is a loser; unassigned on a draw)
+  // result.penaltyUnit: string
   // result.beers: { p1, p2 }, result.life: { p1, p2 }
 });
 ShotStairs.start();          // start a round (READY / GAME OVER); from PAUSED: resume with countdown

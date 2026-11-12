@@ -34,7 +34,7 @@
      *   'gameStart'            — a new round began
      *   'beer'    (playerId, lifeAfter)
      *   'roundEnd' (result)    — result = { loser, winner, draw, floors:{p1,p2,total},
-     *                            beers:{p1,p2}, life:{p1,p2}, penalty, penaltyUnit, config }
+     *                            beers:{p1,p2}, life:{p1,p2}, penalty (0 on a draw), shotPool, penaltyUnit, config }
      */
     on: Game.on,
     off: Game.off,

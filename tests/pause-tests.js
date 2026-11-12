@@ -63,6 +63,14 @@
     'state ' + paused + '; world unchanged over 5 s: ' + (before === after) + '; events while paused ' + JSON.stringify(gameEvents) +
     '; music paused at ' + m.position + ' s (was ' + musicPosBefore + ')');
 
+  // 2b. keys pressed on the pause / quit screens never start the music (the audio unlock listens to keydown)
+  var startsPaused = ShotAudio.music().starts;
+  key('ShiftLeft'); key('ShiftLeft', 'keyup'); tap('Escape'); tap('Escape'); key('KeyZ'); key('KeyZ', 'keyup');
+  await wait(150);
+  var mp = ShotAudio.music();
+  check('keys while paused leave the music paused (no restart)', state() === 'paused' && !mp.playing && mp.paused && mp.starts === startsPaused && mp.position === m.position,
+    'after Shift, Esc, Esc, Z on the pause screens: playing ' + mp.playing + ', position ' + mp.position + ' (paused at ' + m.position + '), starts ' + startsPaused + ' -> ' + mp.starts);
+
   // 3. Space resumes with a 3-2-1 countdown, still frozen; then play continues without stale input
   tap('Space');
   var seen = [], frozen = true, snapC = snap();
@@ -85,8 +93,8 @@
   check('timers froze: flipping floor kept its remaining time', onFakeBefore && fake.getHeight() < 12 && fake.getHeight() >= 0,
     'stood 200 ms before a 5 s pause + 3 s countdown; floor height now ' + fake.getHeight().toFixed(1) + ' (turning only after resume, not instantly collapsed)');
   var mm = ShotAudio.music();
-  check('music resumes from its paused position', mm.playing && mm.position !== null && mm.position >= m.position && mm.position - m.position < 1.0,
-    'paused at ' + m.position + ' s, now ' + mm.position + ' s');
+  check('music resumes from its paused position', mm.playing && mm.position !== null && mm.position >= m.position && mm.position - m.position < 1.0 && mm.starts === startsPaused,
+    'paused at ' + m.position + ' s, now ' + mm.position + ' s, starts ' + startsPaused + ' -> ' + mm.starts + ' (resume, not a restart)');
   key('ArrowLeft', 'keyup');
 
   // 4. controls stay with the players while playing

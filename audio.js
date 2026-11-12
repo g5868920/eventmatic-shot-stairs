@@ -272,12 +272,18 @@
   }
 
   /* ---------- browser autoplay unlock ---------- */
+  // music the round wants right now: never while the game is paused (a key pressed on the pause / quit
+  // screen used to restart the track from the top); continue from a held position when there is one
+  var gamePaused = false;
+  function playWantedMusic() {
+    if (wantMusic && !gamePaused && !resumeMusic()) startMusic();
+  }
   function unlock() {
     if (ctx && ctx.state === 'suspended') {
       var p = ctx.resume();
-      if (p && p.then) p.then(function () { if (wantMusic) startMusic(); });
-    } else if (ctx && wantMusic) {
-      startMusic();
+      if (p && p.then) p.then(playWantedMusic);
+    } else if (ctx) {
+      playWantedMusic();
     }
   }
   ['keydown', 'pointerdown', 'touchstart', 'mousedown'].forEach(function (type) {
@@ -350,17 +356,19 @@
     Game.on('flip', function (playerId) { play('flip', playerId); });                // once per flipping platform
     // background music follows the round: start (or keep playing) on a new round, fade out at the end
     Game.on('gameStart', function () {
+      gamePaused = false;
       wantMusic = music.enabled;
       if (wantMusic) startMusic();
     });
     Game.on('roundEnd', function () {
+      gamePaused = false;
       wantMusic = false;
       stopMusic(music.fadeOut);
     });
     // pause keeps the position; resume (after the 3-2-1 countdown) continues; quitting a round fades out
-    Game.on('pause', function () { pauseMusic(); });
-    Game.on('resume', function () { if (wantMusic && !resumeMusic()) startMusic(); });
-    Game.on('roundAbandoned', function () { wantMusic = false; stopMusic(music.fadeOut); });
+    Game.on('pause', function () { gamePaused = true; pauseMusic(); });
+    Game.on('resume', function () { gamePaused = false; playWantedMusic(); });
+    Game.on('roundAbandoned', function () { gamePaused = false; wantMusic = false; stopMusic(music.fadeOut); });
   }
 
   var ready = init();
